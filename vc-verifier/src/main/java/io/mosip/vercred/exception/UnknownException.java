@@ -2,9 +2,9 @@ package io.mosip.vercred.exception;
 	
 
 /**
- * The Class ProofDocumentNotFoundException.
+ * The Class UnknownException.
  * 
- * @author M1049387
+ * @author Dhanendra
  */
 public class UnknownException extends BaseUncheckedException {
 
@@ -12,14 +12,14 @@ public class UnknownException extends BaseUncheckedException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Instantiates a new apis resource access exception.
+	 * Instantiates a new unknown exception.
 	 */
 	public UnknownException() {
 		super();
 	}
 
 	/**
-	 * Instantiates a new apis resource access exception.
+	 * Instantiates a new unknown exception.
 	 *
 	 * @param message the message
 	 */
@@ -28,7 +28,7 @@ public class UnknownException extends BaseUncheckedException {
 	}
 
 	/**
-	 * Instantiates a new apis resource access exception.
+	 * Instantiates a new unknown exception.
 	 *
 	 * @param message the message
 	 * @param cause the cause

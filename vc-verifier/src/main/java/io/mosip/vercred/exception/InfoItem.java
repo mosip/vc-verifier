@@ -7,7 +7,7 @@ import java.io.Serializable;
  * This class is the entity class for the BaseUncheckedException and
  * BaseCheckedException class.
  * 
- * @author Shashank Agrawal
+ * @author Dhanendra Sahu
  * @since 1.0
  */
 class InfoItem implements Serializable {

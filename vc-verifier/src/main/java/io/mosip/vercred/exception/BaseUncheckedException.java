@@ -17,7 +17,7 @@ import java.util.List;
  * execution of the method or constructor and propagate outside the method or
  * constructor boundary.
  *
- * @author Shashank Agrawal Compile-Time Checking of Exceptions
+ * @author Dhanendra
  * @since 1.0
  */
 public class BaseUncheckedException extends RuntimeException {

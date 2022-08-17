@@ -4,7 +4,7 @@ package io.mosip.vercred.exception;
 /**
  * The Class ProofDocumentNotFoundException.
  * 
- * @author M1049387
+ * @author Dhanendra
  */
 public class ProofDocumentNotFoundException extends BaseUncheckedException {
 
@@ -12,14 +12,14 @@ public class ProofDocumentNotFoundException extends BaseUncheckedException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Instantiates a new apis resource access exception.
+	 * Instantiates a new proofDocument not found exception.
 	 */
 	public ProofDocumentNotFoundException() {
 		super();
 	}
 
 	/**
-	 * Instantiates a new apis resource access exception.
+	 * Instantiates a new proofDocument not found exception.
 	 *
 	 * @param message the message
 	 */
@@ -28,7 +28,7 @@ public class ProofDocumentNotFoundException extends BaseUncheckedException {
 	}
 
 	/**
-	 * Instantiates a new apis resource access exception.
+	 * Instantiates a new proofDocument not found exception.
 	 *
 	 * @param message the message
 	 * @param cause the cause
