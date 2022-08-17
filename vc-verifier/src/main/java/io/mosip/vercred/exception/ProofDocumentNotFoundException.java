@@ -23,8 +23,8 @@ public class ProofDocumentNotFoundException extends BaseUncheckedException {
 	 *
 	 * @param message the message
 	 */
-	public ProofDocumentNotFoundException(String errorCode, String message) {
-		super(errorCode, message);
+	public ProofDocumentNotFoundException(String message) {
+		super(message);
 	}
 
 	/**

@@ -23,8 +23,8 @@ public class ProofTypeNotFoundException extends BaseUncheckedException {
 	 *
 	 * @param message the message
 	 */
-	public ProofTypeNotFoundException(String errorCode, String message) {
-		super(errorCode, message);
+	public ProofTypeNotFoundException(String message) {
+		super(message);
 	}
 
 	/**

@@ -23,8 +23,8 @@ public class UnknownException extends BaseUncheckedException {
 	 *
 	 * @param message the message
 	 */
-	public UnknownException(String errorCode, String message) {
-		super(errorCode, message);
+	public UnknownException(String message) {
+		super(message);
 	}
 
 	/**

@@ -23,6 +23,7 @@ import com.nimbusds.jose.JWSObject;
 
 import io.mosip.vercred.exception.ProofDocumentNotFoundException;
 import io.mosip.vercred.exception.ProofTypeNotFoundException;
+import io.mosip.vercred.exception.PubicKeyNotFoundException;
 import io.mosip.vercred.exception.UnknownException;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -108,14 +109,14 @@ public class CredentialsVerifier {
         LdProof ldProofWithJWS = LdProof.getFromJsonLDObject(vcJsonLdObject);
         if (Objects.isNull(ldProofWithJWS)) {
             CredVerifierLogger.error("Proof document is not available in the received credentials.");
-            throw new ProofDocumentNotFoundException();
+            throw new ProofDocumentNotFoundException("Proof document is not available in the received credentials.");
         }
 
         String ldProofTerm = ldProofWithJWS.getType();
         if (!CredentialVerifierConstants.SIGNATURE_SUITE_TERM.equals(ldProofTerm)) {
             CredVerifierLogger.error("Proof Type available in received credentials is not matching " +
                     " with supported proof terms. Recevied Type: {}", ldProofTerm);
-            throw new ProofTypeNotFoundException();
+            throw new ProofTypeNotFoundException("Proof Type available in received credentials is not matching with supported proof terms.");
         }
 
         try {
@@ -130,7 +131,7 @@ public class CredentialsVerifier {
             PublicKey publicKeyObj = getPublicKeyFromVerificationMethod(publicKeyJsonUri);
             if (Objects.isNull(publicKeyObj)) {
                 CredVerifierLogger.error("Public key object is null, returning false.");
-                return false;
+                throw new PubicKeyNotFoundException("Public key object is null.");
             }
             CredVerifierLogger.info("Completed downloading public key from the issuer domain and constructed public key object.");
             byte[] actualData = JWSUtil.getJwsSigningInput(jwsObject.getHeader(), canonicalHashBytes);
@@ -139,7 +140,7 @@ public class CredentialsVerifier {
             return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
         } catch (IOException | GeneralSecurityException | JsonLDException | ParseException e) {
             CredVerifierLogger.error("Error in doing verifiable credential verification process.", e);
-            throw new UnknownException();
+            throw new UnknownException("Error in doing verifiable credential verification process.");
         }
     }
 
