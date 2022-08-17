@@ -21,6 +21,10 @@ import java.util.Objects;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jose.JWSObject;
 
+import io.mosip.vercred.exception.ProofDocumentNotFoundException;
+import io.mosip.vercred.exception.ProofTypeNotFoundException;
+import io.mosip.vercred.exception.PubicKeyNotFoundException;
+import io.mosip.vercred.exception.UnknownException;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.slf4j.Logger;
@@ -92,6 +96,53 @@ public class CredentialsVerifier {
         return false;
     }
 
+    public boolean verifyPrintCredentials(String credentials){
+        CredVerifierLogger.info("Received Credentials Verification - Start.");
+        ConfigurableDocumentLoader confDocumentLoader = new ConfigurableDocumentLoader();
+        confDocumentLoader.setEnableHttps(true);
+        confDocumentLoader.setEnableHttp(true);
+        confDocumentLoader.setEnableFile(false);
+
+        JsonLDObject vcJsonLdObject = JsonLDObject.fromJson(credentials);
+        vcJsonLdObject.setDocumentLoader(confDocumentLoader);
+
+        LdProof ldProofWithJWS = LdProof.getFromJsonLDObject(vcJsonLdObject);
+        if (Objects.isNull(ldProofWithJWS)) {
+            CredVerifierLogger.error("Proof document is not available in the received credentials.");
+            throw new ProofDocumentNotFoundException("Proof document is not available in the received credentials.");
+        }
+
+        String ldProofTerm = ldProofWithJWS.getType();
+        if (!CredentialVerifierConstants.SIGNATURE_SUITE_TERM.equals(ldProofTerm)) {
+            CredVerifierLogger.error("Proof Type available in received credentials is not matching " +
+                    " with supported proof terms. Recevied Type: {}", ldProofTerm);
+            throw new ProofTypeNotFoundException("Proof Type available in received credentials is not matching with supported proof terms.");
+        }
+
+        try {
+
+            URDNA2015Canonicalizer canonicalizer =	new URDNA2015Canonicalizer();
+            byte[] canonicalHashBytes = canonicalizer.canonicalize(ldProofWithJWS, vcJsonLdObject);
+            CredVerifierLogger.info("Completed Canonicalization for the received credentials.");
+            String signJWS = ldProofWithJWS.getJws();
+            JWSObject jwsObject = JWSObject.parse(signJWS);
+            byte[] vcSignBytes = jwsObject.getSignature().decode();
+            URI publicKeyJsonUri = ldProofWithJWS.getVerificationMethod();
+            PublicKey publicKeyObj = getPublicKeyFromVerificationMethod(publicKeyJsonUri);
+            if (Objects.isNull(publicKeyObj)) {
+                CredVerifierLogger.error("Public key object is null, returning false.");
+                throw new PubicKeyNotFoundException("Public key object is null.");
+            }
+            CredVerifierLogger.info("Completed downloading public key from the issuer domain and constructed public key object.");
+            byte[] actualData = JWSUtil.getJwsSigningInput(jwsObject.getHeader(), canonicalHashBytes);
+            String jwsHeader = jwsObject.getHeader().getAlgorithm().getName();
+            CredVerifierLogger.info("Performing signature verification after downloading the public key.");
+            return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
+        } catch (IOException | GeneralSecurityException | JsonLDException | ParseException e) {
+            CredVerifierLogger.error("Error in doing verifiable credential verification process.", e);
+            throw new UnknownException("Error in doing verifiable credential verification process.");
+        }
+    }
 
     private PublicKey getPublicKeyFromVerificationMethod(URI publicKeyJsonUri){
         
