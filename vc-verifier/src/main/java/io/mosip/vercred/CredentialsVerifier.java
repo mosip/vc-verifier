@@ -3,6 +3,7 @@ package io.mosip.vercred;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -16,8 +17,12 @@ import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PSSParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+import com.apicatalog.jsonld.JsonLdError;
+import com.apicatalog.jsonld.document.JsonDocument;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jose.JWSObject;
 
@@ -30,6 +35,7 @@ import org.bouncycastle.util.io.pem.PemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 
@@ -45,15 +51,18 @@ public class CredentialsVerifier {
 
     Logger CredVerifierLogger = LoggerFactory.getLogger(CredentialsVerifier.class);
 
+    @Value("#{${mosip.vercred.verify.context.url.map}}")
+	private Map<String, String> vcContextUrlMap;
+
+    @Value("${mosip.ida.config.server.file.storage.uri:}")
+	private String configServerFileStorageUrl;
+
     @Autowired
 	private RestTemplate restTemplate;
-    
-    public boolean verifyCredentials(String credentials){
+
+    public boolean verifyCredentials(String credentials) {
         CredVerifierLogger.info("Received Credentials Verification - Start.");
-        ConfigurableDocumentLoader confDocumentLoader = new ConfigurableDocumentLoader();
-		confDocumentLoader.setEnableHttps(true);
-		confDocumentLoader.setEnableHttp(true);
-		confDocumentLoader.setEnableFile(false);
+        ConfigurableDocumentLoader confDocumentLoader = getConfigurableDocumentLoader();
 
         JsonLDObject vcJsonLdObject = JsonLDObject.fromJson(credentials);
         vcJsonLdObject.setDocumentLoader(confDocumentLoader);
@@ -98,10 +107,7 @@ public class CredentialsVerifier {
 
     public boolean verifyPrintCredentials(String credentials){
         CredVerifierLogger.info("Received Credentials Verification - Start.");
-        ConfigurableDocumentLoader confDocumentLoader = new ConfigurableDocumentLoader();
-        confDocumentLoader.setEnableHttps(true);
-        confDocumentLoader.setEnableHttp(true);
-        confDocumentLoader.setEnableFile(false);
+        ConfigurableDocumentLoader confDocumentLoader = getConfigurableDocumentLoader();
 
         JsonLDObject vcJsonLdObject = JsonLDObject.fromJson(credentials);
         vcJsonLdObject.setDocumentLoader(confDocumentLoader);
@@ -193,4 +199,38 @@ public class CredentialsVerifier {
         return false;
     }
 
+    private ConfigurableDocumentLoader getConfigurableDocumentLoader() {
+
+        CredVerifierLogger.info("Creating ConfigurableDocumentLoader Object with configured URLs.");
+        
+        ConfigurableDocumentLoader confDocumentLoader = new ConfigurableDocumentLoader();
+        if(Objects.isNull(vcContextUrlMap)){
+			CredVerifierLogger.warn("CredentialsVerifier::getConfigurableDocumentLoader " +
+                    "Warning - Verifiable Credential Context URL Map not configured.");
+			confDocumentLoader = new ConfigurableDocumentLoader();
+			confDocumentLoader.setEnableHttps(true);
+			confDocumentLoader.setEnableHttp(true);
+			confDocumentLoader.setEnableFile(false);
+		} else {
+			Map<URI, JsonDocument> jsonDocumentCacheMap = new HashMap<URI, JsonDocument> ();
+			vcContextUrlMap.keySet().stream().forEach(contextUrl -> {
+				String localConfigUri = vcContextUrlMap.get(contextUrl);
+                String vcContextJson = restTemplate.getForObject(configServerFileStorageUrl + localConfigUri, String.class);
+				try {
+                    JsonDocument jsonDocument = JsonDocument.of(new StringReader(vcContextJson));
+					jsonDocumentCacheMap.put(new URI(contextUrl), jsonDocument);
+				} catch (URISyntaxException | JsonLdError e) {
+                    CredVerifierLogger.error("Error downloading Context files from config service.localConfigUri: " + localConfigUri +
+                            "contextUrl: " + contextUrl, e);
+				} 
+			});
+			confDocumentLoader = new ConfigurableDocumentLoader(jsonDocumentCacheMap);
+			confDocumentLoader.setEnableHttps(false);
+			confDocumentLoader.setEnableHttp(false);
+			confDocumentLoader.setEnableFile(false);
+			CredVerifierLogger.info( "CredentialsVerifier::getConfigurableDocumentLoader" + 
+					"Added cache for the list of configured URL Map: " + jsonDocumentCacheMap.keySet().toString());
+		}
+        return confDocumentLoader;
+    }
 }
