@@ -54,7 +54,7 @@ public class CredentialsVerifier {
     @Value("#{${mosip.vercred.verify.context.url.map}}")
 	private Map<String, String> vcContextUrlMap;
 
-    @Value("${mosip.ida.config.server.file.storage.uri:}")
+    @Value("${mosip.config.server.file.storage.uri:}")
 	private String configServerFileStorageUrl;
 
     @Autowired
@@ -202,7 +202,7 @@ public class CredentialsVerifier {
     private ConfigurableDocumentLoader getConfigurableDocumentLoader() {
 
         CredVerifierLogger.info("Creating ConfigurableDocumentLoader Object with configured URLs.");
-        
+
         ConfigurableDocumentLoader confDocumentLoader = new ConfigurableDocumentLoader();
         if(Objects.isNull(vcContextUrlMap)){
 			CredVerifierLogger.warn("CredentialsVerifier::getConfigurableDocumentLoader " +
