@@ -35,7 +35,7 @@
   </dependencies>
   <build>
     <plugins>
-          <plugin>
+           <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-javadoc-plugin</artifactId>
               <version>3.2.0</version>
@@ -50,86 +50,85 @@
               <configuration>
               <doclint>none</doclint>
               </configuration>
-           </plugin>
-	   
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
-        <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                      <goal>jar-no-fork</goal>
-                </goals>
-              </execution>
-        </executions>
-      </plugin>
-                <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-gpg-plugin</artifactId>
-                  <version>1.5</version>
+           </plugin>	   
+           <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-source-plugin</artifactId>
+              <version>2.2.1</version>
+              <executions>
+                    <execution>
+                      <id>attach-sources</id>
+                      <goals>
+                            <goal>jar-no-fork</goal>
+                      </goals>
+                    </execution>
+              </executions>
+            </plugin>
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                          </configuration>
+                    </execution>
+                </executions>
+              </plugin>
+              <plugin>
+                  <groupId>pl.project13.maven</groupId>
+                  <artifactId>git-commit-id-plugin</artifactId>
+                  <version>3.0.1</version>
                   <executions>
-                        <execution>
-                          <id>sign-artifacts</id>
-                          <phase>verify</phase>
+                      <execution>
+                          <id>get-the-git-infos</id>
                           <goals>
-                                <goal>sign</goal>
+                              <goal>revision</goal>
                           </goals>
-		          <configuration>
-                		<gpgArguments>
-                    			<arg>--pinentry-mode</arg>
-                    			<arg>loopback</arg>
-                		</gpgArguments>
-            		 </configuration>
-                        </execution>
+                          <phase>validate</phase>
+                      </execution>
                   </executions>
-                </plugin>
-        <plugin>
-            <groupId>pl.project13.maven</groupId>
-            <artifactId>git-commit-id-plugin</artifactId>
-            <version>3.0.1</version>
-            <executions>
-                <execution>
-                    <id>get-the-git-infos</id>
-                    <goals>
-                        <goal>revision</goal>
-                    </goals>
-                    <phase>validate</phase>
-                </execution>
-            </executions>
-            <configuration>
-                <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-                <includeOnlyProperties>
-                    <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
-                    <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
-                </includeOnlyProperties>
-                <commitIdGenerationMode>full</commitIdGenerationMode>
-                <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                <!-- <format>json</format> -->
-            </configuration>
-        </plugin>
-   	    <plugin>
-	        <groupId>org.apache.maven.plugins</groupId>	
-	        <artifactId>maven-antrun-plugin</artifactId>					
-	        <version>3.0.0</version>					
-	        <executions>
-	            <execution>
-	                    <id>make-jar-executable</id>
-	                    <phase>package</phase>
-	                    <goals>					
-			                <goal>run</goal>
-			            </goals>
-			            <configuration>
-			                    <target>
-			                            <!-- Create a shell script to run the JAR file with executable permission -->
-			                            <chmod file="${project.build.directory}/*.jar" perm="ugo+rx"/>
-			                    </target>
-			            </configuration>
-	            </execution>
-	        </executions>
-	    </plugin>
+                  <configuration>
+                      <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                      <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                      <includeOnlyProperties>
+                          <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
+                          <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
+                      </includeOnlyProperties>
+                      <commitIdGenerationMode>full</commitIdGenerationMode>
+                      <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                      <!-- <format>json</format> -->
+                  </configuration>
+               </plugin>
+                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>	
+                    <artifactId>maven-antrun-plugin</artifactId>					
+                    <version>3.0.0</version>					
+                    <executions>
+                        <execution>
+                                <id>make-jar-executable</id>
+                                <phase>package</phase>
+                                <goals>					
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                    <target>
+                                            <!-- Create a shell script to run the JAR file with executable permission -->
+                                            <chmod file="${project.build.directory}/*.jar" perm="ugo+rx"/>
+                                    </target>
+                            </configuration>
+                        </execution>
+                    </executions>
+              </plugin>
     </plugins>
   </build>
 	<scm>
