@@ -4,7 +4,7 @@
   <groupId>io.mosip.vercred</groupId>
   <artifactId>vcverifier</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
   <name>vcverifier</name>
   <description>VC Verifier for MOSIP</description>
   <url>https://github.com/mosip/vc-verifier</url>
@@ -33,6 +33,30 @@
 			<version>1.0.0</version>
 		</dependency>
   </dependencies>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <layout>default</layout>
+            <url>https://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>ossrh</id>
+            <name>Central Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>danubetech-maven-public</id>
+            <url>https://repo.danubetech.com/repository/maven-public/</url>
+        </repository>
+    </repositories>
   <build>
     <plugins>
           <plugin>
@@ -51,7 +75,7 @@
               <doclint>none</doclint>
               </configuration>
            </plugin>
-	   
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
@@ -77,6 +101,7 @@
                                 <goal>sign</goal>
                           </goals>
 		          <configuration>
+                      <skip>true</skip>
                 		<gpgArguments>
                     			<arg>--pinentry-mode</arg>
                     			<arg>loopback</arg>
