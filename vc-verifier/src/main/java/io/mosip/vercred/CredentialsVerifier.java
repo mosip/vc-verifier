@@ -57,9 +57,6 @@ public class CredentialsVerifier {
     @Value("${mosip.config.server.file.storage.uri:}")
 	private String configServerFileStorageUrl;
 
-    @Autowired
-	private RestTemplate restTemplate;
-
     public boolean verifyCredentials(String credentials) {
         CredVerifierLogger.info("Received Credentials Verification - Start.");
         ConfigurableDocumentLoader confDocumentLoader = getConfigurableDocumentLoader();
@@ -75,11 +72,11 @@ public class CredentialsVerifier {
 
         String ldProofTerm = ldProofWithJWS.getType();
         if (!CredentialVerifierConstants.SIGNATURE_SUITE_TERM.equals(ldProofTerm)) {
-            CredVerifierLogger.error("Proof Type available in received credentials is not matching " + 
+            CredVerifierLogger.error("Proof Type available in received credentials is not matching " +
                             " with supported proof terms. Recevied Type: {}", ldProofTerm);
             return false;
         }
-        
+
 		try {
 
             URDNA2015Canonicalizer canonicalizer =	new URDNA2015Canonicalizer();
@@ -101,7 +98,7 @@ public class CredentialsVerifier {
             return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
         } catch (IOException | GeneralSecurityException | JsonLDException | ParseException e) {
             CredVerifierLogger.error("Error in doing verifiable credential verification process.", e);
-        }	
+        }
         return false;
     }
 
@@ -151,8 +148,9 @@ public class CredentialsVerifier {
     }
 
     private PublicKey getPublicKeyFromVerificationMethod(URI publicKeyJsonUri){
-        
+
         try {
+            RestTemplate restTemplate = new RestTemplate();
             ObjectNode response = restTemplate.exchange(publicKeyJsonUri, HttpMethod.GET, null, ObjectNode.class).getBody();
             String publicKeyPem = response.get(CredentialVerifierConstants.PUBLIC_KEY_PEM).asText();
             CredVerifierLogger.info("public key download completed.");
@@ -185,8 +183,8 @@ public class CredentialsVerifier {
         try {
             CredVerifierLogger.info("Validating signature using PS256 algorithm.");
             Signature psSignature = Signature.getInstance(CredentialVerifierConstants.PS256_ALGORITHM);
-                
-            PSSParameterSpec pssParamSpec = new PSSParameterSpec(CredentialVerifierConstants.PSS_PARAM_SHA_256, CredentialVerifierConstants.PSS_PARAM_MGF1, 
+
+            PSSParameterSpec pssParamSpec = new PSSParameterSpec(CredentialVerifierConstants.PSS_PARAM_SHA_256, CredentialVerifierConstants.PSS_PARAM_MGF1,
                         MGF1ParameterSpec.SHA256, CredentialVerifierConstants.PSS_PARAM_SALT_LEN, CredentialVerifierConstants.PSS_PARAM_TF);
             psSignature.setParameter(pssParamSpec);
 
@@ -202,7 +200,7 @@ public class CredentialsVerifier {
     private ConfigurableDocumentLoader getConfigurableDocumentLoader() {
 
         CredVerifierLogger.info("Creating ConfigurableDocumentLoader Object with configured URLs.");
-
+        RestTemplate restTemplate = new RestTemplate();
         ConfigurableDocumentLoader confDocumentLoader = new ConfigurableDocumentLoader();
         if(Objects.isNull(vcContextUrlMap)){
 			CredVerifierLogger.warn("CredentialsVerifier::getConfigurableDocumentLoader " +
@@ -222,13 +220,13 @@ public class CredentialsVerifier {
 				} catch (URISyntaxException | JsonLdError e) {
                     CredVerifierLogger.error("Error downloading Context files from config service.localConfigUri: " + localConfigUri +
                             "contextUrl: " + contextUrl, e);
-				} 
+				}
 			});
 			confDocumentLoader = new ConfigurableDocumentLoader(jsonDocumentCacheMap);
 			confDocumentLoader.setEnableHttps(false);
 			confDocumentLoader.setEnableHttp(false);
 			confDocumentLoader.setEnableFile(false);
-			CredVerifierLogger.info( "CredentialsVerifier::getConfigurableDocumentLoader" + 
+			CredVerifierLogger.info( "CredentialsVerifier::getConfigurableDocumentLoader" +
 					"Added cache for the list of configured URL Map: " + jsonDocumentCacheMap.keySet().toString());
 		}
         return confDocumentLoader;
