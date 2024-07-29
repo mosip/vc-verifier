@@ -1,11 +1,11 @@
 {
   "name": "vc-verifier-js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "JavaScript Library for VC Verification",
   "repository": "https://github.com/mosip/vc-verifier",
   "main": "src/CredentialsVerifier.js",
   "scripts": {
-    "test": "node --experimental-vm-modules ./node_modules/.bin/jest ",
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest --coverage ",
     "start": "NODE_OPTIONS='--experimental-specifier-resolution=node' node src/CredentialsVerifier.js",
     "postinstall": "patch-package"
   },

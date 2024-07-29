@@ -1,4 +1,4 @@
-export const CredentialVerifierConstants = {
+export const Constants = {
     SIGNATURE_SUITE_TERM: 'RsaSignature2018',
     JWS_RS256_SIGN_ALGO_CONST: 'RS256',
     JWS_PS256_SIGN_ALGO_CONST: "PS256",

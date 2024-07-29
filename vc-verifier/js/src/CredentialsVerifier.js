@@ -1,16 +1,17 @@
 import jws from 'jws';
 import crypto from 'crypto';
-import { CredentialVerifierConstants } from './constant/CredentialVerifierConstants';
+import { Constants } from './constant/Constants.js';
 import { getJwsSigningInput } from './utils/JwsSigningInput';
 import { URDNA2015Canonicalizer } from './utils/URDNA2015Canonicalizer';
 import { preProcessVerifiableCredential } from './utils/CredentialUtils';
 import axios from 'axios';
+import {PS256VC} from "./vc/PS256VCOriginal.js";
 
 
 const getPublicKeyFromVerificationMethod = async (url) => {
-    let resp = await axios.get(url);
-    resp = resp.data;
-    const publicKeyPem = resp['publicKeyPem'];
+    let response = await axios.get(url);
+    response = response.data;
+    const publicKeyPem = response['publicKeyPem'];
     const publicKeyObject = crypto.createPublicKey(
         {
             key: publicKeyPem,
@@ -25,7 +26,7 @@ const getPublicKeyFromVerificationMethod = async (url) => {
 
 const verifyCredentialSignature = (jwsHeaderAlgoName, publicKey, actualData, signature) => {
     let isVerified = false;
-    if (jwsHeaderAlgoName === CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST) {
+    if (jwsHeaderAlgoName === Constants.JWS_PS256_SIGN_ALGO_CONST) {
         isVerified = crypto.verify(
             'RSA-SHA256',
             actualData,
@@ -36,23 +37,17 @@ const verifyCredentialSignature = (jwsHeaderAlgoName, publicKey, actualData, sig
             signature
         );
     }
-    else if (jwsHeaderAlgoName === CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST) {
+    else if (jwsHeaderAlgoName === Constants.JWS_RS256_SIGN_ALGO_CONST) {
         isVerified = crypto.verify('RSA-SHA256', actualData, publicKey, signature);
     }
     else {
         throw new Error('Verification algorithm not supported');
     }
-     if (isVerified) {
-        console.log('Verification Status : Success');
-    } else {
-        console.log('Verification Status : Failure');
-    } 
     return isVerified;
 }
 
 export const verifyCredentials = async (credential) => {
     try {
-        console.log("Received Credentials. Starting Verification ");
         preProcessVerifiableCredential(credential);
         const { signature, header } = jws.decode(credential.proof.jws);
         const decodedSignature = Buffer.from(signature, 'base64');
@@ -64,9 +59,3 @@ export const verifyCredentials = async (credential) => {
         throw error;
     }
 }
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-import { CredentialVerifierConstants } from "../../src/constant/CredentialVerifierConstants";
+import { Constants } from "../../src/constant/Constants.js";
 import { preProcessVerifiableCredential } from "../../src/utils/CredentialUtils";
 
 describe('preProcessVerifiableCredential', () => {
@@ -30,7 +30,7 @@ describe('preProcessVerifiableCredential', () => {
 
     it('should throw an error if the credential type is not VerifiableCredential', () => {
         const credential = {
-            proof: { type: CredentialVerifierConstants.SIGNATURE_SUITE_TERM },
+            proof: { type: Constants.SIGNATURE_SUITE_TERM },
             type: ['NonVerifiableCredential']
         };
 
