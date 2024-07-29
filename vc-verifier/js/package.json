@@ -1,0 +1,29 @@
+{
+  "name": "vc-verifier-js",
+  "version": "0.0.1",
+  "description": "JavaScript Library for VC Verification",
+  "repository": "https://github.com/mosip/vc-verifier",
+  "main": "src/CredentialsVerifier.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest ",
+    "start": "NODE_OPTIONS='--experimental-specifier-resolution=node' node src/CredentialsVerifier.js",
+    "postinstall": "patch-package"
+  },
+  "type": "module",
+  "keywords": [
+    "vc-verifier"
+  ],
+  "author": "MOSIP",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "crypto": "^1.0.1",
+    "jsonld": "^8.3.2",
+    "jws": "^4.0.0",
+    "patch-package": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0"
+  }
+}
