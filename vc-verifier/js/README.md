@@ -7,7 +7,9 @@
 
 ## Installation
 
+- To build and publich the library locally run the command `yarn && yalc publish`
 
+- To run the tests, run the command `npm test`
 
 ## APIs
 
