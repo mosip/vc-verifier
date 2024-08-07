@@ -26,10 +26,7 @@ import com.apicatalog.jsonld.document.JsonDocument;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jose.JWSObject;
 
-import io.mosip.vercred.exception.ProofDocumentNotFoundException;
-import io.mosip.vercred.exception.ProofTypeNotFoundException;
-import io.mosip.vercred.exception.PubicKeyNotFoundException;
-import io.mosip.vercred.exception.UnknownException;
+import io.mosip.vercred.exception.*;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.slf4j.Logger;
@@ -96,8 +93,8 @@ public class CredentialsVerifier {
             CredVerifierLogger.info("Performing signature verification after downloading the public key");
             return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
         } catch (IOException | GeneralSecurityException | JsonLDException | ParseException e) {
-            CredVerifierLogger.error("Error in doing verifiable credential verification process", e);
-            throw new UnknownException("Error in doing verifiable credential verification process");
+            CredVerifierLogger.error("Error while doing verification of verifiable credential", e);
+            throw new UnknownException("Error while doing verification of verifiable credential");
         }
     }
 
@@ -132,6 +129,7 @@ public class CredentialsVerifier {
                 return rsSignature.verify(signature);
             } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
                 CredVerifierLogger.error("Error in Verifying credentials(RS256)", e);
+                throw new SignatureVerificationException("Error while doing signature verification using RS256 algorithm");
             }
         }
         try {
@@ -147,8 +145,8 @@ public class CredentialsVerifier {
             return psSignature.verify(signature);
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | InvalidAlgorithmParameterException e) {
             CredVerifierLogger.error("Error in Verifying credentials(PS256)", e);
+            throw new SignatureVerificationException("Error while doing signature verification using PS256 algorithm");
         }
-        return false;
     }
 
     private ConfigurableDocumentLoader getConfigurableDocumentLoader() {
@@ -174,6 +172,7 @@ public class CredentialsVerifier {
 				} catch (URISyntaxException | JsonLdError e) {
                     CredVerifierLogger.error("Error downloading Context files from config service.localConfigUri: " + localConfigUri +
                             "contextUrl: " + contextUrl, e);
+                    throw new UnknownException("Error downloading Context files from config service");
 				}
 			});
 			confDocumentLoader = new ConfigurableDocumentLoader(jsonDocumentCacheMap);
