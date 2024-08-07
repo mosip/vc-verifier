@@ -4,7 +4,7 @@
   <groupId>io.mosip.vercred</groupId>
   <artifactId>vcverifier</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.1.0</version>
   <name>vcverifier</name>
   <description>VC Verifier for MOSIP</description>
   <url>https://github.com/mosip/vc-verifier</url>
