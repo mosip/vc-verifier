@@ -26,17 +26,14 @@ import com.apicatalog.jsonld.document.JsonDocument;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jose.JWSObject;
 
-import io.mosip.vercred.exception.ProofDocumentNotFoundException;
-import io.mosip.vercred.exception.ProofTypeNotFoundException;
-import io.mosip.vercred.exception.PubicKeyNotFoundException;
-import io.mosip.vercred.exception.UnknownException;
+import io.mosip.vercred.exception.*;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import foundation.identity.jsonld.ConfigurableDocumentLoader;
@@ -58,7 +55,7 @@ public class CredentialsVerifier {
 	private String configServerFileStorageUrl;
 
     public boolean verifyCredentials(String credentials) {
-        CredVerifierLogger.info("Received Credentials Verification - Start.");
+        CredVerifierLogger.info("Received Credentials Verification - Start");
         ConfigurableDocumentLoader confDocumentLoader = getConfigurableDocumentLoader();
 
         JsonLDObject vcJsonLdObject = JsonLDObject.fromJson(credentials);
@@ -66,84 +63,38 @@ public class CredentialsVerifier {
 
         LdProof ldProofWithJWS = LdProof.getFromJsonLDObject(vcJsonLdObject);
         if (Objects.isNull(ldProofWithJWS)) {
-            CredVerifierLogger.error("Proof document is not available in the received credentials.");
-            return false;
+            CredVerifierLogger.error("Proof document is not available in the received credentials");
+            throw new ProofDocumentNotFoundException("Proof document is not available in the received credentials");
         }
 
         String ldProofTerm = ldProofWithJWS.getType();
         if (!CredentialVerifierConstants.SIGNATURE_SUITE_TERM.equals(ldProofTerm)) {
             CredVerifierLogger.error("Proof Type available in received credentials is not matching " +
                             " with supported proof terms. Recevied Type: {}", ldProofTerm);
-            return false;
+            throw new ProofTypeNotFoundException("Proof Type available in received credentials is not matching with supported proof terms");
         }
 
 		try {
-
             URDNA2015Canonicalizer canonicalizer =	new URDNA2015Canonicalizer();
             byte[] canonicalHashBytes = canonicalizer.canonicalize(ldProofWithJWS, vcJsonLdObject);
-            CredVerifierLogger.info("Completed Canonicalization for the received credentials.");
+            CredVerifierLogger.info("Completed Canonicalization for the received credentials");
             String signJWS = ldProofWithJWS.getJws();
             JWSObject jwsObject = JWSObject.parse(signJWS);
             byte[] vcSignBytes = jwsObject.getSignature().decode();
             URI publicKeyJsonUri = ldProofWithJWS.getVerificationMethod();
             PublicKey publicKeyObj = getPublicKeyFromVerificationMethod(publicKeyJsonUri);
             if (Objects.isNull(publicKeyObj)) {
-                CredVerifierLogger.error("Public key object is null, returning false.");
-                return false;
+                CredVerifierLogger.error("Public key object is null, returning false");
+                throw new PubicKeyNotFoundException("Public key object is null");
             }
-            CredVerifierLogger.info("Completed downloading public key from the issuer domain and constructed public key object.");
+            CredVerifierLogger.info("Completed downloading public key from the issuer domain and constructed public key object");
             byte[] actualData = JWSUtil.getJwsSigningInput(jwsObject.getHeader(), canonicalHashBytes);
             String jwsHeader = jwsObject.getHeader().getAlgorithm().getName();
-            CredVerifierLogger.info("Performing signature verification after downloading the public key.");
+            CredVerifierLogger.info("Performing signature verification after downloading the public key");
             return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
         } catch (IOException | GeneralSecurityException | JsonLDException | ParseException e) {
-            CredVerifierLogger.error("Error in doing verifiable credential verification process.", e);
-        }
-        return false;
-    }
-
-    public boolean verifyPrintCredentials(String credentials){
-        CredVerifierLogger.info("Received Credentials Verification - Start.");
-        ConfigurableDocumentLoader confDocumentLoader = getConfigurableDocumentLoader();
-
-        JsonLDObject vcJsonLdObject = JsonLDObject.fromJson(credentials);
-        vcJsonLdObject.setDocumentLoader(confDocumentLoader);
-
-        LdProof ldProofWithJWS = LdProof.getFromJsonLDObject(vcJsonLdObject);
-        if (Objects.isNull(ldProofWithJWS)) {
-            CredVerifierLogger.error("Proof document is not available in the received credentials.");
-            throw new ProofDocumentNotFoundException("Proof document is not available in the received credentials.");
-        }
-
-        String ldProofTerm = ldProofWithJWS.getType();
-        if (!CredentialVerifierConstants.SIGNATURE_SUITE_TERM.equals(ldProofTerm)) {
-            CredVerifierLogger.error("Proof Type available in received credentials is not matching " +
-                    " with supported proof terms. Recevied Type: {}", ldProofTerm);
-            throw new ProofTypeNotFoundException("Proof Type available in received credentials is not matching with supported proof terms.");
-        }
-
-        try {
-
-            URDNA2015Canonicalizer canonicalizer =	new URDNA2015Canonicalizer();
-            byte[] canonicalHashBytes = canonicalizer.canonicalize(ldProofWithJWS, vcJsonLdObject);
-            CredVerifierLogger.info("Completed Canonicalization for the received credentials.");
-            String signJWS = ldProofWithJWS.getJws();
-            JWSObject jwsObject = JWSObject.parse(signJWS);
-            byte[] vcSignBytes = jwsObject.getSignature().decode();
-            URI publicKeyJsonUri = ldProofWithJWS.getVerificationMethod();
-            PublicKey publicKeyObj = getPublicKeyFromVerificationMethod(publicKeyJsonUri);
-            if (Objects.isNull(publicKeyObj)) {
-                CredVerifierLogger.error("Public key object is null, returning false.");
-                throw new PubicKeyNotFoundException("Public key object is null.");
-            }
-            CredVerifierLogger.info("Completed downloading public key from the issuer domain and constructed public key object.");
-            byte[] actualData = JWSUtil.getJwsSigningInput(jwsObject.getHeader(), canonicalHashBytes);
-            String jwsHeader = jwsObject.getHeader().getAlgorithm().getName();
-            CredVerifierLogger.info("Performing signature verification after downloading the public key.");
-            return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
-        } catch (IOException | GeneralSecurityException | JsonLDException | ParseException e) {
-            CredVerifierLogger.error("Error in doing verifiable credential verification process.", e);
-            throw new UnknownException("Error in doing verifiable credential verification process.");
+            CredVerifierLogger.error("Error while doing verification of verifiable credential", e);
+            throw new UnknownException("Error while doing verification of verifiable credential");
         }
     }
 
@@ -153,7 +104,7 @@ public class CredentialsVerifier {
             RestTemplate restTemplate = new RestTemplate();
             ObjectNode response = restTemplate.exchange(publicKeyJsonUri, HttpMethod.GET, null, ObjectNode.class).getBody();
             String publicKeyPem = response.get(CredentialVerifierConstants.PUBLIC_KEY_PEM).asText();
-            CredVerifierLogger.info("public key download completed.");
+            CredVerifierLogger.info("public key download completed");
             StringReader strReader = new StringReader(publicKeyPem);
             PemReader pemReader = new PemReader(strReader);
             PemObject pemObject = pemReader.readPemObject();
@@ -161,8 +112,8 @@ public class CredentialsVerifier {
             X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(pubKeyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePublic(pubKeySpec);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            CredVerifierLogger.error("Error Generating public key object.", e);
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | ResourceAccessException e) {
+            CredVerifierLogger.error("Error Generating public key object", e);
         }
 		return null;
     }
@@ -171,17 +122,18 @@ public class CredentialsVerifier {
 
         if (algorithm.equals(CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST)) {
             try {
-                CredVerifierLogger.info("Validating signature using RS256 algorithm.");
+                CredVerifierLogger.info("Validating signature using RS256 algorithm");
                 Signature rsSignature = Signature.getInstance(CredentialVerifierConstants.RS256_ALGORITHM);
                 rsSignature.initVerify(publicKey);
                 rsSignature.update(actualData);
                 return rsSignature.verify(signature);
             } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-                CredVerifierLogger.error("Error in Verifying credentials(RS256).", e);
+                CredVerifierLogger.error("Error in Verifying credentials(RS256)", e);
+                throw new SignatureVerificationException("Error while doing signature verification using RS256 algorithm");
             }
         }
         try {
-            CredVerifierLogger.info("Validating signature using PS256 algorithm.");
+            CredVerifierLogger.info("Validating signature using PS256 algorithm");
             Signature psSignature = Signature.getInstance(CredentialVerifierConstants.PS256_ALGORITHM);
 
             PSSParameterSpec pssParamSpec = new PSSParameterSpec(CredentialVerifierConstants.PSS_PARAM_SHA_256, CredentialVerifierConstants.PSS_PARAM_MGF1,
@@ -192,19 +144,19 @@ public class CredentialsVerifier {
             psSignature.update(actualData);
             return psSignature.verify(signature);
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | InvalidAlgorithmParameterException e) {
-            CredVerifierLogger.error("Error in Verifying credentials(PS256).", e);
+            CredVerifierLogger.error("Error in Verifying credentials(PS256)", e);
+            throw new SignatureVerificationException("Error while doing signature verification using PS256 algorithm");
         }
-        return false;
     }
 
     private ConfigurableDocumentLoader getConfigurableDocumentLoader() {
 
-        CredVerifierLogger.info("Creating ConfigurableDocumentLoader Object with configured URLs.");
+        CredVerifierLogger.info("Creating ConfigurableDocumentLoader Object with configured URLs");
         RestTemplate restTemplate = new RestTemplate();
         ConfigurableDocumentLoader confDocumentLoader = new ConfigurableDocumentLoader();
         if(Objects.isNull(vcContextUrlMap)){
 			CredVerifierLogger.warn("CredentialsVerifier::getConfigurableDocumentLoader " +
-                    "Warning - Verifiable Credential Context URL Map not configured.");
+                    "Warning - Verifiable Credential Context URL Map not configured");
 			confDocumentLoader = new ConfigurableDocumentLoader();
 			confDocumentLoader.setEnableHttps(true);
 			confDocumentLoader.setEnableHttp(true);
@@ -220,6 +172,7 @@ public class CredentialsVerifier {
 				} catch (URISyntaxException | JsonLdError e) {
                     CredVerifierLogger.error("Error downloading Context files from config service.localConfigUri: " + localConfigUri +
                             "contextUrl: " + contextUrl, e);
+                    throw new UnknownException("Error downloading Context files from config service");
 				}
 			});
 			confDocumentLoader = new ConfigurableDocumentLoader(jsonDocumentCacheMap);

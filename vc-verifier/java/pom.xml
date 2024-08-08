@@ -4,7 +4,7 @@
   <groupId>io.mosip.vercred</groupId>
   <artifactId>vcverifier</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
   <name>vcverifier</name>
   <description>VC Verifier for MOSIP</description>
   <url>https://github.com/mosip/vc-verifier</url>
@@ -32,6 +32,12 @@
 			<artifactId>ld-signatures-java</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+      <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <version>5.11.0-M2</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
     <repositories>
         <repository>
