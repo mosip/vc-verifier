@@ -35,7 +35,7 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   publish_to_nexus:
-    if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' &&  github.event_name == 'workflow_dispatch' }}"
+    if: "${{ github.event_name != 'pull_request' &&  github.event_name == 'workflow_dispatch' }}"
     needs: build-maven-vc-verifier
     uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master-java21
     with:
