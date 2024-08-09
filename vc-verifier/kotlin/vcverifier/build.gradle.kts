@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    `maven-publish`
 }
 
 android {
@@ -43,8 +44,25 @@ dependencies {
     testImplementation(libs.junit)
 }
 
+tasks.register<Jar>("jarRelease") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn("assembleRelease")
+    from("build/intermediates/javac/release/classes") {
+        include("**/*.class")
+    }
+    from("build/tmp/kotlin-classes/release") {
+        include("**/*.class")
+    }
+    manifest {
+        attributes["Implementation-Title"] = project.name
+        attributes["Implementation-Version"] = "1.1.0-SNAPSHOT"
+    }
+    archiveBaseName.set("${project.name}-release")
+    archiveVersion.set("1.1.0-SNAPSHOT")
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+}
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+apply(from = "publish-artifact.gradle")
+tasks.register("generatePom") {
+    dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
 }
