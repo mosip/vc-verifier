@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -16,7 +15,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PSSParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -37,7 +35,6 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import foundation.identity.jsonld.ConfigurableDocumentLoader;
-import foundation.identity.jsonld.JsonLDException;
 import foundation.identity.jsonld.JsonLDObject;
 import info.weboftrust.ldsignatures.LdProof;
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer;
@@ -71,7 +68,7 @@ public class CredentialsVerifier {
         if (!CredentialVerifierConstants.SIGNATURE_SUITE_TERM.equals(ldProofTerm)) {
             CredVerifierLogger.error("Proof Type available in received credentials is not matching " +
                             " with supported proof terms. Recevied Type: {}", ldProofTerm);
-            throw new ProofTypeNotFoundException("Proof Type available in received credentials is not matching with supported proof terms");
+            throw new ProofTypeNotSupportedException("Proof Type available in received credentials is not matching with supported proof terms");
         }
 
 		try {
@@ -92,7 +89,7 @@ public class CredentialsVerifier {
             String jwsHeader = jwsObject.getHeader().getAlgorithm().getName();
             CredVerifierLogger.info("Performing signature verification after downloading the public key");
             return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
-        } catch (IOException | GeneralSecurityException | JsonLDException | ParseException e) {
+        } catch (Exception e) {
             CredVerifierLogger.error("Error while doing verification of verifiable credential", e);
             throw new UnknownException("Error while doing verification of verifiable credential");
         }
