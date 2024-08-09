@@ -33,12 +33,15 @@ android {
 }
 
 dependencies {
-    implementation("info.weboftrust:ld-signatures-java:1.9.0")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
-    implementation("decentralized-identity:jsonld-common-java:1.8.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:9.40")
-    implementation("org.springframework:spring-web:6.1.11")
+    implementation(libs.ldSignaturesJava)
+    implementation(libs.bouncyCastle)
+    implementation(libs.jsonldCommonJava)
+    implementation(libs.nimbusJoseJwt)
+    implementation(libs.springWeb)
+
     testImplementation(libs.mockk)
+    testImplementation(libs.junit)
+}
 
 
     testImplementation(libs.junit)
