@@ -65,6 +65,33 @@ jobs:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
       if: failure() # Pick up events even if the job fails or is canceled.
 
+  build-maven-vc-verifier:
+    uses: mosip/kattu/.github/workflows/maven-build.yml@master-java21
+    with:
+      SERVICE_LOCATION: vc-verifier/java
+      BUILD_ARTIFACT: vc-verifier
+    secrets:
+      OSSRH_USER: ${{ secrets.OSSRH_USER }}
+      OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
+      OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+      GPG_SECRET: ${{ secrets.GPG_SECRET }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+
+  publish_to_nexus:
+    if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' &&  github.event_name == 'workflow_dispatch' }}"
+    needs: build-maven-vc-verifier
+    uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master-java21
+    with:
+      SERVICE_LOCATION: vc-verifier/java
+    secrets:
+      OSSRH_USER: ${{ secrets.OSSRH_USER }}
+      OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
+      OSSRH_URL: ${{ secrets.OSSRH_SNAPSHOT_URL }}
+      OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+      GPG_SECRET: ${{ secrets.GPG_SECRET }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
 
   sonar_analysis:
     runs-on: ubuntu-latest
