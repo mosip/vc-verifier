@@ -68,7 +68,7 @@ public class CredentialsVerifier {
         if (!CredentialVerifierConstants.SIGNATURE_SUITE_TERM.equals(ldProofTerm)) {
             CredVerifierLogger.error("Proof Type available in received credentials is not matching " +
                             " with supported proof terms. Recevied Type: {}", ldProofTerm);
-            throw new ProofTypeNotFoundException("Proof Type available in received credentials is not matching with supported proof terms");
+            throw new ProofTypeNotSupportedException("Proof Type available in received credentials is not matching with supported proof terms");
         }
 
 		try {

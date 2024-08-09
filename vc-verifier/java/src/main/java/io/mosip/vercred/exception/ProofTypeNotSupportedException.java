@@ -6,7 +6,7 @@ package io.mosip.vercred.exception;
  * 
  * @author Dhanendra
  */
-public class ProofTypeNotFoundException extends BaseUncheckedException {
+public class ProofTypeNotSupportedException extends BaseUncheckedException {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -14,7 +14,7 @@ public class ProofTypeNotFoundException extends BaseUncheckedException {
 	/**
 	 * Instantiates a new proofType not found exception.
 	 */
-	public ProofTypeNotFoundException() {
+	public ProofTypeNotSupportedException() {
 		super();
 	}
 
@@ -23,7 +23,7 @@ public class ProofTypeNotFoundException extends BaseUncheckedException {
 	 *
 	 * @param message the message
 	 */
-	public ProofTypeNotFoundException(String message) {
+	public ProofTypeNotSupportedException(String message) {
 		super(message);
 	}
 
@@ -33,10 +33,10 @@ public class ProofTypeNotFoundException extends BaseUncheckedException {
 	 * @param message the message
 	 * @param cause the cause
 	 */
-	public ProofTypeNotFoundException(String errorCode, String message, Throwable cause) {
+	public ProofTypeNotSupportedException(String errorCode, String message, Throwable cause) {
 		super(errorCode, message, cause);
 	}
 
-    public ProofTypeNotFoundException(String code, String message, Exception e) {
+    public ProofTypeNotSupportedException(String code, String message, Exception e) {
     }
 }
