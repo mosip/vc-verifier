@@ -1,44 +1,40 @@
 package io.mosip.vercred.vcverifier
 
 import android.util.Log
+import com.apicatalog.jsonld.JsonLdError
+import com.apicatalog.jsonld.document.JsonDocument
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.nimbusds.jose.JWSObject
+import foundation.identity.jsonld.ConfigurableDocumentLoader
+import foundation.identity.jsonld.JsonLDObject
+import info.weboftrust.ldsignatures.LdProof
+import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
+import info.weboftrust.ldsignatures.util.JWSUtil
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.ProofDocumentNotFoundException
-import io.mosip.vercred.vcverifier.exception.ProofTypeNotFoundException
+import io.mosip.vercred.vcverifier.exception.ProofTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.PubicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.UnknownException
+import org.bouncycastle.util.io.pem.PemObject
+import org.bouncycastle.util.io.pem.PemReader
+import org.springframework.http.HttpMethod
+import org.springframework.web.client.RestTemplate
 import java.io.IOException
 import java.io.StringReader
 import java.net.URI
 import java.net.URISyntaxException
-import java.security.GeneralSecurityException
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import java.security.KeyFactory
 import java.security.NoSuchAlgorithmException
 import java.security.PublicKey
+import java.security.Signature
 import java.security.SignatureException
 import java.security.spec.InvalidKeySpecException
 import java.security.spec.MGF1ParameterSpec
 import java.security.spec.PSSParameterSpec
 import java.security.spec.X509EncodedKeySpec
-import java.text.ParseException
 import java.util.Objects
-
-import info.weboftrust.ldsignatures.LdProof
-import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
-import info.weboftrust.ldsignatures.util.JWSUtil
-import org.bouncycastle.util.io.pem.PemObject
-import org.bouncycastle.util.io.pem.PemReader
-import foundation.identity.jsonld.ConfigurableDocumentLoader
-import foundation.identity.jsonld.JsonLDException
-import foundation.identity.jsonld.JsonLDObject
-import com.nimbusds.jose.JWSObject
-import java.security.Signature
-import com.apicatalog.jsonld.JsonLdError
-import com.apicatalog.jsonld.document.JsonDocument
-import org.springframework.http.HttpMethod
-import org.springframework.web.client.RestTemplate
 
 
 class CredentialsVerifier {
@@ -60,7 +56,7 @@ class CredentialsVerifier {
         val ldProofTerm: String = ldProofWithJWS.type
         if (CredentialVerifierConstants.SIGNATURE_SUITE_TERM != ldProofTerm) {
             Log.e(tag, "Proof Type available in received credentials is not matching with supported proof terms. Received Type: $ldProofTerm")
-            throw ProofTypeNotFoundException("Proof Type available in received credentials is not matching with supported proof terms.")
+            throw ProofTypeNotSupportedException("Proof Type available in received credentials is not matching with supported proof terms.")
         }
         return try {
             val canonicalizer = URDNA2015Canonicalizer()
@@ -80,17 +76,8 @@ class CredentialsVerifier {
             val jwsHeader: String = jwsObject.header.algorithm.name
             Log.i(tag,"Performing signature verification after downloading the public key.")
             verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes)
-        } catch (e: IOException) {
-            Log.e(tag,"Error in doing verifiable credential verification process.", e)
-            throw UnknownException("Error in doing verifiable credential verification process.")
-        } catch (e: GeneralSecurityException) {
-            Log.e(tag,"Error in doing verifiable credential verification process.", e)
-            throw UnknownException("Error in doing verifiable credential verification process.")
-        } catch (e: JsonLDException) {
-            Log.e(tag,"Error in doing verifiable credential verification process.", e)
-            throw UnknownException("Error in doing verifiable credential verification process.")
-        } catch (e: ParseException) {
-            Log.e(tag,"Error in doing verifiable credential verification process.", e)
+        } catch (e: Exception) {
+            Log.e(tag, "Error in doing verifiable credential verification process.", e)
             throw UnknownException("Error in doing verifiable credential verification process.")
         }
     }
