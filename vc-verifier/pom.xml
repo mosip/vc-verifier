@@ -55,4 +55,12 @@
       <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
     </license>
   </licenses>
+  <developers>
+    <developer>
+      <name>Mosip</name>
+      <email>mosip.emailnotifier@gmail.com</email>
+      <organization>io.mosip</organization>
+      <organizationUrl>https://github.com/mosip/vc-verifier</organizationUrl>
+    </developer>
+  </developers>
 </project>
