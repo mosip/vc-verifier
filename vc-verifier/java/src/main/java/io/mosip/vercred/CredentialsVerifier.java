@@ -82,14 +82,17 @@ public class CredentialsVerifier {
             PublicKey publicKeyObj = getPublicKeyFromVerificationMethod(publicKeyJsonUri);
             if (Objects.isNull(publicKeyObj)) {
                 CredVerifierLogger.error("Public key object is null, returning false");
-                throw new PubicKeyNotFoundException("Public key object is null");
+                throw new PublicKeyNotFoundException("Public key object is null");
             }
             CredVerifierLogger.info("Completed downloading public key from the issuer domain and constructed public key object");
             byte[] actualData = JWSUtil.getJwsSigningInput(jwsObject.getHeader(), canonicalHashBytes);
             String jwsHeader = jwsObject.getHeader().getAlgorithm().getName();
             CredVerifierLogger.info("Performing signature verification after downloading the public key");
             return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
-        } catch (Exception e) {
+        } catch (PublicKeyNotFoundException | SignatureVerificationException ex){
+            throw ex;
+        }
+        catch (Exception e) {
             CredVerifierLogger.error("Error while doing verification of verifiable credential", e);
             throw new UnknownException("Error while doing verification of verifiable credential");
         }
