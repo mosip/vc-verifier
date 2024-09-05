@@ -15,7 +15,7 @@ jobs:
     uses: mosip/kattu/.github/workflows/maven-publish-android.yml@master
     with:
       SERVICE_LOCATION: 'vc-verifier/kotlin'
-      ANDROID_SERVICE_LOCATION: 'vcverifier'
+      ANDROID_SERVICE_LOCATION: '.'
       JAVA_VERSION: 21
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
