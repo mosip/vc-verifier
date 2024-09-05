@@ -13,24 +13,20 @@ import info.weboftrust.ldsignatures.util.JWSUtil
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.ProofDocumentNotFoundException
 import io.mosip.vercred.vcverifier.exception.ProofTypeNotSupportedException
-import io.mosip.vercred.vcverifier.exception.PubicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import org.bouncycastle.util.io.pem.PemObject
 import org.bouncycastle.util.io.pem.PemReader
 import org.springframework.http.HttpMethod
 import org.springframework.web.client.RestTemplate
-import java.io.IOException
 import java.io.StringReader
 import java.net.URI
 import java.net.URISyntaxException
-import java.security.InvalidAlgorithmParameterException
-import java.security.InvalidKeyException
 import java.security.KeyFactory
 import java.security.NoSuchAlgorithmException
 import java.security.PublicKey
 import java.security.Signature
-import java.security.SignatureException
-import java.security.spec.InvalidKeySpecException
 import java.security.spec.MGF1ParameterSpec
 import java.security.spec.PSSParameterSpec
 import java.security.spec.X509EncodedKeySpec
@@ -44,19 +40,19 @@ class CredentialsVerifier {
     private val configServerFileStorageUrl: String? = null
 
     fun verifyCredentials(credentials: String?): Boolean {
-        Log.i(tag,"Received Credentials Verification - Start.")
+        Log.i(tag,"Received Credentials Verification - Start")
         val confDocumentLoader: ConfigurableDocumentLoader = configurableDocumentLoader
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credentials)
         vcJsonLdObject.documentLoader = confDocumentLoader
         val ldProofWithJWS: LdProof = LdProof.getFromJsonLDObject(vcJsonLdObject)
         if (Objects.isNull(ldProofWithJWS)) {
-            Log.e(tag,"Proof document is not available in the received credentials.")
-            throw ProofDocumentNotFoundException("Proof document is not available in the received credentials.")
+            Log.e(tag,"Proof document is not available in the received credentials")
+            throw ProofDocumentNotFoundException("Proof document is not available in the received credentials")
         }
         val ldProofTerm: String = ldProofWithJWS.type
         if (CredentialVerifierConstants.SIGNATURE_SUITE_TERM != ldProofTerm) {
             Log.e(tag, "Proof Type available in received credentials is not matching with supported proof terms. Received Type: $ldProofTerm")
-            throw ProofTypeNotSupportedException("Proof Type available in received credentials is not matching with supported proof terms.")
+            throw ProofTypeNotSupportedException("Proof Type available in received credentials is not matching with supported proof terms")
         }
         return try {
             val canonicalizer = URDNA2015Canonicalizer()
@@ -68,8 +64,8 @@ class CredentialsVerifier {
             val publicKeyJsonUri: URI = ldProofWithJWS.verificationMethod
             val publicKeyObj = getPublicKeyFromVerificationMethod(publicKeyJsonUri)
             if (Objects.isNull(publicKeyObj)) {
-                Log.e(tag,"Public key object is null, returning false.")
-                throw PubicKeyNotFoundException("Public key object is null.")
+                Log.e(tag,"Public key object is null, returning false")
+                throw PublicKeyNotFoundException("Public key object is null")
             }
             Log.i(tag,"Completed downloading public key from the issuer domain and constructed public key object.")
             val actualData: ByteArray = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
@@ -77,8 +73,14 @@ class CredentialsVerifier {
             Log.i(tag,"Performing signature verification after downloading the public key.")
             verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes)
         } catch (e: Exception) {
-            Log.e(tag, "Error in doing verifiable credential verification process.", e)
-            throw UnknownException("Error in doing verifiable credential verification process.")
+            when (e) {
+                is PublicKeyNotFoundException,
+                is SignatureVerificationException -> throw e
+                else -> {
+                    Log.e(tag, "Error while doing verification of verifiable credential", e)
+                    throw UnknownException("Error while doing verification of verifiable credential")
+                }
+            }
         }
     }
 
@@ -96,12 +98,8 @@ class CredentialsVerifier {
             val pubKeySpec = X509EncodedKeySpec(pubKeyBytes)
             val keyFactory = KeyFactory.getInstance("RSA")
             return keyFactory.generatePublic(pubKeySpec)
-        } catch (e: IOException) {
-            Log.e(tag,"Error Generating public key object.", e)
-        } catch (e: NoSuchAlgorithmException) {
-            Log.e(tag,"Error Generating public key object.", e)
-        } catch (e: InvalidKeySpecException) {
-            Log.e(tag,"Error Generating public key object.", e)
+        } catch (e: Exception) {
+            Log.e(tag,"Error Generating public key object", e)
         }
         return null
     }
@@ -114,21 +112,18 @@ class CredentialsVerifier {
     ): Boolean {
         if (algorithm == CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST) {
             try {
-                Log.i(tag,"Validating signature using RS256 algorithm.")
+                Log.i(tag,"Validating signature using RS256 algorithm")
                 val rsSignature: Signature = Signature.getInstance(CredentialVerifierConstants.RS256_ALGORITHM)
                 rsSignature.initVerify(publicKey)
                 rsSignature.update(actualData)
                 return rsSignature.verify(signature)
-            } catch (e: NoSuchAlgorithmException) {
-                Log.e(tag,"Error in Verifying credentials(RS256).", e)
-            } catch (e: InvalidKeyException) {
-                Log.e(tag,"Error in Verifying credentials(RS256).", e)
-            } catch (e: SignatureException) {
-                Log.e(tag,"Error in Verifying credentials(RS256).", e)
+            } catch (e: Exception) {
+                Log.e(tag,"Error in Verifying credentials(RS256)", e)
+                throw SignatureVerificationException("Error while doing signature verification using RS256 algorithm")
             }
         }
         try {
-            Log.i(tag,"Validating signature using PS256 algorithm.")
+            Log.i(tag,"Validating signature using PS256 algorithm")
             val psSignature: Signature = Signature.getInstance(CredentialVerifierConstants.PS256_ALGORITHM)
             val pssParamSpec = PSSParameterSpec(
                 CredentialVerifierConstants.PSS_PARAM_SHA_256,
@@ -142,15 +137,9 @@ class CredentialsVerifier {
             psSignature.update(actualData)
             return psSignature.verify(signature)
         } catch (e: NoSuchAlgorithmException) {
-            Log.e(tag,"Error in Verifying credentials(PS256).", e)
-        } catch (e: InvalidKeyException) {
-            Log.e(tag,"Error in Verifying credentials(PS256).", e)
-        } catch (e: SignatureException) {
-            Log.e(tag,"Error in Verifying credentials(PS256).", e)
-        } catch (e: InvalidAlgorithmParameterException) {
-            Log.e(tag,"Error in Verifying credentials(PS256).", e)
+            Log.e(tag,"Error in Verifying credentials(PS256)", e)
+            throw SignatureVerificationException("Error while doing signature verification using PS256 algorithm")
         }
-        return false
     }
 
     private val configurableDocumentLoader: ConfigurableDocumentLoader
