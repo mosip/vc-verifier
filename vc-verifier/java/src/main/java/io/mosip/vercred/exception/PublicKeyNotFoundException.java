@@ -6,7 +6,7 @@ package io.mosip.vercred.exception;
  * 
  * @author Dhanendra
  */
-public class PubicKeyNotFoundException extends BaseUncheckedException {
+public class PublicKeyNotFoundException extends BaseUncheckedException {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -14,7 +14,7 @@ public class PubicKeyNotFoundException extends BaseUncheckedException {
 	/**
 	 * Instantiates a new public key not found exception.
 	 */
-	public PubicKeyNotFoundException() {
+	public PublicKeyNotFoundException() {
 		super();
 	}
 
@@ -23,7 +23,7 @@ public class PubicKeyNotFoundException extends BaseUncheckedException {
 	 *
 	 * @param message the message
 	 */
-	public PubicKeyNotFoundException(String message) {
+	public PublicKeyNotFoundException(String message) {
 		super(message);
 	}
 
@@ -33,10 +33,10 @@ public class PubicKeyNotFoundException extends BaseUncheckedException {
 	 * @param message the message
 	 * @param cause the cause
 	 */
-	public PubicKeyNotFoundException(String errorCode, String message, Throwable cause) {
+	public PublicKeyNotFoundException(String errorCode, String message, Throwable cause) {
 		super(errorCode, message, cause);
 	}
 
-    public PubicKeyNotFoundException(String code, String message, Exception e) {
+    public PublicKeyNotFoundException(String code, String message, Exception e) {
     }
 }
