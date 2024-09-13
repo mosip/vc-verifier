@@ -7,10 +7,10 @@ plugins {
 
 android {
     namespace = "io.mosip.vccred.vcverifier"
-    compileSdk = 34
+    compileSdk = 33
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 23
     }
 
     buildTypes {
