@@ -2,8 +2,6 @@ package io.mosip.vercred.vcverifier
 
 import android.security.KeyStoreException
 import android.util.Log
-import com.apicatalog.jsonld.JsonLdError
-import com.apicatalog.jsonld.document.JsonDocument
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.nimbusds.jose.JWSObject
@@ -22,11 +20,9 @@ import io.mosip.vercred.vcverifier.utils.Util
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.bouncycastle.util.io.pem.PemReader
-import org.springframework.web.client.RestTemplate
 import java.io.IOException
 import java.io.StringReader
 import java.net.URI
-import java.net.URISyntaxException
 import java.security.KeyFactory
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -36,10 +32,7 @@ import java.security.cert.CertificateException
 import java.security.spec.MGF1ParameterSpec
 import java.security.spec.PSSParameterSpec
 import java.security.spec.X509EncodedKeySpec
-import java.util.Arrays
 import java.util.Objects
-import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 
 
 class CredentialsVerifier {
@@ -88,7 +81,7 @@ class CredentialsVerifier {
     @Throws(CertificateException::class, KeyStoreException::class, KeyManagementException::class)
     private fun getPublicKeyFromVerificationMethod(publicKeyJsonUri: URI): PublicKey? {
         return try {
-            val okHttpClient = getHttpClient().newBuilder().build()
+            val okHttpClient = OkHttpClient.Builder().build().newBuilder().build()
             val request = Request.Builder()
                 .url(publicKeyJsonUri.toURL())
                 .get()
@@ -179,16 +172,4 @@ class CredentialsVerifier {
         return confDocumentLoader
     }
 
-
-    @Throws(
-        CertificateException::class,
-        IOException::class,
-        KeyStoreException::class,
-        NoSuchAlgorithmException::class,
-        KeyManagementException::class
-    )
-    private fun getHttpClient(): OkHttpClient {
-        val builder = OkHttpClient.Builder()
-        return builder.build()
-    }
 }
