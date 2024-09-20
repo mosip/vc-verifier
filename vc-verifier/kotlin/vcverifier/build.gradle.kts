@@ -35,7 +35,11 @@ android {
 }
 
 dependencies {
-    implementation(libs.ldSignaturesJava)
+    implementation(libs.ldSignaturesJava) {
+        exclude(group = "com.apicatalog", module = "titanium-json-ld")
+    }
+    implementation (libs.titaniumJsonLd)
+    implementation(libs.okHttp)
     implementation(libs.bouncyCastle)
     implementation(libs.jsonldCommonJava)
     implementation(libs.nimbusJoseJwt)

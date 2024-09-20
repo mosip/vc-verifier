@@ -3,16 +3,20 @@ agp = "8.3.0"
 kotlin = "1.9.0"
 junit = "4.13.2"
 mockk = "1.13.10"
-ldSignaturesJava = "1.0.0"
+ldSignaturesJava = "1.5.0"
 bouncyCastle = "1.70"
 jsonldCommonJava = "1.8.0"
 nimbusJoseJwt = "9.40"
 springWeb = "5.0.20.RELEASE"
+titaniumJsonLd = "1.3.1"
+okHttp = "4.1.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 ldSignaturesJava = { group = "info.weboftrust", name = "ld-signatures-java", version.ref = "ldSignaturesJava" }
+titaniumJsonLd = { group = "com.apicatalog", name = "titanium-json-ld-jre8", version.ref = "titaniumJsonLd" }
+okHttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp" }
 bouncyCastle = { group = "org.bouncycastle", name = "bcprov-jdk15to18", version.ref = "bouncyCastle" }
 jsonldCommonJava = { group = "decentralized-identity", name = "jsonld-common-java", version.ref = "jsonldCommonJava" }
 nimbusJoseJwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version.ref = "nimbusJoseJwt" }
