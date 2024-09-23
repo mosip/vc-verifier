@@ -20,11 +20,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     packaging {
         resources {
@@ -35,7 +35,11 @@ android {
 }
 
 dependencies {
-    implementation(libs.ldSignaturesJava)
+    implementation(libs.ldSignaturesJava) {
+        exclude(group = "com.apicatalog", module = "titanium-json-ld")
+    }
+    implementation (libs.titaniumJsonLd)
+    implementation(libs.okHttp)
     implementation(libs.bouncyCastle)
     implementation(libs.jsonldCommonJava)
     implementation(libs.nimbusJoseJwt)
