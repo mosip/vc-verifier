@@ -17,6 +17,7 @@ jobs:
       SERVICE_LOCATION: 'vc-verifier/kotlin'
       ANDROID_SERVICE_LOCATION: 'vcverifier'
       JAVA_VERSION: 21
+      LICENSE_NAME: 'MPL-2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_URL: ${{secrets.OSSRH_SNAPSHOT_URL }}
