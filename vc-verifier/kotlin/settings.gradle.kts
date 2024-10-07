@@ -23,3 +23,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "vcverifier"
 include(":vcverifier")
+include(":example")
