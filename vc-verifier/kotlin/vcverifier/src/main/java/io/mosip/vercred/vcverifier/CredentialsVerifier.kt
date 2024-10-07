@@ -40,8 +40,11 @@ class CredentialsVerifier {
 
     private val util: Util = Util()
 
-    fun verifyCredentials(credentials: String?): Boolean {
+    fun verifyCredentials(credentials: String?): VerificationResult {
         Log.i(tag, "Received Credentials Verification - Start")
+        val verificationResult = CredentialsValidator().validateCredential(vcJsonString = credentials)
+        return verificationResult
+
         val confDocumentLoader: ConfigurableDocumentLoader = getConfigurableDocumentLoader()
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credentials)
         vcJsonLdObject.documentLoader = confDocumentLoader
@@ -66,7 +69,9 @@ class CredentialsVerifier {
             }
             val actualData: ByteArray = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
             val jwsHeader: String = jwsObject.header.algorithm.name
-            verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes)
+            val signatureVerificationStatus = verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes)
+            val verificationError = if(signatureVerificationStatus) "" else "Verification Error"
+            VerificationResult(signatureVerificationStatus, verificationError)
         } catch (e: Exception) {
             when (e) {
                 is PublicKeyNotFoundException,
