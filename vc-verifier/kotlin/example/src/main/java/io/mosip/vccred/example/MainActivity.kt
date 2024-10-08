@@ -148,6 +148,7 @@ val mosipVc = """
         },
         "id": "https://ida.m8-486a-9d60-fdda68a3ea68",
         "issuanceDate": "2024-09-02T17:36:13.644Z",
+        "expirationDate": "2034-09-02T17:36:13.644Z",
         "issuer": "https://apn/ida-controller.json",
         "proof": {
             "created": "2024-09-02T17:36:13Z",

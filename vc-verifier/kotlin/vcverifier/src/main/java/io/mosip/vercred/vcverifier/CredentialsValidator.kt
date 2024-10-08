@@ -15,6 +15,7 @@ import io.mosip.vercred.vcverifier.Constants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.Constants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.Constants.ERROR_VALID_URI
 import io.mosip.vercred.vcverifier.Constants.ERROR_VC_EXPIRED
+import io.mosip.vercred.vcverifier.Constants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.Constants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.Constants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.utils.Util
@@ -35,24 +36,28 @@ class CredentialsValidator {
 
     fun validateCredential(vcJsonString: String?): VerificationResult {
 
-        if (vcJsonString.isNullOrEmpty()) {
-            return VerificationResult(false, ERROR_EMPTY_VC_JSON)
+        try {
+            if (vcJsonString.isNullOrEmpty()) {
+                return VerificationResult(false, ERROR_EMPTY_VC_JSON)
+            }
+
+            val vcJsonObject = JSONObject(vcJsonString)
+
+            val mandatoryCheck = checkMandatoryFields(vcJsonObject, requiredFields)
+            if (!mandatoryCheck.verificationStatus) {
+                return mandatoryCheck
+            }
+
+            val invalidCheck = checkInvalidFields(vcJsonObject)
+            if (!invalidCheck.verificationStatus) {
+                return invalidCheck
+            }
+
+
+            return handleExpiredVC(vcJsonObject)
+        } catch (e: Exception){
+            return  VerificationResult(false, "$EXCEPTION_DURING_VALIDATION${e.message.toString()}")
         }
-
-        val vcJsonObject = JSONObject(vcJsonString)
-
-        val mandatoryCheck = checkMandatoryFields(vcJsonObject, requiredFields)
-        if (!mandatoryCheck.verificationStatus) {
-            return mandatoryCheck
-        }
-
-        val invalidCheck = checkInvalidFields(vcJsonObject)
-        if (!invalidCheck.verificationStatus) {
-            return invalidCheck
-        }
-
-
-        return handleExpiredVC(vcJsonObject)
     }
 
 
