@@ -14,6 +14,7 @@ import io.mosip.vercred.vcverifier.Constants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.Constants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.Constants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.Constants.ERROR_VALID_URI
+import io.mosip.vercred.vcverifier.Constants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.Constants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.Constants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.utils.Util
@@ -45,8 +46,15 @@ class CredentialsValidator {
             return mandatoryCheck
         }
 
-        return checkInvalidFields(vcJsonObject)
+        val invalidCheck = checkInvalidFields(vcJsonObject)
+        if (!invalidCheck.verificationStatus) {
+            return invalidCheck
+        }
+
+
+        return handleExpiredVC(vcJsonObject)
     }
+
 
     private fun checkMandatoryFields(vcJsonObject: JSONObject, fields: List<String>): VerificationResult {
 
@@ -96,6 +104,14 @@ class CredentialsValidator {
             }
         }
 
+        return VerificationResult(true)
+    }
+
+    private fun handleExpiredVC(vcJsonObject: JSONObject): VerificationResult{
+        val expirationDate = vcJsonObject.getJSONObject(CREDENTIAL).get(EXPIRATION_DATE).toString()
+        if(Util().isDateExpired(expirationDate)){
+            return VerificationResult(true, ERROR_VC_EXPIRED)
+        }
         return VerificationResult(true)
     }
 

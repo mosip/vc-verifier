@@ -10,6 +10,7 @@ import io.mosip.vercred.vcverifier.Constants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.Constants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.Constants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.Constants.ERROR_VALID_URI
+import io.mosip.vercred.vcverifier.Constants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.Constants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.Constants.ID
 import io.mosip.vercred.vcverifier.Constants.ISSUANCE_DATE
@@ -161,7 +162,7 @@ class CredentialsValidatorTest {
     @Test
     fun `invalid_credential_expiration_date`(){
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).put(EXPIRATION_DATE, "2024-15-02T17:36:13.644Z")
+        sampleVcObject.getJSONObject(CREDENTIAL).put(EXPIRATION_DATE, "2034-15-02T17:36:13.644Z")
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
@@ -177,6 +178,23 @@ class CredentialsValidatorTest {
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals(ERROR_TYPE_VERIFIABLE_CREDENTIAL, result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `test_VC_expired`(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
+        assertEquals(true,result.verificationStatus)
+        assertEquals(ERROR_VC_EXPIRED,result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `test_VC_not_expired`(){
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.getJSONObject(CREDENTIAL).put(EXPIRATION_DATE, "2034-12-02T17:36:13.644Z")
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
+        assertEquals(true,result.verificationStatus)
+        assertEquals("",result.verificationErrorMessage)
     }
 
 
@@ -227,6 +245,7 @@ class CredentialsValidatorTest {
                 },
                 "id": "https://ida.test.net/credentials/b5d20f0a-a9b8-486a-9d60",
                 "issuanceDate": "2024-09-02T17:36:13.644Z",
+                "expirationDate": "2014-09-02T17:36:13.644Z",
                 "issuer": "https://apn/ida-controller.json",
                 "proof": {
                     "created": "2024-09-02T17:36:13Z",

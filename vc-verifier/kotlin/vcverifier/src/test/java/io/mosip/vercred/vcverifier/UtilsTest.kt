@@ -51,4 +51,22 @@ class UtilsTest {
         val result = utils.jsonArrayToList(jsonArray)
         assertEquals(listOf("element1", "element2", "element3"), result)
     }
+
+    @Test
+    fun `date_expired`(){
+        val result = utils.isDateExpired("2024-09-02T17:36:13.644Z")
+        assertEquals(true, result)
+    }
+
+    @Test
+    fun `date_not_expired`(){
+        val result = utils.isDateExpired("2024-11-02T17:36:13.644Z")
+        assertEquals(false, result)
+    }
+
+    @Test
+    fun `invalid_date`(){
+        val result = utils.isDateExpired("12345")
+        assertEquals(false, result)
+    }
 }
