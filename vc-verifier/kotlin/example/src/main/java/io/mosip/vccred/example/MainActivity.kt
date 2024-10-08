@@ -82,13 +82,11 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             Text(
                 text = verificationResult.value?.verificationErrorMessage ?: "Status: Waiting...",
                 modifier = modifier.fillMaxWidth(),
-                maxLines = 2,
+                maxLines = 5,
                 overflow = TextOverflow.Ellipsis
             )
 
         }
-
-
     }
 }
 
@@ -145,7 +143,7 @@ val mosipVc = """
                 }
             ],
             "dateOfBirth": "1992/04/15",
-            "id": "did:jwk:eyJrd",
+            "id": "invalid-uri",
             "email": "mosipuser123@mailinator.com"
         },
         "id": "https://ida.m8-486a-9d60-fdda68a3ea68",
