@@ -9,6 +9,7 @@ import io.mosip.vercred.vcverifier.Constants.ERROR_EXPIRATION_DATE_INVALID
 import io.mosip.vercred.vcverifier.Constants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.Constants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.Constants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
+import io.mosip.vercred.vcverifier.Constants.ERROR_VALID_URI
 import io.mosip.vercred.vcverifier.Constants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.Constants.ID
 import io.mosip.vercred.vcverifier.Constants.ISSUANCE_DATE
@@ -18,10 +19,7 @@ import io.mosip.vercred.vcverifier.Constants.TYPE
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class CredentialsValidatorTest {
 
 
@@ -127,17 +125,6 @@ class CredentialsValidatorTest {
     }
 
     @Test
-    fun `validate_mandatory_fields_missing_credential_expirationDate`(){
-
-        val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(EXPIRATION_DATE)
-
-        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
-        assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$EXPIRATION_DATE", result.verificationErrorMessage)
-    }
-
-    @Test
     fun `invalid_credential_context`(){
 
         val sampleVcObject = JSONObject(sampleVc)
@@ -146,6 +133,19 @@ class CredentialsValidatorTest {
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("$ERROR_CONTEXT_FIRST_LINE", result.verificationErrorMessage)
+    }
+
+
+
+
+    @Test
+    fun `invalid_credential_issuer_id`(){
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.getJSONObject(CREDENTIAL).put(ISSUER, "invalid-uri")
+
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$CREDENTIAL.$ISSUER$ERROR_VALID_URI", result.verificationErrorMessage)
     }
 
     @Test
@@ -178,6 +178,8 @@ class CredentialsValidatorTest {
         assertEquals(false, result.verificationStatus)
         assertEquals(ERROR_TYPE_VERIFIABLE_CREDENTIAL, result.verificationErrorMessage)
     }
+
+
 
     companion object{
 
@@ -223,9 +225,8 @@ class CredentialsValidatorTest {
                     "id": "invalid-uri",
                     "email": "mosipuser123@mailinator.com"
                 },
-                "id": "https://ida8a3ea68",
+                "id": "https://ida.test.net/credentials/b5d20f0a-a9b8-486a-9d60",
                 "issuanceDate": "2024-09-02T17:36:13.644Z",
-                "expirationDate": "2034-09-02T17:36:13.644Z",
                 "issuer": "https://apn/ida-controller.json",
                 "proof": {
                     "created": "2024-09-02T17:36:13Z",

@@ -45,7 +45,6 @@ dependencies {
     implementation(libs.jsonldCommonJava)
     implementation(libs.nimbusJoseJwt)
     implementation(libs.springWeb)
-    implementation(libs.robolectric)
 
     testImplementation(libs.mockk)
     testImplementation(libs.junit)

@@ -13,10 +13,11 @@ import io.mosip.vercred.vcverifier.Constants.ERROR_EXPIRATION_DATE_INVALID
 import io.mosip.vercred.vcverifier.Constants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.Constants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.Constants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
+import io.mosip.vercred.vcverifier.Constants.ERROR_VALID_URI
 import io.mosip.vercred.vcverifier.Constants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.Constants.EXPIRATION_DATE
+import io.mosip.vercred.vcverifier.utils.Util
 import org.json.JSONObject
-import java.net.URI
 
 class CredentialsValidator {
 
@@ -28,8 +29,7 @@ class CredentialsValidator {
         "$CREDENTIAL.$CONTEXT",
         "$CREDENTIAL.$TYPE",
         "$CREDENTIAL.$CREDENTIAL_SUBJECT",
-        "$CREDENTIAL.$ISSUANCE_DATE",
-        "$CREDENTIAL.$EXPIRATION_DATE"
+        "$CREDENTIAL.$ISSUANCE_DATE"
     )
 
     fun validateCredential(vcJsonString: String?): VerificationResult {
@@ -72,31 +72,26 @@ class CredentialsValidator {
 
     private fun checkInvalidFields(vcJsonObject: JSONObject): VerificationResult {
         val rootCredentialObject = vcJsonObject.getJSONObject(CREDENTIAL)
-        val credentialSubject = rootCredentialObject.getJSONObject(CREDENTIAL_SUBJECT)
 
         val firstContext = rootCredentialObject.getJSONArray(CONTEXT).getString(0)
         if (firstContext != CREDENTIALS_CONTEXT_V1_URL) {
             return VerificationResult(false, ERROR_CONTEXT_FIRST_LINE)
         }
 
-        if (credentialSubject.has(ID) && credentialSubject.get(ID).toString().isNotEmpty()) {
-            validateUriId(credentialSubject.get(ID).toString(), "$CREDENTIAL.$ID")
+        val issuer = rootCredentialObject.optString(ISSUER)
+        if (!Util().isValidUri(issuer)) {
+            return VerificationResult(false, "$CREDENTIAL.$ISSUER$ERROR_VALID_URI")
         }
 
-        if (rootCredentialObject.has(ISSUANCE_DATE) && !isValidDate(rootCredentialObject.get(
-                ISSUANCE_DATE).toString())) {
-            return VerificationResult(false, ERROR_ISSUANCE_DATE_INVALID)
+        listOf(ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
+            EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID).forEach { (dateKey, errorMessage) ->
+            if (rootCredentialObject.has(dateKey) && !Util().isValidDate(rootCredentialObject.get(dateKey).toString())) {
+                return VerificationResult(false, errorMessage)
+            }
         }
 
-        if (rootCredentialObject.has(EXPIRATION_DATE) && !isValidDate(rootCredentialObject.get(
-                EXPIRATION_DATE).toString())) {
-            return VerificationResult(false, ERROR_EXPIRATION_DATE_INVALID)
-        }
-
-        if (rootCredentialObject.has(TYPE)) {
-            val types = rootCredentialObject.optJSONArray(TYPE)
-
-            if (types == null || !jsonArrayToList(types).map { it.toString() }.contains(VERIFIABLE_CREDENTIAL)) {
+        rootCredentialObject.optJSONArray(TYPE)?.let { types ->
+            if (!Util().jsonArrayToList(types).contains(VERIFIABLE_CREDENTIAL)) {
                 return VerificationResult(false, ERROR_TYPE_VERIFIABLE_CREDENTIAL)
             }
         }
@@ -104,31 +99,9 @@ class CredentialsValidator {
         return VerificationResult(true)
     }
 
-
-    fun validateUriId(id: String, propertyName: String) {
-        try {
-            URI(id)
-        } catch (e: Exception) {
-            throw IllegalArgumentException("\"$propertyName\" must be a URI: \"$id\".", e)
-        }
-    }
-
-    fun isValidDate(dateValue: String): Boolean {
-        return DATE_REGEX.matches(dateValue)
-    }
-
     companion object{
         const val CREDENTIALS_CONTEXT_V1_URL = "https://www.w3.org/2018/credentials/v1"
-         val DATE_REGEX = Regex(
-            """^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)([01][0-9]|2[0-3]):([0-5][0-9]))$""",
-            RegexOption.IGNORE_CASE
-        )
         const val VERIFIABLE_CREDENTIAL = "VerifiableCredential"
-
-
-    }
-    private fun jsonArrayToList(jsonArray: org.json.JSONArray): List<Any> {
-        return List(jsonArray.length()) { jsonArray.get(it) }
     }
 
 }

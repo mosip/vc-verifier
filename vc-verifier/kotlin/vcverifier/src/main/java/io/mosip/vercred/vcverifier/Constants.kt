@@ -19,4 +19,10 @@ object Constants {
     const val ERROR_ISSUANCE_DATE_INVALID = "issuanceDate is not valid."
     const val ERROR_EXPIRATION_DATE_INVALID = "expirationDate is not valid."
     const val ERROR_TYPE_VERIFIABLE_CREDENTIAL = "type must include `VerifiableCredential`."
+    const val ERROR_VALID_URI = " must be valid URI."
+
+    val DATE_REGEX = Regex(
+        """^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)([01][0-9]|2[0-3]):([0-5][0-9]))$""",
+        RegexOption.IGNORE_CASE
+    )
 }
