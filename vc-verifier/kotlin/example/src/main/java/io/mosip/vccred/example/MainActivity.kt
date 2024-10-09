@@ -105,8 +105,7 @@ fun GreetingPreview() {
 }
 
 val mosipVc = """
-    {
-    "credential": {
+{
         "@context": [
             "https://www.w3.org/2018/credentials/v1",
             "https://apisip-ida-context.json",
@@ -161,7 +160,6 @@ val mosipVc = """
             "VerifiableCredential",
             "MOSIPVerifiableCredential"
         ]
-    }
 }
 
 
