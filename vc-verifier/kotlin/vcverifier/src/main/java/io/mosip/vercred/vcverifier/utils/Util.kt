@@ -1,6 +1,6 @@
 package io.mosip.vercred.vcverifier.utils
 
-import io.mosip.vercred.vcverifier.Constants.DATE_REGEX
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATE_REGEX
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.Calendar
