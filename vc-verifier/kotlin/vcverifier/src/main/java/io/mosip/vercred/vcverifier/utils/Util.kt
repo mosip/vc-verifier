@@ -15,7 +15,7 @@ class Util {
     fun isValidUri(value: String): Boolean {
         return try {
             val uri = URI(value)
-            (uri.scheme != null && uri.host != null)
+            (uri.scheme=="did") || (uri.scheme != null && uri.host != null)
         } catch (e: Exception) {
             false
         }

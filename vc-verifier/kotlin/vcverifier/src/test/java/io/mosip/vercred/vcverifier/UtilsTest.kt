@@ -35,6 +35,12 @@ class UtilsTest {
     }
 
     @Test
+    fun `test_validate_uri_valid_did`() {
+        val result = utils.isValidUri("did:jwk:eysdsdsd")
+        assertEquals(true, result)
+    }
+
+    @Test
     fun `test empty JSONArray`() {
         val jsonArray = JSONArray()
         val result = utils.jsonArrayToList(jsonArray)
