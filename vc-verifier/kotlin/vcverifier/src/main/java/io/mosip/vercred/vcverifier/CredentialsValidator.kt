@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier
 
-import io.mosip.vercred.vcverifier.Constants.CREDENTIAL
 import io.mosip.vercred.vcverifier.Constants.ID
 import io.mosip.vercred.vcverifier.Constants.PROOF
 import io.mosip.vercred.vcverifier.Constants.ISSUER
@@ -24,14 +23,13 @@ import org.json.JSONObject
 class CredentialsValidator {
 
     private val requiredFields = listOf(
-        CREDENTIAL,
-        "$CREDENTIAL.$ID",
-        "$CREDENTIAL.$PROOF",
-        "$CREDENTIAL.$ISSUER",
-        "$CREDENTIAL.$CONTEXT",
-        "$CREDENTIAL.$TYPE",
-        "$CREDENTIAL.$CREDENTIAL_SUBJECT",
-        "$CREDENTIAL.$ISSUANCE_DATE"
+        "$ID",
+        "$PROOF",
+        "$ISSUER",
+        "$CONTEXT",
+        "$TYPE",
+        "$CREDENTIAL_SUBJECT",
+        "$ISSUANCE_DATE"
     )
 
     fun validateCredential(vcJsonString: String?): VerificationResult {
@@ -84,26 +82,25 @@ class CredentialsValidator {
     }
 
     private fun checkInvalidFields(vcJsonObject: JSONObject): VerificationResult {
-        val rootCredentialObject = vcJsonObject.getJSONObject(CREDENTIAL)
 
-        val firstContext = rootCredentialObject.getJSONArray(CONTEXT).getString(0)
+        val firstContext = vcJsonObject.getJSONArray(CONTEXT).getString(0)
         if (firstContext != CREDENTIALS_CONTEXT_V1_URL) {
             return VerificationResult(false, ERROR_CONTEXT_FIRST_LINE)
         }
 
-        val issuer = rootCredentialObject.optString(ISSUER)
+        val issuer = vcJsonObject.optString(ISSUER)
         if (!Util().isValidUri(issuer)) {
-            return VerificationResult(false, "$CREDENTIAL.$ISSUER$ERROR_VALID_URI")
+            return VerificationResult(false, "$ISSUER$ERROR_VALID_URI")
         }
 
         listOf(ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
             EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID).forEach { (dateKey, errorMessage) ->
-            if (rootCredentialObject.has(dateKey) && !Util().isValidDate(rootCredentialObject.get(dateKey).toString())) {
+            if (vcJsonObject.has(dateKey) && !Util().isValidDate(vcJsonObject.get(dateKey).toString())) {
                 return VerificationResult(false, errorMessage)
             }
         }
 
-        rootCredentialObject.optJSONArray(TYPE)?.let { types ->
+        vcJsonObject.optJSONArray(TYPE)?.let { types ->
             if (!Util().jsonArrayToList(types).contains(VERIFIABLE_CREDENTIAL)) {
                 return VerificationResult(false, ERROR_TYPE_VERIFIABLE_CREDENTIAL)
             }
@@ -113,8 +110,7 @@ class CredentialsValidator {
     }
 
     private fun handleExpiredVC(vcJsonObject: JSONObject): VerificationResult {
-        val rootCredentialObject = vcJsonObject.getJSONObject(CREDENTIAL)
-        val expirationDate = rootCredentialObject.optString(EXPIRATION_DATE)
+        val expirationDate = vcJsonObject.optString(EXPIRATION_DATE)
         if (expirationDate.isNotEmpty() && Util().isDateExpired(expirationDate)) {
             return VerificationResult(true, ERROR_VC_EXPIRED)
         }

@@ -1,7 +1,6 @@
 package io.mosip.vercred.vcverifier
 
 import io.mosip.vercred.vcverifier.Constants.CONTEXT
-import io.mosip.vercred.vcverifier.Constants.CREDENTIAL
 import io.mosip.vercred.vcverifier.Constants.CREDENTIAL_SUBJECT
 import io.mosip.vercred.vcverifier.Constants.ERROR_CONTEXT_FIRST_LINE
 import io.mosip.vercred.vcverifier.Constants.ERROR_EMPTY_VC_JSON
@@ -38,98 +37,87 @@ class CredentialsValidatorTest {
     }
 
     @Test
-    fun `validate_mandatory_fields_missing_credential`(){
-
-        val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.remove(CREDENTIAL)
-
-        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
-        assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL", result.verificationErrorMessage)
-    }
-
-    @Test
     fun `validate_mandatory_fields_missing_credential_id`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(ID)
+        sampleVcObject.remove(ID)
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$ID", result.verificationErrorMessage)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ID", result.verificationErrorMessage)
     }
 
     @Test
     fun `validate_mandatory_fields_missing_credential_issuer`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(ISSUER)
+        sampleVcObject.remove(ISSUER)
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$ISSUER", result.verificationErrorMessage)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUER", result.verificationErrorMessage)
     }
 
     @Test
     fun `validate_mandatory_fields_missing_credential_type`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(TYPE)
+        sampleVcObject.remove(TYPE)
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$TYPE", result.verificationErrorMessage)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result.verificationErrorMessage)
     }
 
     @Test
     fun `validate_mandatory_fields_missing_credential_proof`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(PROOF)
+        sampleVcObject.remove(PROOF)
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$PROOF", result.verificationErrorMessage)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$PROOF", result.verificationErrorMessage)
     }
 
     @Test
     fun `validate_mandatory_fields_missing_credential_context`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(CONTEXT)
+        sampleVcObject.remove(CONTEXT)
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$CONTEXT", result.verificationErrorMessage)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result.verificationErrorMessage)
     }
 
     @Test
     fun `validate_mandatory_fields_missing_credential_issuanceDate`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(ISSUANCE_DATE)
+        sampleVcObject.remove(ISSUANCE_DATE)
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$ISSUANCE_DATE", result.verificationErrorMessage)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUANCE_DATE", result.verificationErrorMessage)
     }
 
     @Test
     fun `validate_mandatory_fields_missing_credential_credentialSubject`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).remove(CREDENTIAL_SUBJECT)
+        sampleVcObject.remove(CREDENTIAL_SUBJECT)
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL.$CREDENTIAL_SUBJECT", result.verificationErrorMessage)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL_SUBJECT", result.verificationErrorMessage)
     }
 
     @Test
     fun `invalid_credential_context`(){
 
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).getJSONArray(CONTEXT).put(0, "http://www/google.com")
+        sampleVcObject.getJSONArray(CONTEXT).put(0, "http://www/google.com")
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
@@ -142,17 +130,17 @@ class CredentialsValidatorTest {
     @Test
     fun `invalid_credential_issuer_id`(){
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).put(ISSUER, "invalid-uri")
+        sampleVcObject.put(ISSUER, "invalid-uri")
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("$CREDENTIAL.$ISSUER$ERROR_VALID_URI", result.verificationErrorMessage)
+        assertEquals("$ISSUER$ERROR_VALID_URI", result.verificationErrorMessage)
     }
 
     @Test
     fun `invalid_credential_issuance_date`(){
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).put(ISSUANCE_DATE, "2024-15-02T17:36:13.644Z")
+        sampleVcObject.put(ISSUANCE_DATE, "2024-15-02T17:36:13.644Z")
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
@@ -162,7 +150,7 @@ class CredentialsValidatorTest {
     @Test
     fun `invalid_credential_expiration_date`(){
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).put(EXPIRATION_DATE, "2034-15-02T17:36:13.644Z")
+        sampleVcObject.put(EXPIRATION_DATE, "2034-15-02T17:36:13.644Z")
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
@@ -172,9 +160,8 @@ class CredentialsValidatorTest {
     @Test
     fun `invalid_credential_type`() {
         val sampleVcObject = JSONObject(sampleVc)
-        val credentialObject = sampleVcObject.getJSONObject(CREDENTIAL)
-        credentialObject.getJSONArray(TYPE).put(0, "SampleVC")
-        credentialObject.getJSONArray(TYPE).put(1, "UnknownCredentialType")
+        sampleVcObject.getJSONArray(TYPE).put(0, "SampleVC")
+        sampleVcObject.getJSONArray(TYPE).put(1, "UnknownCredentialType")
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals(ERROR_TYPE_VERIFIABLE_CREDENTIAL, result.verificationErrorMessage)
@@ -183,7 +170,7 @@ class CredentialsValidatorTest {
     @Test
     fun `test_VC_expired`(){
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).put(EXPIRATION_DATE, "2014-12-02T17:36:13.644Z")
+        sampleVcObject.put(EXPIRATION_DATE, "2014-12-02T17:36:13.644Z")
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(true,result.verificationStatus)
         assertEquals(ERROR_VC_EXPIRED,result.verificationErrorMessage)
@@ -192,7 +179,7 @@ class CredentialsValidatorTest {
     @Test
     fun `test_VC_not_expired`(){
         val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.getJSONObject(CREDENTIAL).put(EXPIRATION_DATE, "2034-12-02T17:36:13.644Z")
+        sampleVcObject.put(EXPIRATION_DATE, "2034-12-02T17:36:13.644Z")
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(true,result.verificationStatus)
         assertEquals("",result.verificationErrorMessage)
@@ -212,8 +199,7 @@ class CredentialsValidatorTest {
     companion object{
 
         val sampleVc = """
-            {
-            "credential": {
+        {
                 "@context": [
                     "https://www.w3.org/2018/credentials/v1",
                     "https://apisip-ida-context.json",
@@ -268,7 +254,6 @@ class CredentialsValidatorTest {
                     "MOSIPVerifiableCredential"
                 ]
             }
-        }
         
         
         """.trimIndent()
