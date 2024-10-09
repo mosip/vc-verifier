@@ -112,9 +112,10 @@ class CredentialsValidator {
         return VerificationResult(true)
     }
 
-    private fun handleExpiredVC(vcJsonObject: JSONObject): VerificationResult{
-        val expirationDate = vcJsonObject.getJSONObject(CREDENTIAL).get(EXPIRATION_DATE).toString()
-        if(Util().isDateExpired(expirationDate)){
+    private fun handleExpiredVC(vcJsonObject: JSONObject): VerificationResult {
+        val rootCredentialObject = vcJsonObject.getJSONObject(CREDENTIAL)
+        val expirationDate = rootCredentialObject.optString(EXPIRATION_DATE)
+        if (expirationDate.isNotEmpty() && Util().isDateExpired(expirationDate)) {
             return VerificationResult(true, ERROR_VC_EXPIRED)
         }
         return VerificationResult(true)

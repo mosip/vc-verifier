@@ -183,6 +183,7 @@ class CredentialsValidatorTest {
     @Test
     fun `test_VC_expired`(){
         val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.getJSONObject(CREDENTIAL).put(EXPIRATION_DATE, "2014-12-02T17:36:13.644Z")
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(true,result.verificationStatus)
         assertEquals(ERROR_VC_EXPIRED,result.verificationErrorMessage)
@@ -195,6 +196,15 @@ class CredentialsValidatorTest {
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(true,result.verificationStatus)
         assertEquals("",result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `test_VC_without_expiration`(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
+        assertEquals("",result.verificationErrorMessage)
+        assertEquals(true,result.verificationStatus)
+
     }
 
 
@@ -245,7 +255,6 @@ class CredentialsValidatorTest {
                 },
                 "id": "https://ida.test.net/credentials/b5d20f0a-a9b8-486a-9d60",
                 "issuanceDate": "2024-09-02T17:36:13.644Z",
-                "expirationDate": "2014-09-02T17:36:13.644Z",
                 "issuer": "https://apn/ida-controller.json",
                 "proof": {
                     "created": "2024-09-02T17:36:13Z",
