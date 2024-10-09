@@ -10,7 +10,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VALID_URI
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
@@ -137,7 +137,7 @@ class CredentialsValidatorTest {
 
         val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
-        assertEquals("$ISSUER$ERROR_VALID_URI", result.verificationErrorMessage)
+        assertEquals("$ERROR_INVALID_URI$ISSUER", result.verificationErrorMessage)
     }
 
     @Test
@@ -201,7 +201,7 @@ class CredentialsValidatorTest {
     fun `test without jws`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(JWS)
-        val result = credentialsValidator.validateProof(sampleVc)
+        val result = credentialsValidator.validateCredential(sampleVc)
         assertEquals(true, result.verificationStatus)
     }
 
@@ -210,7 +210,7 @@ class CredentialsValidatorTest {
     fun `test invalid algorithm in jws`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONObject(PROOF).put(JWS, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
-        val result = credentialsValidator.validateProof(sampleVcObject.toString())
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(ERROR_ALGORITHM_NOT_SUPPORTED, result.verificationErrorMessage)
         assertEquals(false, result.verificationStatus)
 
@@ -220,7 +220,7 @@ class CredentialsValidatorTest {
     fun `test valid algorithm in jws`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.put(JWS, "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJLYlJXRU9YQ0pVRENWVnVET2ZsSkRQWnAtXzNqMEZvajd1RVZHd19xOEdzIiwiYWxnIjoiUFMyNTYifQ..NEcXf5IuDf0eJcBbtIBsXC2bZeOzNBduWG7Vz9A3ePcvh-SuwggPcCPQLrdgl79ta5bYsKsJSKVSS0Xg-GvlY71I2OzU778Bkq52LIDtSXY3DrxQEvM-BqjKLBB-ScA850pG2gV-k_8nkCPmAdvda_jj2Vlkss7VPB5LI6skWTgM4MOyvlMzZCzqmifqTzHLVgefzfixld7E38X7wxzEZfn2lY_fRfWqcL8pKL_kijTHwdTWLb9hMQtP9vlk2iarbT8TmZqutZD8etd1PBFm7V_izcY9cO75A4N3fVrr6NC50cDHDshPZFS48uTBDK-SSePxibpmq1afaS_VX6kX7A")
-        val result = credentialsValidator.validateProof(sampleVcObject.toString())
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(true, result.verificationStatus)
     }
 
@@ -239,7 +239,7 @@ class CredentialsValidatorTest {
     fun `test invalid proof type`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONObject(PROOF).put(TYPE, "ASASignature2018")
-        val result = credentialsValidator.validateProof(sampleVcObject.toString())
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(ERROR_PROOF_TYPE_NOT_SUPPORTED, result.verificationErrorMessage)
         assertEquals(false, result.verificationStatus)
 
@@ -249,7 +249,7 @@ class CredentialsValidatorTest {
     fun `test valid proof type`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONObject(PROOF).put(TYPE, "RsaSignature2018")
-        val result = credentialsValidator.validateProof(sampleVcObject.toString())
+        val result = credentialsValidator.validateCredential(sampleVcObject.toString())
         assertEquals(true, result.verificationStatus)
     }
 

@@ -18,7 +18,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VALID_URI
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
@@ -104,7 +104,7 @@ class CredentialsValidator {
 
         val issuer = vcJsonObject.optString(ISSUER)
         if (!Util().isValidUri(issuer)) {
-            return VerificationResult(false, "$ISSUER$ERROR_VALID_URI")
+            return VerificationResult(false, "$ERROR_INVALID_URI$ISSUER")
         }
 
         listOf(ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
@@ -132,7 +132,7 @@ class CredentialsValidator {
     }
 
 
-    fun validateProof(vcJsonString: String): VerificationResult{
+    private fun validateProof(vcJsonString: String): VerificationResult{
         val vcJsonObject = JSONObject(vcJsonString)
 
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(vcJsonString)
@@ -146,8 +146,8 @@ class CredentialsValidator {
             }
         }
 
-        val ldProofTerm: String = ldProof.type
-        if (CredentialVerifierConstants.SIGNATURE_SUITE_TERM != ldProofTerm) {
+        val ldProofType: String = ldProof.type
+        if (CredentialVerifierConstants.SIGNATURE_SUITE_TERM != ldProofType) {
             return VerificationResult(false, ERROR_PROOF_TYPE_NOT_SUPPORTED)
         }
 

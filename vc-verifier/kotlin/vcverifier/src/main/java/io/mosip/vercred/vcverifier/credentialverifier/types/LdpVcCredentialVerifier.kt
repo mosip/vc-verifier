@@ -47,13 +47,6 @@ class LdpVcCredentialVerifier : CredentialVerifier {
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credential)
         vcJsonLdObject.documentLoader = confDocumentLoader
         val ldProofWithJWS: LdProof = LdProof.getFromJsonLDObject(vcJsonLdObject)
-        if (Objects.isNull(ldProofWithJWS)) {
-            throw ProofDocumentNotFoundException("Proof document is not available in the received credentials")
-        }
-        val ldProofTerm: String = ldProofWithJWS.type
-        if (CredentialVerifierConstants.SIGNATURE_SUITE_TERM != ldProofTerm) {
-            throw ProofTypeNotSupportedException("Proof Type available in received credentials is not matching with supported proof terms")
-        }
         return try {
             val canonicalizer = URDNA2015Canonicalizer()
             val canonicalHashBytes: ByteArray =
