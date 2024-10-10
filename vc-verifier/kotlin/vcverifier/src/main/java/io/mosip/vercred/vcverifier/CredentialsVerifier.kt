@@ -1,5 +1,6 @@
 package io.mosip.vercred.vcverifier
 
+import android.util.Log
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_FAILED
@@ -16,24 +17,12 @@ class CredentialsVerifier {
      * Please use verify(credentials: String, format: CredentialFormat) instead, which is designed for supporting different VC formats.
      */
     @Deprecated("This method has been deprecated because it is not extensible for future use cases of supporting different VC format's verification")
-    fun verifyCredentials(credentials: String?): VerificationResult {
-        val verificationResult = CredentialValidatorFactory().validate(credential = credentials.orEmpty(), CredentialFormat.LDP_VC)
-
-        //Return Validation Error
-        if (!verificationResult.verificationStatus) {
-            return verificationResult
+    fun verifyCredentials(credentials: String?): Boolean {
+        if(credentials==null){
+            Log.e(tag, "Error - Input credential is null")
+            throw RuntimeException("Input credential is null")
         }
-
-        return try {
-            val verifySignatureStatus = CredentialVerifierFactory().verify(credentials.orEmpty(), CredentialFormat.LDP_VC)
-            verificationResult.verificationStatus = verifySignatureStatus
-            if (!verifySignatureStatus) {
-                verificationResult.verificationErrorMessage = VERIFICATION_FAILED
-            }
-            verificationResult
-        } catch (e: Exception) {
-            VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}")
-        }
+        return CredentialVerifierFactory().verify(credentials,CredentialFormat.LDP_VC)
     }
 
 

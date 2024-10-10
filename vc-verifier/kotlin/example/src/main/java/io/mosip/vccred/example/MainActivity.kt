@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.mosip.vccred.example.ui.theme.VcverifierTheme
 import io.mosip.vercred.vcverifier.CredentialsVerifier
+import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.data.VerificationResult
 
 class MainActivity : ComponentActivity() {
@@ -95,7 +96,7 @@ fun VerifyVC(modifier: Modifier = Modifier) {
 
 fun verifyVc(): VerificationResult{
     val credentialsVerifier = CredentialsVerifier()
-    return credentialsVerifier.verifyCredentials(mosipVc)
+    return credentialsVerifier.verify(mosipVc, CredentialFormat.LDP_VC)
 }
 
 @Preview(showBackground = true)
