@@ -70,7 +70,7 @@ class LdpVcCredentialVerifier : CredentialVerifier {
                 -> throw e
 
                 else -> {
-                    throw UnknownException("Error while doing verification of verifiable credential")
+                    throw UnknownException("Error while doing verification of verifiable credential:$e")
                 }
             }
         }
