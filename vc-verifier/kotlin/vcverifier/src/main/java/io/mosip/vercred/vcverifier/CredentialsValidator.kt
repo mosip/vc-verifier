@@ -24,7 +24,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF_TYPES_SUPPORTED
 import io.mosip.vercred.vcverifier.utils.Util
 import org.json.JSONObject
 
@@ -147,7 +147,7 @@ class CredentialsValidator {
         }
 
         val ldProofType: String = ldProof.type
-        if (CredentialVerifierConstants.SIGNATURE_SUITE_TERM != ldProofType) {
+        if (!PROOF_TYPES_SUPPORTED.contains(ldProofType)) {
             return VerificationResult(false, ERROR_PROOF_TYPE_NOT_SUPPORTED)
         }
 

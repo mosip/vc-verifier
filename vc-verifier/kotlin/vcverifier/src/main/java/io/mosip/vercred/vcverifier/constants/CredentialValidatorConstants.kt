@@ -38,4 +38,8 @@ object CredentialValidatorConstants {
         "PS256",
         "RS256"
     )
+
+    val PROOF_TYPES_SUPPORTED = listOf(
+        "RsaSignature2018"
+    )
 }
