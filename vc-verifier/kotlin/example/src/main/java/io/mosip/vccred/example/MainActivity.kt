@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.mosip.vccred.example.ui.theme.VcverifierTheme
 import io.mosip.vercred.vcverifier.CredentialsVerifier
-import io.mosip.vercred.vcverifier.VerificationResult
+import io.mosip.vercred.vcverifier.data.VerificationResult
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,8 +34,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             VcverifierTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                    VerifyVC(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -44,7 +43,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun VerifyVC(modifier: Modifier = Modifier) {
     val verificationResult = remember { mutableStateOf<VerificationResult?>(null) }
 
     Column(modifier = Modifier.padding(30.dp)) {
@@ -103,7 +102,7 @@ fun verifyVc(): VerificationResult{
 @Composable
 fun GreetingPreview() {
     VcverifierTheme {
-        Greeting("Android")
+        VerifyVC()
     }
 }
 

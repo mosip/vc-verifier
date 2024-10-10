@@ -1,34 +1,36 @@
-package io.mosip.vercred.vcverifier
+package io.mosip.vercred.vcverifier.credentialvalidator.types
 
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ALGORITHMS_SUPPORTED
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CONTEXT_FIRST_LINE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EXPIRATION_DATE_INVALID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF_TYPES_SUPPORTED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
+import io.mosip.vercred.vcverifier.credentialvalidator.CredentialValidator
+import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.utils.Util
 import org.json.JSONObject
 
-class CredentialsValidator {
+class LdpVcCredentialValidator: CredentialValidator {
 
     private val requiredFields = listOf(
         ID,
@@ -41,14 +43,14 @@ class CredentialsValidator {
         ISSUANCE_DATE
     )
 
-    fun validateCredential(vcJsonString: String?): VerificationResult {
+    override fun validate(credential: String): VerificationResult {
 
         try {
-            if (vcJsonString.isNullOrEmpty()) {
+            if (credential.isNullOrEmpty()) {
                 return VerificationResult(false, ERROR_EMPTY_VC_JSON)
             }
 
-            val vcJsonObject = JSONObject(vcJsonString)
+            val vcJsonObject = JSONObject(credential)
 
             val mandatoryCheck = checkMandatoryFields(vcJsonObject, requiredFields)
             if (!mandatoryCheck.verificationStatus) {
@@ -60,7 +62,7 @@ class CredentialsValidator {
                 return invalidCheck
             }
 
-            val isValidProofType = validateProof(vcJsonString)
+            val isValidProofType = validateProof(credential)
             if (!isValidProofType.verificationStatus) {
                 return isValidProofType
             }
@@ -107,8 +109,10 @@ class CredentialsValidator {
             return VerificationResult(false, "$ERROR_INVALID_URI$ISSUER")
         }
 
-        listOf(ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
-            EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID).forEach { (dateKey, errorMessage) ->
+        listOf(
+            ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
+            EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID
+        ).forEach { (dateKey, errorMessage) ->
             if (vcJsonObject.has(dateKey) && !Util().isValidDate(vcJsonObject.get(dateKey).toString())) {
                 return VerificationResult(false, errorMessage)
             }
@@ -158,12 +162,4 @@ class CredentialsValidator {
         const val CREDENTIALS_CONTEXT_V1_URL = "https://www.w3.org/2018/credentials/v1"
         const val VERIFIABLE_CREDENTIAL = "VerifiableCredential"
     }
-
 }
-
-data class VerificationResult(
-    val verificationStatus: Boolean,
-    val verificationErrorMessage: String = ""
-
-)
-

@@ -1,6 +1,6 @@
 package io.mosip.vercred.vcverifier.constants
 
-import io.mosip.vercred.vcverifier.CredentialsValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
+import io.mosip.vercred.vcverifier.credentialvalidator.types.LdpVcCredentialValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
 
 object CredentialValidatorConstants {
     const val CREDENTIAL = "credential"
@@ -23,7 +23,7 @@ object CredentialValidatorConstants {
     const val ERROR_TYPE_VERIFIABLE_CREDENTIAL = "${VALIDATION_ERROR}type must include `VerifiableCredential`."
     const val ERROR_INVALID_URI = "${VALIDATION_ERROR}Invalid URI."
     const val ERROR_VC_EXPIRED = "VC is expired"
-    const val EXCEPTION_DURING_VALIDATION = "${VALIDATION_ERROR}Exception during Validation: "
+    const val EXCEPTION_DURING_VALIDATION = "Exception during Validation: "
     const val ERROR_ALGORITHM_NOT_SUPPORTED = "${VALIDATION_ERROR}Algorithm used in the proof is not matching with supported algorithms"
     const val ERROR_PROOF_TYPE_NOT_SUPPORTED = "${VALIDATION_ERROR}Proof Type is not matching with supported types"
 

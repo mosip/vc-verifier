@@ -12,4 +12,7 @@ object CredentialVerifierConstants {
     const val PSS_PARAM_MGF1 = "MGF1"
     const val PSS_PARAM_SALT_LEN = 32
     const val PSS_PARAM_TF = 1
+
+    const val EXCEPTION_DURING_VERIFICATION = "Exception during Verification: "
+    const val VERIFICATION_FAILED = "Verification Failed"
 }

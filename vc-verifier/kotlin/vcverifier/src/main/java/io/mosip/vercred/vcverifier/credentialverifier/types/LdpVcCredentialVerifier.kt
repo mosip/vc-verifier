@@ -13,8 +13,6 @@ import info.weboftrust.ldsignatures.util.JWSUtil
 import io.mosip.vercred.vcverifier.CredentialsVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifier
-import io.mosip.vercred.vcverifier.exception.ProofDocumentNotFoundException
-import io.mosip.vercred.vcverifier.exception.ProofTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
@@ -70,7 +68,7 @@ class LdpVcCredentialVerifier : CredentialVerifier {
                 -> throw e
 
                 else -> {
-                    throw UnknownException("Error while doing verification of verifiable credential:$e")
+                    throw UnknownException(e.toString())
                 }
             }
         }
