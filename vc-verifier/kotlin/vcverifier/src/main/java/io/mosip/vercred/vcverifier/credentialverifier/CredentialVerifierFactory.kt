@@ -7,6 +7,7 @@ class CredentialVerifierFactory {
     fun get(credentialFormat: CredentialFormat): VerifiableCredential {
         return when (credentialFormat) {
             CredentialFormat.LDP_VC -> LdpVerifiableCredential()
+            CredentialFormat.MSO_MDOC -> TODO()
         }
     }
 }
