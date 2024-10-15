@@ -10,6 +10,7 @@ nimbusJoseJwt = "9.40"
 springWeb = "5.0.20.RELEASE"
 titaniumJsonLd = "1.3.1"
 okHttp = "4.1.0"
+dokka = "1.9.20"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -26,4 +27,4 @@ springWeb = { group = "org.springframework", name = "spring-web", version.ref = 
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
