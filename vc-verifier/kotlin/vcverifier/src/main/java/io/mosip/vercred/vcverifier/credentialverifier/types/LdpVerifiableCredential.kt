@@ -1,8 +1,8 @@
-package io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.types
+package io.mosip.vercred.vcverifier.credentialverifier.types
 
 import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
-import io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.validator.LdpValidator
-import io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.verifier.LdpVerifier
+import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator
+import io.mosip.vercred.vcverifier.credentialverifier.verifier.LdpVerifier
 import io.mosip.vercred.vcverifier.data.VerificationResult
 
 class LdpVerifiableCredential : VerifiableCredential {

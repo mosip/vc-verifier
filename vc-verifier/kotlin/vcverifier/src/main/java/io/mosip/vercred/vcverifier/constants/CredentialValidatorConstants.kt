@@ -1,6 +1,6 @@
 package io.mosip.vercred.vcverifier.constants
 
-import io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
+import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
 
 
 object CredentialValidatorConstants {

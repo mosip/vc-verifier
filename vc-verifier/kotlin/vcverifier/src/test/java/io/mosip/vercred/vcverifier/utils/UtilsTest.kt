@@ -1,6 +1,5 @@
-package io.mosip.vercred.vcverifier
+package io.mosip.vercred.vcverifier.utils
 
-import io.mosip.vercred.vcverifier.utils.Util
 import org.json.JSONArray
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -8,7 +7,7 @@ import org.junit.Test
 
 class UtilsTest {
 
-    val utils = Util()
+    private val utils = Util()
 
     @Test
     fun `test validate date invalid`() {

@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.credentialvalidator.types
+package io.mosip.vercred.vcverifier.credentialverifier.validator
 
 import io.mockk.every
 import io.mockk.mockkStatic
@@ -22,13 +22,12 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
-import io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.validator.LdpValidator
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
-class LdpVcCredentialsValidatorTest {
+class LdpValidatorTest {
 
     private val credentialsValidator = LdpValidator()
 

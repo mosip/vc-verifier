@@ -1,7 +1,7 @@
-package io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential
+package io.mosip.vercred.vcverifier.credentialverifier
 
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
-import io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.types.LdpVerifiableCredential
+import io.mosip.vercred.vcverifier.credentialverifier.types.LdpVerifiableCredential
 
 class CredentialVerifierFactory {
     fun get(credentialFormat: CredentialFormat): LdpVerifiableCredential {

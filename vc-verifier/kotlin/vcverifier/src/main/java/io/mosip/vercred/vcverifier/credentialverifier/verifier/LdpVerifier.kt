@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.verifier
+package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
 import android.security.KeyStoreException
 import android.util.Log

@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.validator
+package io.mosip.vercred.vcverifier.credentialverifier.validator
 
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.JsonLDObject

@@ -1,17 +1,16 @@
-package io.mosip.vercred.vcverifier.credentialverifierarc.types
+package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
 import android.util.Log
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkStatic
-import io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.verifier.LdpVerifier
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-class LdpVcVerifiableCredentialTest {
+class LdpVerifierTest {
     @Before
     fun before() {
         mockkStatic(Log::class)
