@@ -8,9 +8,6 @@ import java.util.Locale
 
 
 class Util {
-    val isAndroid: Boolean
-        get() = System.getProperty("java.vm.name")?.contains("Dalvik") == true
-
 
     fun isValidUri(value: String): Boolean {
         return try {

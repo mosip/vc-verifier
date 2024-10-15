@@ -11,31 +11,31 @@ class UtilsTest {
     val utils = Util()
 
     @Test
-    fun `test_validate_date_invalid`() {
+    fun `test validate date invalid`() {
         val result = utils.isValidDate("123456789")
         assertEquals(false, result)
     }
 
     @Test
-    fun `test_validate_date_valid`() {
+    fun `test validate date valid`() {
         val result = utils.isValidDate("2024-09-02T17:36:13.644Z")
         assertEquals(true, result)
     }
 
     @Test
-    fun `test_validate_uri_invalid`() {
+    fun `test validate uri invalid`() {
         val result = utils.isValidUri("invalid_uri")
         assertEquals(false, result)
     }
 
     @Test
-    fun `test_validate_uri_valid`() {
+    fun `test validate uri valid`() {
         val result = utils.isValidUri("http://www.google.com")
         assertEquals(true, result)
     }
 
     @Test
-    fun `test_validate_uri_valid_did`() {
+    fun `test validate uri valid did`() {
         val result = utils.isValidUri("did:jwk:eysdsdsd")
         assertEquals(true, result)
     }
@@ -59,19 +59,19 @@ class UtilsTest {
     }
 
     @Test
-    fun `date_expired`(){
+    fun `date expired`(){
         val result = utils.isDateExpired("2024-09-02T17:36:13.644Z")
         assertEquals(true, result)
     }
 
     @Test
-    fun `date_not_expired`(){
+    fun `date not expired`(){
         val result = utils.isDateExpired("2024-11-02T17:36:13.644Z")
         assertEquals(false, result)
     }
 
     @Test
-    fun `invalid_date`(){
+    fun `invalid date`(){
         val result = utils.isDateExpired("12345")
         assertEquals(false, result)
     }

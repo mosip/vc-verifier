@@ -2,7 +2,6 @@ package io.mosip.vercred.vcverifier.credentialvalidator.types
 
 import io.mockk.every
 import io.mockk.mockkStatic
-import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
@@ -23,7 +22,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
-import io.mosip.vercred.vcverifier.credentialvalidator.CredentialValidatorFactory
+import io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.validator.LdpValidator
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -31,9 +30,7 @@ import org.junit.Test
 
 class LdpVcCredentialsValidatorTest {
 
-
-    private val credentialsValidator = CredentialValidatorFactory()
-
+    private val credentialsValidator = LdpValidator()
 
     @Test
     fun `validateCredential should return error when JSON parsing fails`() {
@@ -44,37 +41,37 @@ class LdpVcCredentialsValidatorTest {
 
         every { JSONObject(invalidJsonString) } throws Exception("JSON parsing error")
 
-        val result = credentialsValidator.validate(invalidJsonString, CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(invalidJsonString)
         assertFalse(result.verificationStatus)
         assertEquals("${EXCEPTION_DURING_VALIDATION}JSON parsing error", result.verificationErrorMessage)
     }
 
     @Test
-    fun `validate_empty_vc_json_string`(){
+    fun `validate empty vc json string`(){
 
-        val resultEmpty = credentialsValidator.validate("", CredentialFormat.LDP_VC)
+        val resultEmpty = credentialsValidator.validate("")
         assertEquals(false, resultEmpty.verificationStatus)
         assertEquals(ERROR_EMPTY_VC_JSON, resultEmpty.verificationErrorMessage)
     }
 
     @Test
-    fun `validate_mandatory_fields_missing_credential_id`(){
+    fun `validate mandatory fields missing credential id`(){
 
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(ID)
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ID", result.verificationErrorMessage)
     }
 
     @Test
-    fun `validate_mandatory_fields_missing_credential_issuer`(){
+    fun `validate mandatory fields missing credential issuer`(){
 
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(ISSUER)
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUER", result.verificationErrorMessage)
     }
@@ -85,7 +82,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(TYPE)
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result.verificationErrorMessage)
     }
@@ -96,7 +93,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(PROOF)
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$PROOF", result.verificationErrorMessage)
     }
@@ -107,7 +104,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(CONTEXT)
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result.verificationErrorMessage)
     }
@@ -118,7 +115,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(ISSUANCE_DATE)
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUANCE_DATE", result.verificationErrorMessage)
     }
@@ -129,7 +126,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(CREDENTIAL_SUBJECT)
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL_SUBJECT", result.verificationErrorMessage)
     }
@@ -140,20 +137,17 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONArray(CONTEXT).put(0, "http://www/google.com")
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("$ERROR_CONTEXT_FIRST_LINE", result.verificationErrorMessage)
     }
-
-
-
 
     @Test
     fun `invalid_credential_issuer_id`(){
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.put(ISSUER, "invalid-uri")
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("$ERROR_INVALID_URI$ISSUER", result.verificationErrorMessage)
     }
@@ -163,7 +157,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.put(ISSUANCE_DATE, "2024-15-02T17:36:13.644Z")
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("$ERROR_ISSUANCE_DATE_INVALID", result.verificationErrorMessage)
     }
@@ -173,7 +167,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.put(EXPIRATION_DATE, "2034-15-02T17:36:13.644Z")
 
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("$ERROR_EXPIRATION_DATE_INVALID", result.verificationErrorMessage)
     }
@@ -183,7 +177,7 @@ class LdpVcCredentialsValidatorTest {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONArray(TYPE).put(0, "SampleVC")
         sampleVcObject.getJSONArray(TYPE).put(1, "UnknownCredentialType")
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals(ERROR_TYPE_VERIFIABLE_CREDENTIAL, result.verificationErrorMessage)
     }
@@ -192,7 +186,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test_VC_expired`(){
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.put(EXPIRATION_DATE, "2014-12-02T17:36:13.644Z")
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(true,result.verificationStatus)
         assertEquals(ERROR_VC_EXPIRED,result.verificationErrorMessage)
     }
@@ -201,7 +195,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test_VC_not_expired`(){
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.put(EXPIRATION_DATE, "2034-12-02T17:36:13.644Z")
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(true,result.verificationStatus)
         assertEquals("",result.verificationErrorMessage)
     }
@@ -209,7 +203,7 @@ class LdpVcCredentialsValidatorTest {
     @Test
     fun `test_VC_without_expiration`(){
         val sampleVcObject = JSONObject(sampleVc)
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals("",result.verificationErrorMessage)
         assertEquals(true,result.verificationStatus)
 
@@ -219,7 +213,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test without jws`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.remove(JWS)
-        val result = credentialsValidator.validate(sampleVc, CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVc)
         assertEquals(true, result.verificationStatus)
     }
 
@@ -228,7 +222,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test invalid algorithm in jws`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONObject(PROOF).put(JWS, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(ERROR_ALGORITHM_NOT_SUPPORTED, result.verificationErrorMessage)
         assertEquals(false, result.verificationStatus)
 
@@ -238,7 +232,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test valid algorithm in jws`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.put(JWS, "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJLYlJXRU9YQ0pVRENWVnVET2ZsSkRQWnAtXzNqMEZvajd1RVZHd19xOEdzIiwiYWxnIjoiUFMyNTYifQ..NEcXf5IuDf0eJcBbtIBsXC2bZeOzNBduWG7Vz9A3ePcvh-SuwggPcCPQLrdgl79ta5bYsKsJSKVSS0Xg-GvlY71I2OzU778Bkq52LIDtSXY3DrxQEvM-BqjKLBB-ScA850pG2gV-k_8nkCPmAdvda_jj2Vlkss7VPB5LI6skWTgM4MOyvlMzZCzqmifqTzHLVgefzfixld7E38X7wxzEZfn2lY_fRfWqcL8pKL_kijTHwdTWLb9hMQtP9vlk2iarbT8TmZqutZD8etd1PBFm7V_izcY9cO75A4N3fVrr6NC50cDHDshPZFS48uTBDK-SSePxibpmq1afaS_VX6kX7A")
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(true, result.verificationStatus)
     }
 
@@ -246,7 +240,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test without proof type`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONObject(PROOF).remove(TYPE)
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
 
         assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$PROOF.$TYPE", result.verificationErrorMessage)
         assertEquals(false, result.verificationStatus)
@@ -257,7 +251,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test invalid proof type`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONObject(PROOF).put(TYPE, "ASASignature2018")
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(ERROR_PROOF_TYPE_NOT_SUPPORTED, result.verificationErrorMessage)
         assertEquals(false, result.verificationStatus)
 
@@ -267,7 +261,7 @@ class LdpVcCredentialsValidatorTest {
     fun `test valid proof type`() {
         val sampleVcObject = JSONObject(sampleVc)
         sampleVcObject.getJSONObject(PROOF).put(TYPE, "RsaSignature2018")
-        val result = credentialsValidator.validate(sampleVcObject.toString(), CredentialFormat.LDP_VC)
+        val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(true, result.verificationStatus)
     }
 

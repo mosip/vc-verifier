@@ -1,6 +1,6 @@
 package io.mosip.vercred.vcverifier.signature.impl
 
-import io.mosip.vercred.signature.SignatureVerifier
+import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import org.bouncycastle.jce.provider.BouncyCastleProvider

@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.credentialverifier.types
+package io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.verifier
 
 import android.security.KeyStoreException
 import android.util.Log
@@ -10,12 +10,11 @@ import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
-import io.mosip.vercred.signature.SignatureVerifier
-import io.mosip.vercred.vcverifier.CredentialsVerifier
+import io.mosip.vercred.vcverifier.signature.SignatureVerifier
+import io.mosip.vercred.vcverifier.CredentialVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_ALGORITHM
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_ALGORITHM
-import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifier
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
@@ -38,9 +37,9 @@ import java.security.cert.CertificateException
 import java.security.spec.X509EncodedKeySpec
 import java.util.Objects
 
-class LdpVcCredentialVerifier : CredentialVerifier {
+class LdpVerifier {
 
-    private val tag: String = CredentialsVerifier::class.java.name
+    private val tag: String = CredentialVerifier::class.java.name
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
     init {
@@ -59,7 +58,8 @@ class LdpVcCredentialVerifier : CredentialVerifier {
         CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST to ED25519_ALGORITHM
     )
 
-    override fun verify(credential: String): Boolean {
+     fun verify(credential: String): Boolean {
+
         Log.i(tag, "Received Credentials Verification - Start")
         val confDocumentLoader: ConfigurableDocumentLoader = getConfigurableDocumentLoader()
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credential)

@@ -1,4 +1,4 @@
-package io.mosip.vercred.signature
+package io.mosip.vercred.vcverifier.signature
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey

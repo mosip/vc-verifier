@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.credentialvalidator.types
+package io.mosip.vercred.vcverifier.credentialverifier.verifiablecredential.validator
 
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.JsonLDObject
@@ -25,12 +25,11 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF_TYPES_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
-import io.mosip.vercred.vcverifier.credentialvalidator.CredentialValidator
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.utils.Util
 import org.json.JSONObject
 
-class LdpVcCredentialValidator: CredentialValidator {
+class LdpValidator {
 
     private val requiredFields = listOf(
         ID,
@@ -43,7 +42,7 @@ class LdpVcCredentialValidator: CredentialValidator {
         ISSUANCE_DATE
     )
 
-    override fun validate(credential: String): VerificationResult {
+    fun validate(credential: String): VerificationResult {
 
         try {
             if (credential.isNullOrEmpty()) {
@@ -73,7 +72,6 @@ class LdpVcCredentialValidator: CredentialValidator {
             return  VerificationResult(false, "$EXCEPTION_DURING_VALIDATION${e.message.toString()}")
         }
     }
-
 
     private fun checkMandatoryFields(vcJsonObject: JSONObject, fields: List<String>): VerificationResult {
 
