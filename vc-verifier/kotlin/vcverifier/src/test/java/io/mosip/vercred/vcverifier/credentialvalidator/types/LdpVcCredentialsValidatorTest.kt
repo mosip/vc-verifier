@@ -55,17 +55,6 @@ class LdpVcCredentialsValidatorTest {
     }
 
     @Test
-    fun `validate mandatory fields missing credential id`(){
-
-        val sampleVcObject = JSONObject(sampleVc)
-        sampleVcObject.remove(ID)
-
-        val result = credentialsValidator.validate(sampleVcObject.toString())
-        assertEquals(false, result.verificationStatus)
-        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ID", result.verificationErrorMessage)
-    }
-
-    @Test
     fun `validate mandatory fields missing credential issuer`(){
 
         val sampleVcObject = JSONObject(sampleVc)

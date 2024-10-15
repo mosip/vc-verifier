@@ -32,7 +32,6 @@ import org.json.JSONObject
 class LdpValidator {
 
     private val requiredFields = listOf(
-        ID,
         PROOF,
         "$PROOF.$TYPE",
         ISSUER,
