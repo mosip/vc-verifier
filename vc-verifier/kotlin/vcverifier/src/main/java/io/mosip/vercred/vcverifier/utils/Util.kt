@@ -6,6 +6,7 @@ import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Com
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
 import org.json.JSONObject
 import java.net.URI
+import java.net.URL
 
 
 class Util {
@@ -19,6 +20,7 @@ class Util {
     }
 
     fun isValidUri(value: String): Boolean {
+
         return try {
             val uri = URI(value)
             (uri.scheme=="did") || (uri.scheme != null && uri.host != null)

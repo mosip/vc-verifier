@@ -19,6 +19,10 @@ object CredentialValidatorConstants {
     const val VALID_UNTIL = "validUntil"
 
     const val CREDENTIAL_STATUS = "credentialStatus"
+    const val EVIDENCE = "evidence"
+    const val TERMS_OF_USE = "termsOfUse"
+    const val REFRESH_SERVICE = "refreshService"
+    const val CREDENTIAL_SCHEMA = "credentialSchema"
 
     private const val VALIDATION_ERROR = "Validation Error: "
     const val ERROR_MISSING_REQUIRED_FIELDS = "${VALIDATION_ERROR}Missing required field: "

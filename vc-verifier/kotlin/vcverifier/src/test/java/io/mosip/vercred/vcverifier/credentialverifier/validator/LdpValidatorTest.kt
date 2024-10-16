@@ -3,6 +3,7 @@ package io.mosip.vercred.vcverifier.credentialverifier.validator
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SCHEMA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
@@ -19,6 +20,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EVIDENCE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
@@ -26,6 +28,8 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUAN
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.REFRESH_SERVICE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TERMS_OF_USE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_FROM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
@@ -399,26 +403,6 @@ class LdpValidatorTest {
     }
 
     @Test
-    fun test_without_credentialStatus_v1(){
-        val sampleVcObject = JSONObject(sampleVc)
-
-        val result = credentialsValidator.validate(sampleVcObject.toString())
-        assertEquals(true, result.verificationStatus)
-        assertEquals("", result.verificationErrorMessage)
-    }
-
-    @Test
-    fun test_without_credentialStatus_v2(){
-        val sampleVcObject = JSONObject(sampleVcV2)
-
-        val result = credentialsValidator.validate(sampleVcObject.toString())
-        assertEquals(true, result.verificationStatus)
-        assertEquals("", result.verificationErrorMessage)
-    }
-
-
-
-    @Test
     fun test_credentialStatus_object_valid_v1(){
         val sampleVcObject = JSONObject(sampleVc)
         val credentialStatusObject = JSONObject()
@@ -565,6 +549,297 @@ class LdpValidatorTest {
 
 
 
+    @Test
+    fun test_evidence_object_valid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(EVIDENCE, JSONArray())
+        sampleVcObject.getJSONArray(EVIDENCE).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_evidence_object_invalid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.put(EVIDENCE, "Invalid String Type")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_INVALID_FIELD$EVIDENCE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_evidence_object_without_id_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(EVIDENCE, JSONArray())
+        sampleVcObject.getJSONArray(EVIDENCE).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_evidence_object_without_type_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        sampleVcObject.put(EVIDENCE, JSONArray())
+        sampleVcObject.getJSONArray(EVIDENCE).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$EVIDENCE.$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_evidence_object_without_id_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(EVIDENCE, JSONArray())
+        sampleVcObject.getJSONArray(EVIDENCE).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+
+    @Test
+    fun test_evidence_object_without_type_v2(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        sampleVcObject.put(EVIDENCE, JSONArray())
+        sampleVcObject.getJSONArray(EVIDENCE).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$EVIDENCE.$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credential_schema_object_invalid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.put(CREDENTIAL_SCHEMA, "Invalid String Type")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_INVALID_FIELD$CREDENTIAL_SCHEMA", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credential_schema_object_valid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_SCHEMA, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credential_schema_object_missing_id_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_SCHEMA, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$ID", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credential_schema_object_missing_type_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        sampleVcObject.put(CREDENTIAL_SCHEMA, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credential_schema_array_valid_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_SCHEMA, JSONArray())
+        sampleVcObject.getJSONArray(CREDENTIAL_SCHEMA).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credential_schema_array_missing_id_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_SCHEMA, JSONArray())
+        sampleVcObject.getJSONArray(CREDENTIAL_SCHEMA).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$ID", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credential_schema_array_missing_type_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        sampleVcObject.put(CREDENTIAL_SCHEMA, JSONArray())
+        sampleVcObject.getJSONArray(CREDENTIAL_SCHEMA).put(0, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$TYPE", result.verificationErrorMessage)
+    }
+
+
+    @Test
+    fun test_refresh_service_object_invalid(){
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.put(REFRESH_SERVICE, "Invalid String Type")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_INVALID_FIELD$REFRESH_SERVICE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_refresh_service_object_valid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_refresh_service_object_missing_id_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$ID", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_refresh_service_object_missing_type_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_refresh_service_object_valid_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_refresh_service_object_missing_id_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
+
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals("", result.verificationErrorMessage)
+        assertEquals(true, result.verificationStatus)
+
+    }
+
+    @Test
+    fun test_refresh_service_object_missing_type_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
+
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$TYPE", result.verificationErrorMessage)
+
+    }
+
+    @Test
+    fun test_terms_of_use_object_valid(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(TERMS_OF_USE, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_terms_of_use_object_missing_id(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(TYPE, "Type")
+        sampleVcObject.put(TERMS_OF_USE, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals("", result.verificationErrorMessage)
+        assertEquals(true, result.verificationStatus)
+
+    }
+
+    @Test
+    fun test_terms_of_use_object_missing_type(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val evidenceObject = JSONObject()
+        evidenceObject.put(ID, "https://google.com/")
+        sampleVcObject.put(TERMS_OF_USE, evidenceObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$TERMS_OF_USE.$TYPE", result.verificationErrorMessage)
+
+    }
 
     companion object{
 
