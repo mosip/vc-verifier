@@ -1,8 +1,8 @@
 package io.mosip.vercred.vcverifier.utils
 
 import org.json.JSONArray
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 
 class UtilsTest {

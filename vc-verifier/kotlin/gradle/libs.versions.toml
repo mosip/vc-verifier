@@ -1,7 +1,7 @@
 [versions]
 agp = "8.3.0"
 kotlin = "1.9.0"
-junit = "4.13.2"
+junit = "5.9.0"
 mockk = "1.13.10"
 ldSignaturesJava = "1.5.0"
 bouncyCastle = "1.70"
@@ -19,7 +19,7 @@ composeBom = "2024.04.01"
 orgJson = "20240303"
 
 [libraries]
-junit = { group = "junit", name = "junit", version.ref = "junit" }
+junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 ldSignaturesJava = { group = "info.weboftrust", name = "ld-signatures-java", version.ref = "ldSignaturesJava" }
 titaniumJsonLd = { group = "com.apicatalog", name = "titanium-json-ld-jre8", version.ref = "titaniumJsonLd" }

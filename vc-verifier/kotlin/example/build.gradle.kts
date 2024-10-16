@@ -83,7 +83,7 @@ dependencies {
     implementation(libs.uiGraphics)
     implementation(libs.uiToolingPreview)
     implementation(libs.material3)
-    testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
     androidTestImplementation(libs.extJunit)
     androidTestImplementation(libs.espressoCore)
     androidTestImplementation(platform(libs.composeBom))

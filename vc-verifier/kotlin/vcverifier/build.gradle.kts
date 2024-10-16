@@ -47,7 +47,13 @@ dependencies {
     implementation(libs.springWeb)
 
     testImplementation(libs.mockk)
-    testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
+
+
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 tasks.register<Jar>("jarRelease") {
