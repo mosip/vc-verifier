@@ -23,6 +23,10 @@ object CredentialValidatorConstants {
     const val TERMS_OF_USE = "termsOfUse"
     const val REFRESH_SERVICE = "refreshService"
     const val CREDENTIAL_SCHEMA = "credentialSchema"
+    const val NAME = "name"
+    const val DESCRIPTION = "description"
+    const val LANGUAGE = "language"
+    const val VALUE = "value"
 
     private const val VALIDATION_ERROR = "Validation Error: "
     const val ERROR_MISSING_REQUIRED_FIELDS = "${VALIDATION_ERROR}Missing required field: "
@@ -37,9 +41,16 @@ object CredentialValidatorConstants {
     const val EXCEPTION_DURING_VALIDATION = "Exception during Validation: "
     const val ERROR_ALGORITHM_NOT_SUPPORTED = "${VALIDATION_ERROR}Algorithm used in the proof is not matching with supported algorithms"
     const val ERROR_PROOF_TYPE_NOT_SUPPORTED = "${VALIDATION_ERROR}Proof Type is not matching with supported types"
+
     const val ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE = "${VALIDATION_ERROR}The current date time is before the issuanceDate"
     const val ERROR_CURRENT_DATE_BEFORE_VALID_FROM = "${VALIDATION_ERROR}The current date time is before the issuanceDate"
-    const val ERROR_CURRENT_DATE_AFTER_VALID_UNTIL = "${VALIDATION_ERROR}The current date time is after the validUntil"
+
+    const val ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT = "${CREDENTIAL_SUBJECT} must be a non-null object or array of objects."
+
+    const val ERROR_NAME = "${VALIDATION_ERROR}name should be string or array of Language Object"
+    const val ERROR_DESCRIPTION = "${VALIDATION_ERROR}description should be string or array of Language Object"
+
+
 
 
     val DATE_REGEX = Regex(

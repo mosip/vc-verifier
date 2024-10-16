@@ -6,11 +6,13 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEX
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SCHEMA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DESCRIPTION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CONTEXT_FIRST_LINE
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_AFTER_VALID_UNTIL
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_VALID_FROM
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_DESCRIPTION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EXPIRATION_DATE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_FIELD
@@ -19,6 +21,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EVIDENCE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
@@ -27,12 +30,15 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.LANGUAGE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.REFRESH_SERVICE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TERMS_OF_USE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_FROM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALUE
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -154,6 +160,43 @@ class LdpValidatorTest {
     }
 
     @Test
+    fun `validate_credentialSubject_invalid_id`(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credSubjectObject = JSONObject().put(ID, "test")
+
+        sampleVcObject.put(CREDENTIAL_SUBJECT, credSubjectObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals("$ERROR_INVALID_URI$CREDENTIAL_SUBJECT.$ID", result.verificationErrorMessage)
+        assertEquals(false, result.verificationStatus)
+
+    }
+
+    @Test
+    fun `validate_credentialSubject_without_id`() {
+        val sampleVcObject = JSONObject(sampleVc)
+        val credSubjectObject = sampleVcObject.get(CREDENTIAL_SUBJECT)
+        (credSubjectObject as JSONObject).remove(ID)
+        sampleVcObject.put(CREDENTIAL_SUBJECT, credSubjectObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals("", result.verificationErrorMessage)
+        assertEquals(true, result.verificationStatus)
+    }
+
+        @Test
+    fun `validate_credentialSubject_empty`(){
+        val sampleVcObject = JSONObject(sampleVc)
+
+        sampleVcObject.put(CREDENTIAL_SUBJECT, "")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals("$ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT", result.verificationErrorMessage)
+        assertEquals(false, result.verificationStatus)
+
+    }
+
+    @Test
     fun `invalid_credential_context`(){
 
         val sampleVcObject = JSONObject(sampleVc)
@@ -229,6 +272,25 @@ class LdpValidatorTest {
         assertEquals("",result.verificationErrorMessage)
         assertEquals(true,result.verificationStatus)
 
+    }
+
+    @Test
+    fun `test_VC_expired_v2`(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.put(VALID_UNTIL, "2014-12-02T17:36:13.644Z")
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(ERROR_VC_EXPIRED,result.verificationErrorMessage)
+        assertEquals(true,result.verificationStatus)
+
+    }
+
+    @Test
+    fun `test_VC_not_expired_v2`(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.put(VALID_UNTIL, "2034-12-02T17:36:13.644Z")
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true,result.verificationStatus)
+        assertEquals("",result.verificationErrorMessage)
     }
 
     @Test
@@ -378,14 +440,14 @@ class LdpValidatorTest {
     }
 
     @Test
-    fun `test_without_CurrentDate_after_validUntil`(){
+    fun `test_CurrentDate_after_validUntil`(){
 
         val sampleVcObject = JSONObject(sampleVcV2)
         sampleVcObject.put(VALID_UNTIL, "2023-12-02T17:36:13.644Z")
 
         val result = credentialsValidator.validate(sampleVcObject.toString())
-        assertEquals(false, result.verificationStatus)
-        assertEquals(ERROR_CURRENT_DATE_AFTER_VALID_UNTIL, result.verificationErrorMessage)
+        assertEquals(true, result.verificationStatus)
+        assertEquals(ERROR_VC_EXPIRED, result.verificationErrorMessage)
 
 
     }
@@ -841,6 +903,84 @@ class LdpValidatorTest {
 
     }
 
+    @Test
+    fun test_name_string(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.put(NAME, "test name")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_name_language_object(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val nameArray = JSONArray()
+        val nameObject = JSONObject()
+        nameObject.put(LANGUAGE, "en")
+        nameObject.put(VALUE, "test name")
+        nameArray.put(0, nameObject)
+        sampleVcObject.put(NAME, nameArray)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_name_language_object_invalid(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val nameArray = JSONArray()
+        val nameObject = JSONObject()
+        nameObject.put(VALUE, "test name")
+        nameArray.put(0, nameObject)
+        sampleVcObject.put(NAME, nameArray)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_NAME", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_description_string(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.put(DESCRIPTION, "test name")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_description_language_object(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val nameArray = JSONArray()
+        val nameObject = JSONObject()
+        nameObject.put(LANGUAGE, "en")
+        nameObject.put(VALUE, "test desc")
+        nameArray.put(0, nameObject)
+        sampleVcObject.put(DESCRIPTION, nameArray)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_description_language_object_invalid(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val nameArray = JSONArray()
+        val nameObject = JSONObject()
+        nameObject.put(VALUE, "test desc")
+        nameArray.put(0, nameObject)
+        sampleVcObject.put(DESCRIPTION, nameArray)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_DESCRIPTION", result.verificationErrorMessage)
+    }
+
     companion object{
 
         val sampleVc = """
@@ -881,7 +1021,7 @@ class LdpValidatorTest {
                         }
                     ],
                     "dateOfBirth": "1992/04/15",
-                    "id": "invalid-uri",
+                    "id": "https://ida.mosip.net/credentials/b5d20f0a-a9b8-486a-9d60-fdda68a3ea68",
                     "email": "mosipuser123@mailinator.com"
                 },
                 "id": "https://ida.test.net/credentials/b5d20f0a-a9b8-486a-9d60",
@@ -942,7 +1082,7 @@ class LdpValidatorTest {
                         }
                     ],
                     "dateOfBirth": "1992/04/15",
-                    "id": "invalid-uri",
+                    "id": "did:jwk:eyJrdHkiOiJSU0EiLCJlIjoiQVFBQiIsInVzZSI6InNpZyIsImFsZyI6IlJTMjU2IiwibiI6Im5LLTkxWXRYVmxrWDJTWnFxUHBMVm44aU43aTNXbXk1SDlXMnViTHBsR1d4dWlKa0c0RW1hQklDaWlvekZuWlBrV3BYcmhleGJiMlBKVFBJQ184X2NKcThWU2g0bGtFLTY1QnpwN1dxemMtOVUxRkROU2xLZ2p3cUk0MDNGQVN2S3B0Y0xhcHZDczIzMFYybGN3S0JDTEZ5TF93RTgzcjBlVUZvd1BTR25kMkhNS0k3ZENEMmlmT0M2blphU3RYMjhJYXl6WFFDa2dxOUpIcl9ISlJaQUduZEVhMzlRVDRYekNITkpuOW9WeDQ1c2xmYnZXRVRXZXJlTVdRTTA2Wmx6amhiQWY4QTFjcU1DRHk1ekR0WUx5WmE2MWdqMi1jUkg5UWczcTEzbWhyV3RWLUFwZ0hhRV9iUFVCS2ZpLXlpelU1SDEwczRLNVpDRHdDVEp1eFlGUSJ9",
                     "email": "mosipuser123@mailinator.com"
                 },
                 "id": "https://ida.test.net/credentials/b5d20f0a-a9b8-486a-9d60",

@@ -4,10 +4,13 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEX
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SCHEMA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DESCRIPTION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CONTEXT_FIRST_LINE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_DESCRIPTION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EVIDENCE
@@ -16,6 +19,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.REFRESH_SERVICE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TERMS_OF_USE
@@ -68,7 +72,7 @@ class LdpValidator {
         TERMS_OF_USE
     )
 
-    private val validatorUtils = ValidationHelper()
+    private val validationHelper = ValidationHelper()
     private val dateUtils = DateUtils()
 
     fun validate(credential: String): VerificationResult {
@@ -108,7 +112,7 @@ class LdpValidator {
     //Validation for Data Model 1.1
     private fun validateV1Fields(vcJsonObject: JSONObject): VerificationResult {
 
-        validatorUtils.checkMandatoryFields(vcJsonObject, commonMandatoryFields+v1SpecificMandatoryFields).let { mandatoryCheck ->
+        validationHelper.checkMandatoryFields(vcJsonObject, commonMandatoryFields+v1SpecificMandatoryFields).let { mandatoryCheck ->
             if (!mandatoryCheck.verificationStatus) {
                 return mandatoryCheck
             }
@@ -121,7 +125,7 @@ class LdpValidator {
 
         fieldsWithIDAndType.forEach { field ->
             if(vcJsonObject.has(field)){
-                val validationResult = validatorUtils.validateFieldsByIdAndType(
+                val validationResult = validationHelper.validateFieldsByIdAndType(
                     vcJsonObject = vcJsonObject,
                     fieldName = field,
                     idMandatoryFields = commonIDMandatoryFields+v1SpecificIDMandatoryFields
@@ -140,7 +144,7 @@ class LdpValidator {
     //Validation for Data Model 2.0
     private fun validateV2Fields(vcJsonObject: JSONObject): VerificationResult{
 
-        validatorUtils.checkMandatoryFields(vcJsonObject, commonMandatoryFields+v2SpecificMandatoryFields).let { mandatoryCheck ->
+        validationHelper.checkMandatoryFields(vcJsonObject, commonMandatoryFields+v2SpecificMandatoryFields).let { mandatoryCheck ->
             if (!mandatoryCheck.verificationStatus) {
                 return mandatoryCheck
             }
@@ -153,7 +157,7 @@ class LdpValidator {
 
         fieldsWithIDAndType.forEach { field ->
             if(vcJsonObject.has(field)){
-                val validationResult = validatorUtils.validateFieldsByIdAndType(vcJsonObject = vcJsonObject,
+                val validationResult = validationHelper.validateFieldsByIdAndType(vcJsonObject = vcJsonObject,
                     fieldName = field,
                     idMandatoryFields = commonIDMandatoryFields+v2SpecificIDMandatoryFields
                 )
@@ -163,6 +167,18 @@ class LdpValidator {
             }
         }
 
+        if(vcJsonObject.has(NAME)){
+            val nameValue = vcJsonObject.get(NAME)
+            val nameValidationResult = validationHelper.validateNameAndDescription(nameValue, ERROR_NAME)
+            if(!nameValidationResult.verificationStatus)  return nameValidationResult
+        }
+
+        if(vcJsonObject.has(DESCRIPTION)){
+            val descriptionValue = vcJsonObject.get(DESCRIPTION)
+            val nameValidationResult = validationHelper.validateNameAndDescription(descriptionValue, ERROR_DESCRIPTION)
+            if(!nameValidationResult.verificationStatus)  return nameValidationResult
+        }
+
         val expirationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_VC_EXPIRED else ""
         return VerificationResult(true, expirationMessage)
     }
@@ -170,7 +186,14 @@ class LdpValidator {
     //Common Validations
     private fun validateCommonFields(vcJsonObject: JSONObject): VerificationResult{
 
-        validatorUtils.validateProof(vcJsonObject.toString()).let { proofValidationResult ->
+        if(vcJsonObject.has(CREDENTIAL_SUBJECT)){
+            val credentialSubjectStatus = validationHelper.validateCredentialSubject(vcJsonObject)
+            if(!credentialSubjectStatus.verificationStatus){
+                return credentialSubjectStatus
+            }
+        }
+
+        validationHelper.validateProof(vcJsonObject.toString()).let { proofValidationResult ->
             if (!proofValidationResult.verificationStatus) {
                 return proofValidationResult
             }
@@ -197,6 +220,8 @@ class LdpValidator {
         }
         return VerificationResult(true)
     }
+
+
 
     companion object{
         const val CREDENTIALS_CONTEXT_V1_URL = "https://www.w3.org/2018/credentials/v1"

@@ -1,7 +1,6 @@
 package io.mosip.vercred.vcverifier.utils
 
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATE_REGEX
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_AFTER_VALID_UNTIL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_VALID_FROM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EXPIRATION_DATE_INVALID
@@ -9,7 +8,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_FROM
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -56,19 +54,11 @@ class DateUtils {
     }
 
     fun validateV2DateFields(vcJsonObject: JSONObject): VerificationResult {
-        val dateChecks = listOf(
-            VALID_FROM to Pair(ERROR_CURRENT_DATE_BEFORE_VALID_FROM) { !isDatePassedCurrentDate(vcJsonObject.optString(
-                VALID_FROM
-            )) },
-            VALID_UNTIL to Pair(ERROR_CURRENT_DATE_AFTER_VALID_UNTIL) { isDatePassedCurrentDate(vcJsonObject.optString(
-                VALID_UNTIL
-            )) }
-        )
 
-        for ((dateKey, errorCondition) in dateChecks) {
-            if (vcJsonObject.has(dateKey) && errorCondition.second()) {
-                return VerificationResult(false, errorCondition.first)
-            }
+        if (vcJsonObject.has(VALID_FROM) && !isDatePassedCurrentDate(vcJsonObject.optString(
+                VALID_FROM
+            ))) {
+            return VerificationResult(false, ERROR_CURRENT_DATE_BEFORE_VALID_FROM)
         }
 
         return VerificationResult(true)
