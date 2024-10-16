@@ -5,3 +5,10 @@ data class VerificationResult(
     var verificationErrorMessage: String = ""
 
 )
+
+
+enum class DATA_MODEL {
+    DATA_MODEL_1_1,
+    DATA_MODEL_2_0,
+    UNSUPPORTED
+}

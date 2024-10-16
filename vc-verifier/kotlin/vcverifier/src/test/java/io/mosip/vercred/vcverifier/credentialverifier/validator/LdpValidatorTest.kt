@@ -3,11 +3,16 @@ package io.mosip.vercred.vcverifier.credentialverifier.validator
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CONTEXT_FIRST_LINE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_AFTER_VALID_UNTIL
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_VALID_FROM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EXPIRATION_DATE_INVALID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_FIELD
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
@@ -22,6 +27,9 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_FROM
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -106,6 +114,28 @@ class LdpValidatorTest {
         val result = credentialsValidator.validate(sampleVcObject.toString())
         assertEquals(false, result.verificationStatus)
         assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUANCE_DATE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `validate_passed_issuanceDate`(){
+
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.put(ISSUANCE_DATE, "2024-09-02T17:36:13.644Z")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `validate_not_passed_issuanceDate`(){
+
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.put(ISSUANCE_DATE, "2026-09-02T17:36:13.644Z")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE", result.verificationErrorMessage)
     }
 
     @Test
@@ -253,6 +283,285 @@ class LdpValidatorTest {
         assertEquals(true, result.verificationStatus)
     }
 
+    @Test
+    fun `validate_mandatory_fields_missing_credential_context_v2`(){
+
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.remove(CONTEXT)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `validate_unsupported_context_version`(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.put(CONTEXT, arrayOf("http://www.google.com/"))
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_CONTEXT_FIRST_LINE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `validate_mandatory_fields_missing_credential_issuer_v2`(){
+
+        val sampleVcObject = JSONObject(sampleVc)
+        sampleVcObject.remove(ISSUER)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUER", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `validate_mandatory_fields_missing_credential_type_v2`(){
+
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.remove(TYPE)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `validate_mandatory_fields_missing_credential_credentialSubject_v2`(){
+
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.remove(CREDENTIAL_SUBJECT)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL_SUBJECT", result.verificationErrorMessage)
+    }
+
+
+    @Test
+    fun `test_without_ValidFrom_v2`(){
+
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.remove(VALID_FROM)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals("", result.verificationErrorMessage)
+        assertEquals(true, result.verificationStatus)
+
+    }
+
+    @Test
+    fun `test_without_CurrentDate_before_validFrom`(){
+
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.put(VALID_FROM, "2026-12-02T17:36:13.644Z")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(ERROR_CURRENT_DATE_BEFORE_VALID_FROM, result.verificationErrorMessage)
+        assertEquals(false, result.verificationStatus)
+
+    }
+
+    @Test
+    fun `test_without_ValidUntil_v2`(){
+
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.remove(VALID_UNTIL)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun `test_without_CurrentDate_after_validUntil`(){
+
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.put(VALID_UNTIL, "2023-12-02T17:36:13.644Z")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals(ERROR_CURRENT_DATE_AFTER_VALID_UNTIL, result.verificationErrorMessage)
+
+
+    }
+
+    @Test
+    fun `test_without_both_date_v2`(){
+
+        val sampleVcObject = JSONObject(sampleVcV2)
+        sampleVcObject.remove(VALID_UNTIL)
+        sampleVcObject.remove(VALID_FROM)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_without_credentialStatus_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_without_credentialStatus_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+
+
+    @Test
+    fun test_credentialStatus_object_valid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(ID, "https://google.com/")
+        credentialStatusObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_object_invalid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+
+        sampleVcObject.put(CREDENTIAL_STATUS, "Invalid String Type")
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_INVALID_FIELD$CREDENTIAL_STATUS", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_object_without_id_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_object_without_type_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(ID, "https://google.com/")
+        sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_array_valid_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(ID, "https://google.com/")
+        credentialStatusObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+
+        sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(0, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+
+    @Test
+    fun test_credentialStatus_array_without_id_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+
+        sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(0, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_array_without_type_v1(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(ID, "https://google.com/")
+        sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+
+        sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(0, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_object_without_id_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(true, result.verificationStatus)
+        assertEquals("", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_object_without_type_v2(){
+        val sampleVcObject = JSONObject(sampleVcV2)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(ID, "https://google.com/")
+        sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_array_without_id_v2(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(TYPE, "Type")
+        sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+
+        sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(0, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.verificationErrorMessage)
+    }
+
+    @Test
+    fun test_credentialStatus_array_without_type_v2(){
+        val sampleVcObject = JSONObject(sampleVc)
+        val credentialStatusObject = JSONObject()
+        credentialStatusObject.put(ID, "https://google.com/")
+        sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+
+        sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(0, credentialStatusObject)
+
+        val result = credentialsValidator.validate(sampleVcObject.toString())
+        assertEquals(false, result.verificationStatus)
+        assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.verificationErrorMessage)
+    }
+
 
 
 
@@ -319,4 +628,64 @@ class LdpValidatorTest {
         
         """.trimIndent()
     }
+
+    val sampleVcV2 = """
+        {
+                "@context": [
+                    "https://www.w3.org/ns/credentials/v2",
+                    "https://apisip-ida-context.json",
+                    {
+                        "sec": "https://w3id.org/security#"
+                    }
+                ],
+                "credentialSubject": {
+                    "VID": "65327817407",
+                    "face": "data:image/jpeg;base64,/9",
+                    "gender": [
+                        {
+                            "language": "eng",
+                            "value": "MLE"
+                        }
+                    ],
+                    "phone": "+++7765837077",
+                    "city": [
+                        {
+                            "language": "eng",
+                            "value": "TEST_CITYeng"
+                        }
+                    ],
+                    "fullName": [
+                        {
+                            "language": "eng",
+                            "value": "TEST_FULLNAMEeng"
+                        }
+                    ],
+                    "addressLine1": [
+                        {
+                            "language": "eng",
+                            "value": "TEST_ADDRESSLINE1eng"
+                        }
+                    ],
+                    "dateOfBirth": "1992/04/15",
+                    "id": "invalid-uri",
+                    "email": "mosipuser123@mailinator.com"
+                },
+                "id": "https://ida.test.net/credentials/b5d20f0a-a9b8-486a-9d60",
+                "issuer": "https://apn/ida-controller.json",
+                "validFrom": "2024-09-02T17:36:13.644Z",
+                "proof": {
+                    "created": "2024-09-02T17:36:13Z",
+                    "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJLYlJXRU9YQ0pVRENWVnVET2ZsSkRQWnAtXzNqMEZvajd1RVZHd19xOEdzIiwiYWxnIjoiUFMyNTYifQ..NEcXf5IuDf0eJcBbtIBsXC2bZeOzNBduWG7Vz9A3ePcvh-SuwggPcCPQLrdgl79ta5bYsKsJSKVSS0Xg-GvlY71I2OzU778Bkq52LIDtSXY3DrxQEvM-BqjKLBB-ScA850pG2gV-k_8nkCPmAdvda_jj2Vlkss7VPB5LI6skWTgM4MOyvlMzZCzqmifqTzHLVgefzfixld7E38X7wxzEZfn2lY_fRfWqcL8pKL_kijTHwdTWLb9hMQtP9vlk2iarbT8TmZqutZD8etd1PBFm7V_izcY9cO75A4N3fVrr6NC50cDHDshPZFS48uTBDK-SSePxibpmq1afaS_VX6kX7A",
+                    "proofPurpose": "assertionMethod",
+                    "type": "RsaSignature2018",
+                    "verificationMethod": "https://apy.json"
+                },
+                "type": [
+                    "VerifiableCredential",
+                    "MOSIPVerifiableCredential"
+                ]
+            }
+        
+        
+        """.trimIndent()
 }

@@ -1,13 +1,22 @@
 package io.mosip.vercred.vcverifier.utils
 
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATE_REGEX
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
+import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
+import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V2_URL
+import io.mosip.vercred.vcverifier.data.DATA_MODEL
+import org.json.JSONObject
 import java.net.URI
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 
 class Util {
+
+    fun getId(obj: Any): String? {
+        return when (obj) {
+            is String -> obj
+            is Map<*, *> -> obj["id"] as? String
+            else -> null
+        }
+    }
 
     fun isValidUri(value: String): Boolean {
         return try {
@@ -18,27 +27,20 @@ class Util {
         }
     }
 
-    fun isValidDate(dateValue: String): Boolean {
-        return DATE_REGEX.matches(dateValue)
-    }
-
     fun jsonArrayToList(jsonArray: org.json.JSONArray): List<Any> {
         return List(jsonArray.length()) { jsonArray.get(it) }
     }
 
-    fun isDateExpired(inputDateString: String): Boolean {
-        return try {
-            val format = SimpleDateFormat(COMMON_DATE_FORMAT, Locale.getDefault())
-            val inputDate = format.parse(inputDateString)
-            val currentDate = Calendar.getInstance().time
-            inputDate.before(currentDate)
-        } catch (e: Exception) {
-            false
+    fun getContextVersion(vcJsonObject: JSONObject): DATA_MODEL?{
+        if(vcJsonObject.has(CONTEXT)){
+            val contextUrl = vcJsonObject.getJSONArray(CONTEXT).get(0)
+            return when(contextUrl){
+                CREDENTIALS_CONTEXT_V1_URL -> DATA_MODEL.DATA_MODEL_1_1
+                CREDENTIALS_CONTEXT_V2_URL -> DATA_MODEL.DATA_MODEL_2_0
+                else -> DATA_MODEL.UNSUPPORTED
+            }
         }
-    }
-
-    companion object{
-        const val COMMON_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        return null
     }
 
 }

@@ -1,10 +1,10 @@
 package io.mosip.vercred.vcverifier.constants
 
 import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
+import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V2_URL
 
 
 object CredentialValidatorConstants {
-    const val CREDENTIAL = "credential"
     const val ISSUER = "issuer"
     const val CREDENTIAL_SUBJECT = "credentialSubject"
     const val PROOF = "proof"
@@ -15,18 +15,27 @@ object CredentialValidatorConstants {
     const val ID = "id"
     const val JWS = "jws"
 
+    const val VALID_FROM = "validFrom"
+    const val VALID_UNTIL = "validUntil"
+
+    const val CREDENTIAL_STATUS = "credentialStatus"
+
     private const val VALIDATION_ERROR = "Validation Error: "
     const val ERROR_MISSING_REQUIRED_FIELDS = "${VALIDATION_ERROR}Missing required field: "
     const val ERROR_EMPTY_VC_JSON = "${VALIDATION_ERROR}Input VC JSON string is null or empty."
-    const val ERROR_CONTEXT_FIRST_LINE = "${VALIDATION_ERROR}$CREDENTIALS_CONTEXT_V1_URL needs to be first in the list of contexts."
+    const val ERROR_CONTEXT_FIRST_LINE = "${VALIDATION_ERROR}$CREDENTIALS_CONTEXT_V1_URL or $CREDENTIALS_CONTEXT_V2_URL needs to be first in the list of contexts."
     const val ERROR_ISSUANCE_DATE_INVALID = "${VALIDATION_ERROR}issuanceDate is not valid."
     const val ERROR_EXPIRATION_DATE_INVALID = "${VALIDATION_ERROR}expirationDate is not valid."
     const val ERROR_TYPE_VERIFIABLE_CREDENTIAL = "${VALIDATION_ERROR}type must include `VerifiableCredential`."
-    const val ERROR_INVALID_URI = "${VALIDATION_ERROR}Invalid URI."
+    const val ERROR_INVALID_URI = "${VALIDATION_ERROR}Invalid URI: "
+    const val ERROR_INVALID_FIELD = "${VALIDATION_ERROR}Invalid Field: "
     const val ERROR_VC_EXPIRED = "VC is expired"
     const val EXCEPTION_DURING_VALIDATION = "Exception during Validation: "
     const val ERROR_ALGORITHM_NOT_SUPPORTED = "${VALIDATION_ERROR}Algorithm used in the proof is not matching with supported algorithms"
     const val ERROR_PROOF_TYPE_NOT_SUPPORTED = "${VALIDATION_ERROR}Proof Type is not matching with supported types"
+    const val ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE = "${VALIDATION_ERROR}The current date time is before the issuanceDate"
+    const val ERROR_CURRENT_DATE_BEFORE_VALID_FROM = "${VALIDATION_ERROR}The current date time is before the issuanceDate"
+    const val ERROR_CURRENT_DATE_AFTER_VALID_UNTIL = "${VALIDATION_ERROR}The current date time is after the validUntil"
 
 
     val DATE_REGEX = Regex(

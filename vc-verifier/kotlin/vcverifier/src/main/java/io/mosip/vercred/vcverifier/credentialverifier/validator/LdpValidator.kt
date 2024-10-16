@@ -1,19 +1,12 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
-import com.nimbusds.jose.JWSObject
-import foundation.identity.jsonld.JsonLDObject
-import info.weboftrust.ldsignatures.LdProof
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ALGORITHMS_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CONTEXT_FIRST_LINE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EMPTY_VC_JSON
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EXPIRATION_DATE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
@@ -21,97 +14,139 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF_TYPES_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
+import io.mosip.vercred.vcverifier.data.DATA_MODEL
 import io.mosip.vercred.vcverifier.data.VerificationResult
+import io.mosip.vercred.vcverifier.utils.DateUtils
 import io.mosip.vercred.vcverifier.utils.Util
+import io.mosip.vercred.vcverifier.utils.ValidationHelper
 import org.json.JSONObject
 
 class LdpValidator {
 
-    private val requiredFields = listOf(
-        PROOF,
-        "$PROOF.$TYPE",
-        ISSUER,
+    private val commonMandatoryFields = listOf(
         CONTEXT,
         TYPE,
         CREDENTIAL_SUBJECT,
+        ISSUER,
+        PROOF,
+        "$PROOF.$TYPE"
+    )
+
+    private val v1SpecificMandatoryFields = listOf(
         ISSUANCE_DATE
     )
 
+    private val validatorUtils = ValidationHelper()
+    private val dateUtils = DateUtils()
+
     fun validate(credential: String): VerificationResult {
 
-        try {
-            if (credential.isNullOrEmpty()) {
-                return VerificationResult(false, ERROR_EMPTY_VC_JSON)
+        if (credential.isNullOrEmpty()) {
+            return VerificationResult(false, ERROR_EMPTY_VC_JSON)
+        }
+
+        return try {
+            val vcJsonObject = JSONObject(credential)
+            val contextVersion = Util().getContextVersion(vcJsonObject)
+                ?: return VerificationResult(false, "$ERROR_MISSING_REQUIRED_FIELDS$CONTEXT")
+
+            val verificationResult = when (contextVersion) {
+                DATA_MODEL.DATA_MODEL_1_1 -> {
+                    validateV1Fields(vcJsonObject).also {
+                        if (!it.verificationStatus) return it
+                    }
+                }
+                DATA_MODEL.DATA_MODEL_2_0 -> {
+                    validateV2Fields(vcJsonObject).also {
+                        if (!it.verificationStatus) return it
+                    }
+                }
+                else -> {
+                    return VerificationResult(false, "$ERROR_CONTEXT_FIRST_LINE")
+                }
             }
 
-            val vcJsonObject = JSONObject(credential)
+            validateCommonFields(vcJsonObject).takeIf { !it.verificationStatus } ?: verificationResult
 
-            val mandatoryCheck = checkMandatoryFields(vcJsonObject, requiredFields)
+        } catch (e: Exception) {
+            VerificationResult(false, "$EXCEPTION_DURING_VALIDATION${e.message}")
+        }
+    }
+
+    //Validation for Data Model 1.1
+    private fun validateV1Fields(vcJsonObject: JSONObject): VerificationResult {
+
+        validatorUtils.checkMandatoryFields(vcJsonObject, commonMandatoryFields+v1SpecificMandatoryFields).let { mandatoryCheck ->
             if (!mandatoryCheck.verificationStatus) {
                 return mandatoryCheck
             }
-
-            val invalidCheck = checkInvalidFields(vcJsonObject)
-            if (!invalidCheck.verificationStatus) {
-                return invalidCheck
-            }
-
-            val isValidProofType = validateProof(credential)
-            if (!isValidProofType.verificationStatus) {
-                return isValidProofType
-            }
-
-
-            return handleExpiredVC(vcJsonObject)
-        } catch (e: Exception){
-            return  VerificationResult(false, "$EXCEPTION_DURING_VALIDATION${e.message.toString()}")
         }
+
+        val dateValidationResult = dateUtils.validateV1DateFields(vcJsonObject)
+        if (!dateValidationResult.verificationStatus) {
+            return dateValidationResult
+        }
+
+        if(vcJsonObject.has(CREDENTIAL_STATUS)){
+            val credentialStatusResult = validatorUtils.validateCredentialStatus(vcJsonObject.get(CREDENTIAL_STATUS), DATA_MODEL.DATA_MODEL_1_1)
+            if(!credentialStatusResult.verificationStatus){
+                return credentialStatusResult
+            }
+        }
+
+        val verificationMessage = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
+                EXPIRATION_DATE))) ERROR_VC_EXPIRED else ""
+        return VerificationResult(true, verificationMessage)
     }
 
-    private fun checkMandatoryFields(vcJsonObject: JSONObject, fields: List<String>): VerificationResult {
+    //Validation for Data Model 2.0
+    private fun validateV2Fields(vcJsonObject: JSONObject): VerificationResult{
 
-        for (field in fields) {
-            val keys = field.split(".")
-            var currentJson: JSONObject? = vcJsonObject
-
-            for (key in keys) {
-                if (currentJson != null && currentJson.has(key)) {
-                    if (currentJson.get(key) is JSONObject) {
-                        currentJson = currentJson.getJSONObject(key)
-                    } else {
-                        break
-                    }
-                } else {
-                    return VerificationResult(false, "$ERROR_MISSING_REQUIRED_FIELDS$field")
-                }
+        validatorUtils.checkMandatoryFields(vcJsonObject, commonMandatoryFields).let { mandatoryCheck ->
+            if (!mandatoryCheck.verificationStatus) {
+                return mandatoryCheck
             }
         }
 
-        return VerificationResult(true)
+        val dateValidationResult = dateUtils.validateV2DateFields(vcJsonObject)
+        if (!dateValidationResult.verificationStatus) {
+            return dateValidationResult
+        }
+
+        if(vcJsonObject.has(CREDENTIAL_STATUS)){
+            val credentialStatusResult = validatorUtils.validateCredentialStatus(vcJsonObject.get(CREDENTIAL_STATUS), DATA_MODEL.DATA_MODEL_2_0)
+            if(!credentialStatusResult.verificationStatus){
+                return credentialStatusResult
+            }
+        }
+
+        val verificationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_VC_EXPIRED else ""
+        return VerificationResult(true, verificationMessage)
     }
 
-    private fun checkInvalidFields(vcJsonObject: JSONObject): VerificationResult {
+    //Common Validations
+    private fun validateCommonFields(vcJsonObject: JSONObject): VerificationResult{
 
-        val firstContext = vcJsonObject.getJSONArray(CONTEXT).getString(0)
-        if (firstContext != CREDENTIALS_CONTEXT_V1_URL) {
-            return VerificationResult(false, ERROR_CONTEXT_FIRST_LINE)
+        validatorUtils.validateProof(vcJsonObject.toString()).let { proofValidationResult ->
+            if (!proofValidationResult.verificationStatus) {
+                return proofValidationResult
+            }
         }
 
-        val issuer = vcJsonObject.optString(ISSUER)
-        if (!Util().isValidUri(issuer)) {
-            return VerificationResult(false, "$ERROR_INVALID_URI$ISSUER")
+        if(vcJsonObject.has(ID)){
+            val id = vcJsonObject.getString(ID)
+            if(!Util().isValidUri(id)){
+                return VerificationResult(false, "$ERROR_INVALID_URI$ID")
+            }
         }
 
-        listOf(
-            ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
-            EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID
-        ).forEach { (dateKey, errorMessage) ->
-            if (vcJsonObject.has(dateKey) && !Util().isValidDate(vcJsonObject.get(dateKey).toString())) {
-                return VerificationResult(false, errorMessage)
+        if(vcJsonObject.has(ISSUER)){
+            val issuerId = Util().getId(vcJsonObject.get(ISSUER))
+            if(issuerId == null || !Util().isValidUri(issuerId)) {
+                return VerificationResult(false, "$ERROR_INVALID_URI$ISSUER")
             }
         }
 
@@ -124,39 +159,11 @@ class LdpValidator {
         return VerificationResult(true)
     }
 
-    private fun handleExpiredVC(vcJsonObject: JSONObject): VerificationResult {
-        val expirationDate = vcJsonObject.optString(EXPIRATION_DATE)
-        if (expirationDate.isNotEmpty() && Util().isDateExpired(expirationDate)) {
-            return VerificationResult(true, ERROR_VC_EXPIRED)
-        }
-        return VerificationResult(true)
-    }
 
-
-    private fun validateProof(vcJsonString: String): VerificationResult{
-        val vcJsonObject = JSONObject(vcJsonString)
-
-        val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(vcJsonString)
-        val ldProof : LdProof = LdProof.getFromJsonLDObject(vcJsonLdObject)
-
-        if(vcJsonObject.getJSONObject(PROOF).has(JWS)){
-            val jwsToken: String = ldProof.jws
-            val algorithmName: String = JWSObject.parse(jwsToken).header.algorithm.name
-            if(jwsToken.isNullOrEmpty() || !ALGORITHMS_SUPPORTED.contains(algorithmName)){
-                return VerificationResult(false, ERROR_ALGORITHM_NOT_SUPPORTED )
-            }
-        }
-
-        val ldProofType: String = ldProof.type
-        if (!PROOF_TYPES_SUPPORTED.contains(ldProofType)) {
-            return VerificationResult(false, ERROR_PROOF_TYPE_NOT_SUPPORTED)
-        }
-
-        return VerificationResult(true)
-    }
 
     companion object{
         const val CREDENTIALS_CONTEXT_V1_URL = "https://www.w3.org/2018/credentials/v1"
+        const val CREDENTIALS_CONTEXT_V2_URL = "https://www.w3.org/ns/credentials/v2"
         const val VERIFIABLE_CREDENTIAL = "VerifiableCredential"
     }
 }
