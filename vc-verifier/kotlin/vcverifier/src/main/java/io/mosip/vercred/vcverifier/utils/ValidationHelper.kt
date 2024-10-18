@@ -51,61 +51,6 @@ class ValidationHelper {
             }
         }
     }
-    fun validateCredentialSubject(vcJsonObject: JSONObject) {
-        val credentialSubject = vcJsonObject.get(CREDENTIAL_SUBJECT)
-        validateJsonObjectOrArray(credentialSubject, ::validateSingleCredentialObject, "$ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT")
-    }
-
-    fun validateFieldsByIdAndType(vcJsonObject: JSONObject, fieldName: String, idMandatoryFields: List<String>) {
-        val fieldValue = vcJsonObject.get(fieldName)
-        validateJsonObjectOrArray(fieldValue, { obj -> validateSingleObject(fieldName, obj, idMandatoryFields) }, "$ERROR_INVALID_FIELD$fieldName")
-    }
-
-    private fun validateJsonObjectOrArray(
-        value: Any,
-        validator: (JSONObject) -> VerificationResult,
-        errorMessage: String
-    ) {
-        when (value) {
-            is JSONArray -> {
-                for (i in 0 until value.length()) {
-                    val jsonObject = value.getJSONObject(i)
-                    val result = validator(jsonObject)
-                    if (!result.verificationStatus) throw ValidationException(errorMessage)
-                }
-            }
-            is JSONObject -> validator(value)
-            else -> throw ValidationException(errorMessage)
-        }
-    }
-
-    private fun validateSingleCredentialObject(credentialSubjectObject: JSONObject): VerificationResult {
-        if (credentialSubjectObject.has(ID) && !Util().isValidUri(credentialSubjectObject.optString(ID))) {
-            throw ValidationException("$ERROR_INVALID_URI$CREDENTIAL_SUBJECT.$ID")
-        }
-        return VerificationResult(true)
-    }
-
-    private fun validateSingleObject(fieldName: String, fieldValueObject: JSONObject, idMandatoryFields: List<String>): VerificationResult {
-        if (!fieldValueObject.has(TYPE)) {
-            return throw ValidationException( "$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$TYPE")
-        }
-
-        val isIDMandatoryField = idMandatoryFields.contains(fieldName)
-        if (isIDMandatoryField && !fieldValueObject.has(ID)) {
-            return throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$ID")
-        }
-
-        fieldValueObject.optString(ID).takeIf { it.isNotEmpty() }?.let { id ->
-            if (!Util().isValidUri(id)) {
-                return throw ValidationException( "$ERROR_INVALID_URI$fieldName.$ID")
-            }
-        }
-
-        return VerificationResult(true)
-    }
-
-
 
     fun validateProof(vcJsonString: String) {
         val vcJsonObject = JSONObject(vcJsonString)
@@ -116,7 +61,7 @@ class ValidationHelper {
         if(vcJsonObject.getJSONObject(PROOF).has(JWS)){
             val jwsToken: String = ldProof.jws
             val algorithmName: String = JWSObject.parse(jwsToken).header.algorithm.name
-            if(jwsToken.isNullOrEmpty() || !ALGORITHMS_SUPPORTED.contains(algorithmName)){
+            if(jwsToken.isEmpty() || !ALGORITHMS_SUPPORTED.contains(algorithmName)){
                 throw ValidationException( ERROR_ALGORITHM_NOT_SUPPORTED )
             }
         }
@@ -165,7 +110,6 @@ class ValidationHelper {
         )
 
         nameDescriptionList.forEach { fieldPair ->
-
             if(vcJsonObject.has(fieldPair.first)){
                 when (val fieldValue = vcJsonObject.get(fieldPair.first)) {
                     is String -> return
@@ -185,6 +129,62 @@ class ValidationHelper {
                 throw ValidationException(errorMessage)
             }
         }
+    }
+
+    fun validateCredentialSubject(vcJsonObject: JSONObject) {
+        val credentialSubject = vcJsonObject.get(CREDENTIAL_SUBJECT)
+        validateJsonObjectOrArray(credentialSubject, ::validateSingleCredentialObject,
+            ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT
+        )
+    }
+
+    fun validateFieldsByIdAndType(vcJsonObject: JSONObject, fieldName: String, idMandatoryFields: List<String>) {
+        val fieldValue = vcJsonObject.get(fieldName)
+        validateJsonObjectOrArray(fieldValue, { obj -> validateSingleObject(fieldName, obj, idMandatoryFields) }, "$ERROR_INVALID_FIELD$fieldName")
+    }
+
+    private fun validateJsonObjectOrArray(
+        value: Any,
+        validator: (JSONObject) -> VerificationResult,
+        errorMessage: String
+    ) {
+        when (value) {
+            is JSONArray -> {
+                for (i in 0 until value.length()) {
+                    val jsonObject = value.getJSONObject(i)
+                    val result = validator(jsonObject)
+                    if (!result.verificationStatus) throw ValidationException(errorMessage)
+                }
+            }
+            is JSONObject -> validator(value)
+            else -> throw ValidationException(errorMessage)
+        }
+    }
+
+    private fun validateSingleCredentialObject(credentialSubjectObject: JSONObject): VerificationResult {
+        if (credentialSubjectObject.has(ID) && !Util().isValidUri(credentialSubjectObject.optString(ID))) {
+            throw ValidationException("$ERROR_INVALID_URI$CREDENTIAL_SUBJECT.$ID")
+        }
+        return VerificationResult(true)
+    }
+
+    private fun validateSingleObject(fieldName: String, fieldValueObject: JSONObject, idMandatoryFields: List<String>): VerificationResult {
+        if (!fieldValueObject.has(TYPE)) {
+            throw ValidationException( "$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$TYPE")
+        }
+
+        val isIDMandatoryField = idMandatoryFields.contains(fieldName)
+        if (isIDMandatoryField && !fieldValueObject.has(ID)) {
+            throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$ID")
+        }
+
+        fieldValueObject.optString(ID).takeIf { it.isNotEmpty() }?.let { id ->
+            if (!Util().isValidUri(id)) {
+                throw ValidationException( "$ERROR_INVALID_URI$fieldName.$ID")
+            }
+        }
+
+        return VerificationResult(true)
     }
 
 

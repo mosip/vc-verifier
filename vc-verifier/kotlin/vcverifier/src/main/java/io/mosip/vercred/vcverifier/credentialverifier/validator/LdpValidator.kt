@@ -37,16 +37,9 @@ class LdpValidator {
         PROOF
     )
 
-    private val v2SpecificMandatoryFields = emptyList<String>()
-
-
-
-
     private val commonIDMandatoryFields = listOf(
         CREDENTIAL_SCHEMA
     )
-
-    private val v2SpecificIDMandatoryFields = emptyList<String>()
 
     //All Fields has Type Property as mandatory with few fields as ID as optional.
     private val fieldsWithIDAndType = listOf(
@@ -63,7 +56,7 @@ class LdpValidator {
 
     fun validate(credential: String): VerificationResult {
         try {
-            if (credential.isNullOrEmpty()) {
+            if (credential.isEmpty()) {
                 throw ValidationException(ERROR_EMPTY_VC_JSON)
             }
 
@@ -73,24 +66,22 @@ class LdpValidator {
                 ?: throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$CONTEXT")
             when (contextVersion) {
                 DATA_MODEL.DATA_MODEL_1_1 -> {
-                    validateV1Fields(vcJsonObject)
+                    validateV1SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     val expirationMessage = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
                             EXPIRATION_DATE))) ERROR_VC_EXPIRED else ""
                     return VerificationResult(true, expirationMessage)
                 }
                 DATA_MODEL.DATA_MODEL_2_0 -> {
-                    validateV2Fields(vcJsonObject)
+                    validateV2SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     val expirationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_VC_EXPIRED else ""
                     return VerificationResult(true, expirationMessage)
                 }
                 else -> {
-                    throw ValidationException("$ERROR_CONTEXT_FIRST_LINE")
+                    throw ValidationException(ERROR_CONTEXT_FIRST_LINE)
                 }
             }
-
-            return VerificationResult(true)
 
         }
         catch (e: ValidationException) {
@@ -103,7 +94,7 @@ class LdpValidator {
     }
 
     //Validation for Data Model 1.1
-    private fun validateV1Fields(vcJsonObject: JSONObject) {
+    private fun validateV1SpecificFields(vcJsonObject: JSONObject) {
 
         val v1SpecificMandatoryFields = listOf(
             ISSUANCE_DATE
@@ -131,9 +122,9 @@ class LdpValidator {
     }
 
     //Validation for Data Model 2.0
-    private fun validateV2Fields(vcJsonObject: JSONObject){
+    private fun validateV2SpecificFields(vcJsonObject: JSONObject){
 
-        validationHelper.checkMandatoryFields(vcJsonObject, commonMandatoryFields+v2SpecificMandatoryFields)
+        validationHelper.checkMandatoryFields(vcJsonObject, commonMandatoryFields)
 
         dateUtils.validateV2DateFields(vcJsonObject)
 
@@ -141,7 +132,7 @@ class LdpValidator {
             if(vcJsonObject.has(field)){
                 validationHelper.validateFieldsByIdAndType(vcJsonObject = vcJsonObject,
                     fieldName = field,
-                    idMandatoryFields = commonIDMandatoryFields+v2SpecificIDMandatoryFields
+                    idMandatoryFields = commonIDMandatoryFields
                 )
             }
         }

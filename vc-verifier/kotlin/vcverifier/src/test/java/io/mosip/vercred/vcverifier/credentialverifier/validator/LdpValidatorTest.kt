@@ -22,6 +22,8 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_NAME
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VALID_FROM_INVALID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VALID_UNTIL_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EVIDENCE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
@@ -646,6 +648,30 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
             assertEquals("", result.verificationErrorMessage)
             assertEquals(true, result.verificationStatus)
+
+        }
+
+        @Test
+        fun `test_invalid_validFrom_v2`(){
+
+            val sampleVcObject = JSONObject(sampleVcDateModel2)
+            sampleVcObject.put(VALID_FROM, "222T17:36:13.644Z")
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+            assertEquals(ERROR_VALID_FROM_INVALID, result.verificationErrorMessage)
+            assertEquals(false, result.verificationStatus)
+
+        }
+
+        @Test
+        fun `test_invalid_validUntil_v2`(){
+
+            val sampleVcObject = JSONObject(sampleVcDateModel2)
+            sampleVcObject.put(VALID_UNTIL, "222T17:36:13.644Z")
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+            assertEquals(ERROR_VALID_UNTIL_INVALID, result.verificationErrorMessage)
+            assertEquals(false, result.verificationStatus)
 
         }
 
