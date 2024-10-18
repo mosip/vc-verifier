@@ -5,26 +5,34 @@ import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ALGORITHMS_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DESCRIPTION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_DESCRIPTION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_FIELD
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUER
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.JWS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.LANGUAGE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF_TYPES_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
+import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.data.VerificationResult
+import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject
 
 class ValidationHelper {
 
 
-    fun checkMandatoryFields(vcJsonObject: JSONObject, fields: List<String>): VerificationResult {
+    fun checkMandatoryFields(vcJsonObject: JSONObject, fields: List<String>) {
 
         for (field in fields) {
             val keys = field.split(".")
@@ -38,62 +46,59 @@ class ValidationHelper {
                         break
                     }
                 } else {
-                    return VerificationResult(false, "$ERROR_MISSING_REQUIRED_FIELDS$field")
+                    throw ValidationException( "$ERROR_MISSING_REQUIRED_FIELDS$field")
                 }
             }
         }
-
-        return VerificationResult(true)
     }
-    fun validateCredentialSubject(vcJsonObject: JSONObject): VerificationResult {
+    fun validateCredentialSubject(vcJsonObject: JSONObject) {
         val credentialSubject = vcJsonObject.get(CREDENTIAL_SUBJECT)
-        return validateJsonObjectOrArray(credentialSubject, ::validateSingleCredentialObject, "$ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT")
+        validateJsonObjectOrArray(credentialSubject, ::validateSingleCredentialObject, "$ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT")
     }
 
-    fun validateFieldsByIdAndType(vcJsonObject: JSONObject, fieldName: String, idMandatoryFields: List<String>): VerificationResult {
+    fun validateFieldsByIdAndType(vcJsonObject: JSONObject, fieldName: String, idMandatoryFields: List<String>) {
         val fieldValue = vcJsonObject.get(fieldName)
-        return validateJsonObjectOrArray(fieldValue, { obj -> validateSingleObject(fieldName, obj, idMandatoryFields) }, "$ERROR_INVALID_FIELD$fieldName")
+        validateJsonObjectOrArray(fieldValue, { obj -> validateSingleObject(fieldName, obj, idMandatoryFields) }, "$ERROR_INVALID_FIELD$fieldName")
     }
 
     private fun validateJsonObjectOrArray(
         value: Any,
         validator: (JSONObject) -> VerificationResult,
         errorMessage: String
-    ): VerificationResult {
-        return when (value) {
+    ) {
+        when (value) {
             is JSONArray -> {
                 for (i in 0 until value.length()) {
                     val jsonObject = value.getJSONObject(i)
                     val result = validator(jsonObject)
-                    if (!result.verificationStatus) return result
+                    if (!result.verificationStatus) throw ValidationException(errorMessage)
                 }
-                VerificationResult(true)
             }
             is JSONObject -> validator(value)
-            else -> VerificationResult(false, errorMessage)
+            else -> throw ValidationException(errorMessage)
         }
     }
 
     private fun validateSingleCredentialObject(credentialSubjectObject: JSONObject): VerificationResult {
         if (credentialSubjectObject.has(ID) && !Util().isValidUri(credentialSubjectObject.optString(ID))) {
-            return  VerificationResult(false, "$ERROR_INVALID_URI$CREDENTIAL_SUBJECT.$ID")
+            throw ValidationException("$ERROR_INVALID_URI$CREDENTIAL_SUBJECT.$ID")
         }
         return VerificationResult(true)
     }
 
     private fun validateSingleObject(fieldName: String, fieldValueObject: JSONObject, idMandatoryFields: List<String>): VerificationResult {
         if (!fieldValueObject.has(TYPE)) {
-            return VerificationResult(false, "$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$TYPE")
+            return throw ValidationException( "$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$TYPE")
         }
 
         val isIDMandatoryField = idMandatoryFields.contains(fieldName)
         if (isIDMandatoryField && !fieldValueObject.has(ID)) {
-            return VerificationResult(false, "$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$ID")
+            return throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$ID")
         }
 
         fieldValueObject.optString(ID).takeIf { it.isNotEmpty() }?.let { id ->
             if (!Util().isValidUri(id)) {
-                return VerificationResult(false, "$ERROR_INVALID_URI$fieldName.$ID")
+                return throw ValidationException( "$ERROR_INVALID_URI$fieldName.$ID")
             }
         }
 
@@ -102,7 +107,7 @@ class ValidationHelper {
 
 
 
-    fun validateProof(vcJsonString: String): VerificationResult {
+    fun validateProof(vcJsonString: String) {
         val vcJsonObject = JSONObject(vcJsonString)
 
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(vcJsonString)
@@ -112,34 +117,74 @@ class ValidationHelper {
             val jwsToken: String = ldProof.jws
             val algorithmName: String = JWSObject.parse(jwsToken).header.algorithm.name
             if(jwsToken.isNullOrEmpty() || !ALGORITHMS_SUPPORTED.contains(algorithmName)){
-                return VerificationResult(false, ERROR_ALGORITHM_NOT_SUPPORTED )
+                throw ValidationException( ERROR_ALGORITHM_NOT_SUPPORTED )
             }
         }
 
         val ldProofType: String = ldProof.type
         if (!PROOF_TYPES_SUPPORTED.contains(ldProofType)) {
-            return VerificationResult(false, ERROR_PROOF_TYPE_NOT_SUPPORTED)
-        }
-
-        return VerificationResult(true)
-    }
-
-    fun validateNameAndDescription(fieldName: Any, errorMessage: String): VerificationResult {
-        return when (fieldName) {
-            is String -> VerificationResult(true)
-            is JSONArray -> checkForLanguageObject(fieldName, errorMessage)
-            else -> VerificationResult(false, "$errorMessage")
+            throw ValidationException( ERROR_PROOF_TYPE_NOT_SUPPORTED)
         }
     }
 
-    private fun checkForLanguageObject(nameArray: JSONArray, errorMessage: String): VerificationResult {
+    fun validateId(vcJsonObject: JSONObject){
+        if(vcJsonObject.has(ID)){
+            if(!Util().isValidUri(vcJsonObject.getString(ID))){
+                throw ValidationException("$ERROR_INVALID_URI$ID")
+            }
+        }
+
+    }
+
+    fun validateType(vcJsonObject: JSONObject){
+
+        if(vcJsonObject.has(TYPE)){
+            vcJsonObject.optJSONArray(TYPE)?.let { types ->
+                if (!Util().jsonArrayToList(types).contains(VERIFIABLE_CREDENTIAL)) {
+                    throw ValidationException(ERROR_TYPE_VERIFIABLE_CREDENTIAL)
+                }
+            }
+        }
+
+    }
+
+    fun validateIssuer(vcJsonObject: JSONObject){
+        if(vcJsonObject.has(ISSUER)){
+            val issuerId = Util().getId(vcJsonObject.get(ISSUER))
+            if(issuerId == null || !Util().isValidUri(issuerId)) {
+                throw ValidationException( "$ERROR_INVALID_URI$ISSUER")
+            }
+        }
+    }
+
+    fun validateNameAndDescription(vcJsonObject: JSONObject) {
+
+        val nameDescriptionList: List<Pair<String, String>> = listOf(
+            NAME to ERROR_NAME,
+            DESCRIPTION to ERROR_DESCRIPTION
+        )
+
+        nameDescriptionList.forEach { fieldPair ->
+
+            if(vcJsonObject.has(fieldPair.first)){
+                when (val fieldValue = vcJsonObject.get(fieldPair.first)) {
+                    is String -> return
+                    is JSONArray -> checkForLanguageObject(fieldValue, fieldPair.second)
+                    else -> throw ValidationException(fieldPair.second)
+                }
+            }
+
+        }
+
+    }
+
+    private fun checkForLanguageObject(nameArray: JSONArray, errorMessage: String) {
         for (i in 0 until nameArray.length()) {
             val nameObject = nameArray.getJSONObject(i)
             if (!nameObject.has(LANGUAGE)) {
-                return VerificationResult(false, "$errorMessage")
+                throw ValidationException(errorMessage)
             }
         }
-        return VerificationResult(true)
     }
 
 

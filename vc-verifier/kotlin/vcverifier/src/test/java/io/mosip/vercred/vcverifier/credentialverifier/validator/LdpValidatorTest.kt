@@ -935,8 +935,8 @@ class LdpValidatorTest {
             sampleVcObject.put(ISSUER, "invalid-uri")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
-            assertEquals(false, result.verificationStatus)
             assertEquals("$ERROR_INVALID_URI$ISSUER", result.verificationErrorMessage)
+            assertEquals(false, result.verificationStatus)
         }
 
         @Test

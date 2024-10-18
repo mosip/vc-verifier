@@ -8,7 +8,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_FROM
-import io.mosip.vercred.vcverifier.data.VerificationResult
+import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -30,38 +30,30 @@ class DateUtils {
         }
     }
 
-    fun validateV1DateFields(vcJsonObject: JSONObject): VerificationResult {
-        val validationResult = listOf(
+    fun validateV1DateFields(vcJsonObject: JSONObject) {
+        listOf(
             ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
             EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID
-        ).mapNotNull { (dateKey, errorMessage) ->
+        ).map { (dateKey, errorMessage) ->
             if (vcJsonObject.has(dateKey) && !isValidDate(vcJsonObject.get(dateKey).toString())) {
-                VerificationResult(false, errorMessage)
-            } else {
-                null
+                throw ValidationException(errorMessage)
             }
-        }.firstOrNull() ?: VerificationResult(true)
-
-        if (!validationResult.verificationStatus) {
-            return validationResult
         }
+
 
         if (!isDatePassedCurrentDate(vcJsonObject.optString(ISSUANCE_DATE))) {
-            return VerificationResult(false, ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE)
+            throw ValidationException(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE)
         }
 
-        return VerificationResult(true)
     }
 
-    fun validateV2DateFields(vcJsonObject: JSONObject): VerificationResult {
+    fun validateV2DateFields(vcJsonObject: JSONObject) {
 
         if (vcJsonObject.has(VALID_FROM) && !isDatePassedCurrentDate(vcJsonObject.optString(
                 VALID_FROM
             ))) {
-            return VerificationResult(false, ERROR_CURRENT_DATE_BEFORE_VALID_FROM)
+            throw ValidationException(ERROR_CURRENT_DATE_BEFORE_VALID_FROM)
         }
-
-        return VerificationResult(true)
     }
 
     fun isVCExpired(inputDate: String): Boolean {
