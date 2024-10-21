@@ -3,9 +3,7 @@ import {
     DataModel,
     getContextVersion,
     validateCredentialSubject, validateFieldsWithID, validateFieldsWithType, validateID, validateIssuer,
-    validateMandatoryFields, validateNameAndDescription, validateProof, validateType,
-    validationFailure,
-    validationSuccess
+    validateMandatoryFields, validateNameAndDescription, validateProof, validateType, verificationFailure, verificationSuccess
 } from "./ValidationHelper.js";
 import {ValidationError} from "./ValidationError.js";
 import {isVCExpired, validateV1SpecificDateFields, validateV2SpecificDateFields} from "./DateUtils.js";
@@ -30,7 +28,7 @@ export const validate = (credential) => {
                 const expirationMessage = (credential.hasOwnProperty(Fields.EXPIRATION_DATE) && isVCExpired(credential[Fields.EXPIRATION_DATE]))
                     ? Errors.ERROR_VC_EXPIRED
                     : "";
-                return validationSuccess(expirationMessage)
+                return verificationSuccess(expirationMessage)
             }
             case DataModel.DATA_MODEL_2_0: {
                 v2SpecificFieldsValidation(credential)
@@ -38,15 +36,15 @@ export const validate = (credential) => {
                 const expirationMessage = (credential.hasOwnProperty(Fields.VALID_UNTIL) && isVCExpired(credential[Fields.VALID_UNTIL]))
                     ? Errors.ERROR_VC_EXPIRED
                     : "";
-                return validationSuccess(expirationMessage)
+                return verificationSuccess(expirationMessage)
             }
         }
 
     } catch (error){
         if(error instanceof ValidationError){
-            return validationFailure(`${error.message}`)
+            return verificationFailure(`${error.message}`)
         } else {
-            return validationFailure(`${Errors.EXCEPTION_DURING_VALIDATION}${error.message}`)
+            return verificationFailure(`${Errors.EXCEPTION_DURING_VALIDATION}${error.message}`)
         }
 
     }

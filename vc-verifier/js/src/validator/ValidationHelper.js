@@ -173,12 +173,12 @@ const validateSingleTypeObject = (fieldName, fieldValueObject) => {
 
 
 
-export const validationSuccess = (message) => ({
+export const verificationSuccess = (message) => ({
     verificationStatus: true,
     verificationErrorMessage: message ? message: ""
 });
 
-export const validationFailure = (error) => ({
+export const verificationFailure = (error) => ({
     verificationStatus: false,
     verificationErrorMessage: error
 });

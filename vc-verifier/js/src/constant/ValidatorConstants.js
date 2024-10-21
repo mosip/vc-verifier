@@ -51,7 +51,9 @@ export const Errors = {
      ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT : `${VALIDATION_ERROR}credentialSubject must be a non-null object or array of objects.`,
 
      ERROR_NAME : `${VALIDATION_ERROR}name should be string or array of Language Object`,
-     ERROR_DESCRIPTION : `${VALIDATION_ERROR}description should be string or array of Language Object`
+     ERROR_DESCRIPTION : `${VALIDATION_ERROR}description should be string or array of Language Object`,
+
+    SIGNATURE_VERIFICATION_FAILED :"Signature Verification Failed"
 }
 
 
