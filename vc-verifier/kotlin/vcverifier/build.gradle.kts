@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     `maven-publish`
+    alias(libs.plugins.dokka)
     signing
 }
 
@@ -59,6 +60,7 @@ tasks.withType<Test> {
 tasks.register<Jar>("jarRelease") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn("assembleRelease")
+    dependsOn("dokkaJavadoc")
     from("build/intermediates/javac/release/classes") {
         include("**/*.class")
     }
@@ -72,6 +74,16 @@ tasks.register<Jar>("jarRelease") {
     archiveBaseName.set("${project.name}-release")
     archiveVersion.set("1.1.0-SNAPSHOT")
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
+}
+
+tasks.register<Jar>("javadocJar") {
+    dependsOn("dokkaJavadoc")
+    archiveClassifier.set("javadoc")
+    from(tasks.named("dokkaHtml").get().outputs.files)
+}
+tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(android.sourceSets["main"].java.srcDirs)
 }
 
 apply(from = "publish-artifact.gradle")
