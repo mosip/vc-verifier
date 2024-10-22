@@ -24,7 +24,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF_TYPES_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.VERIFIABLE_CREDENTIAL
-import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject
@@ -145,7 +144,7 @@ class ValidationHelper {
 
     private fun validateJsonObjectOrArray(
         value: Any,
-        validator: (JSONObject) -> VerificationResult,
+        validator: (JSONObject) -> String,
         errorMessage: String
     ) {
         when (value) {
@@ -153,7 +152,7 @@ class ValidationHelper {
                 for (i in 0 until value.length()) {
                     val jsonObject = value.getJSONObject(i)
                     val result = validator(jsonObject)
-                    if (!result.verificationStatus) throw ValidationException(errorMessage)
+                    if (result.isNotEmpty()) throw ValidationException(errorMessage)
                 }
             }
             is JSONObject -> validator(value)
@@ -161,14 +160,14 @@ class ValidationHelper {
         }
     }
 
-    private fun validateSingleCredentialObject(credentialSubjectObject: JSONObject): VerificationResult {
+    private fun validateSingleCredentialObject(credentialSubjectObject: JSONObject): String {
         if (credentialSubjectObject.has(ID) && !Util().isValidUri(credentialSubjectObject.optString(ID))) {
             throw ValidationException("$ERROR_INVALID_URI$CREDENTIAL_SUBJECT.$ID")
         }
-        return VerificationResult(true)
+        return ""
     }
 
-    private fun validateSingleObject(fieldName: String, fieldValueObject: JSONObject, idMandatoryFields: List<String>): VerificationResult {
+    private fun validateSingleObject(fieldName: String, fieldValueObject: JSONObject, idMandatoryFields: List<String>): String {
         if (!fieldValueObject.has(TYPE)) {
             throw ValidationException( "$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$TYPE")
         }
@@ -184,7 +183,7 @@ class ValidationHelper {
             }
         }
 
-        return VerificationResult(true)
+        return ""
     }
 
 

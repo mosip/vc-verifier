@@ -19,12 +19,10 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TERMS_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
-import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.DateUtils
 import io.mosip.vercred.vcverifier.utils.Util
 import io.mosip.vercred.vcverifier.utils.ValidationHelper
-import org.bitcoinj.core.VerificationException
 import org.json.JSONObject
 
 class LdpValidator {
@@ -54,7 +52,7 @@ class LdpValidator {
     private val validationHelper = ValidationHelper()
     private val dateUtils = DateUtils()
 
-    fun validate(credential: String): VerificationResult {
+    fun validate(credential: String): String {
         try {
             if (credential.isEmpty()) {
                 throw ValidationException(ERROR_EMPTY_VC_JSON)
@@ -70,13 +68,13 @@ class LdpValidator {
                     validateCommonFields(vcJsonObject)
                     val expirationMessage = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
                             EXPIRATION_DATE))) ERROR_VC_EXPIRED else ""
-                    return VerificationResult(true, expirationMessage)
+                    return expirationMessage
                 }
                 DATA_MODEL.DATA_MODEL_2_0 -> {
                     validateV2SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     val expirationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_VC_EXPIRED else ""
-                    return VerificationResult(true, expirationMessage)
+                    return expirationMessage
                 }
                 else -> {
                     throw ValidationException(ERROR_CONTEXT_FIRST_LINE)
@@ -85,10 +83,10 @@ class LdpValidator {
 
         }
         catch (e: ValidationException) {
-            return VerificationResult(false, "${e.message}")
+            return "${e.message}"
         }
         catch (e: Exception) {
-            return VerificationResult(false, "${EXCEPTION_DURING_VALIDATION}${e.message}")
+            return "${EXCEPTION_DURING_VALIDATION}${e.message}"
         }
 
     }

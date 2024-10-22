@@ -3,6 +3,7 @@ package io.mosip.vercred.vcverifier
 import android.util.Log
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialFormat.LDP_VC
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
@@ -30,20 +31,16 @@ class CredentialVerifier {
 
     fun verify(credential: String, credentialFormat: CredentialFormat): VerificationResult {
         val credentialVerifier = CredentialVerifierFactory().get(credentialFormat)
-
-        val verificationResult = credentialVerifier.validate(credential)
-
-        if (!verificationResult.verificationStatus) {
-            return verificationResult
+        val validationErrorMessage = credentialVerifier.validate(credential)
+        if (validationErrorMessage.isNotEmpty() && !validationErrorMessage.contentEquals(ERROR_VC_EXPIRED)) {
+            return VerificationResult(false, validationErrorMessage)
         }
-
         return try {
             val verifySignatureStatus = credentialVerifier.verify(credential)
-            verificationResult.verificationStatus = verifySignatureStatus
             if (!verifySignatureStatus) {
-                verificationResult.verificationErrorMessage = VERIFICATION_FAILED
+                return  VerificationResult(false, VERIFICATION_FAILED)
             }
-            verificationResult
+            VerificationResult(true, validationErrorMessage)
         } catch (e: Exception) {
             VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}")
         }
