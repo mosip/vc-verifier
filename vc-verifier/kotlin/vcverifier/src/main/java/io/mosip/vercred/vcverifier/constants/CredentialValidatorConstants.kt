@@ -1,10 +1,11 @@
 package io.mosip.vercred.vcverifier.constants
 
-import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
-import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V2_URL
-
-
 object CredentialValidatorConstants {
+
+    const val CREDENTIALS_CONTEXT_V1_URL = "https://www.w3.org/2018/credentials/v1"
+    const val CREDENTIALS_CONTEXT_V2_URL = "https://www.w3.org/ns/credentials/v2"
+    const val VERIFIABLE_CREDENTIAL = "VerifiableCredential"
+
     const val ISSUER = "issuer"
     const val CREDENTIAL_SUBJECT = "credentialSubject"
     const val PROOF = "proof"

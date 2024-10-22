@@ -154,12 +154,4 @@ class LdpValidator {
         validationHelper.validateIssuer(vcJsonObject)
 
     }
-
-
-
-    companion object{
-        const val CREDENTIALS_CONTEXT_V1_URL = "https://www.w3.org/2018/credentials/v1"
-        const val CREDENTIALS_CONTEXT_V2_URL = "https://www.w3.org/ns/credentials/v2"
-        const val VERIFIABLE_CREDENTIAL = "VerifiableCredential"
-    }
 }

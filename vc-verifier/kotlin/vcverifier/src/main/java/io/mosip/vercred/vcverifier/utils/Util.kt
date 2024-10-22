@@ -1,12 +1,11 @@
 package io.mosip.vercred.vcverifier.utils
 
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
-import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V1_URL
-import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.CREDENTIALS_CONTEXT_V2_URL
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
 import org.json.JSONObject
 import java.net.URI
-import java.net.URL
 
 
 class Util {

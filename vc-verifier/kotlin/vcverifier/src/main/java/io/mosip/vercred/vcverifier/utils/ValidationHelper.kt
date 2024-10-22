@@ -23,7 +23,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.PROOF_TYPES_SUPPORTED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
-import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator.Companion.VERIFIABLE_CREDENTIAL
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONArray
 import org.json.JSONObject

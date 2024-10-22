@@ -44,7 +44,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALUE
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -55,8 +54,8 @@ class LdpValidatorTest {
     @Nested
     inner class NameValidationTest {
         @Test
-        fun test_name_string_valid(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when name is of type string and valid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.put(NAME, "test name")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
@@ -64,8 +63,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_name_language_object_valid(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when name is of type object and valid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val nameArray = JSONArray()
             val nameObject = JSONObject()
             nameObject.put(LANGUAGE, "en")
@@ -79,8 +78,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_name_language_object_invalid(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when name is of type object and invalid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val nameArray = JSONArray()
             val nameObject = JSONObject()
             nameObject.put(VALUE, "test name")
@@ -89,7 +88,7 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_NAME", result)
+            assertEquals(ERROR_NAME, result)
         }
 
     }
@@ -97,8 +96,8 @@ class LdpValidatorTest {
     @Nested
     inner class DescriptionValidationTests{
         @Test
-        fun test_description_string_valid(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when description is of type string and valid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.put(DESCRIPTION, "test name")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
@@ -107,8 +106,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_description_language_object_valid(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when description is of type object and valid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val nameArray = JSONArray()
             val nameObject = JSONObject()
             nameObject.put(LANGUAGE, "en")
@@ -122,8 +121,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_description_language_object_invalid(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when description is of type string and invalid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val nameArray = JSONArray()
             val nameObject = JSONObject()
             nameObject.put(VALUE, "test desc")
@@ -132,14 +131,14 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_DESCRIPTION", result)
+            assertEquals(ERROR_DESCRIPTION, result)
         }
     }
 
     @Nested
     inner class CredentialSubjectTests{
         @Test
-        fun `test_credentialSubject_missing`(){
+        fun `test when credentialSubject is missing`(){
 
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.remove(CREDENTIAL_SUBJECT)
@@ -150,7 +149,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_credentialSubject_id_missing`() {
+        fun `test when credentialSubject_id is missing`() {
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credSubjectObject = sampleVcObject.get(CREDENTIAL_SUBJECT)
             (credSubjectObject as JSONObject).remove(ID)
@@ -162,20 +161,20 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_credentialSubject_empty_string`(){
+        fun `test when credentialSubject is of type string and empty`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
 
             sampleVcObject.put(CREDENTIAL_SUBJECT, "")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
-            assertEquals("$ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT", result)
+            assertEquals(ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT, result)
             
         }
 
         @Test
-        fun `test_missing_credentialSubject_v2`(){
+        fun `test when credentialSubject is missing for v2`(){
 
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.remove(CREDENTIAL_SUBJECT)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
@@ -188,7 +187,7 @@ class LdpValidatorTest {
     inner class CredentialStatusTests{
 
         @Test
-        fun test_credentialStatus_object_valid_v1(){
+        fun `test when credentialStatus object is valid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(ID, "https://google.com/")
@@ -201,7 +200,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_object_invalid_v1(){
+        fun `test when credentialStatus object is of invalid type 'string' for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
 
             sampleVcObject.put(CREDENTIAL_STATUS, "Invalid String Type")
@@ -212,7 +211,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_object_without_id_v1(){
+        fun `test when credentialStatus_id is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(TYPE, "Type")
@@ -224,7 +223,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_object_without_type_v1(){
+        fun `test when credentialStatus_type is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(ID, "https://google.com/")
@@ -236,7 +235,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_array_valid_v1(){
+        fun `test when credentialStatus is of type 'array' and valid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(ID, "https://google.com/")
@@ -251,7 +250,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_array_without_id_v1(){
+        fun `test when credentialStatus is of type 'array' and 'id' is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(TYPE, "Type")
@@ -265,7 +264,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_array_without_type_v1(){
+        fun `test when credentialStatus is of type 'array' and type is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(ID, "https://google.com/")
@@ -279,8 +278,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_object_without_id_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when credentialStatus is of type 'object' and 'id' is missing for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(TYPE, "Type")
             sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
@@ -291,8 +290,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_object_without_type_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when credentialStatus is of type 'object' and 'type' is missing for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(ID, "https://google.com/")
             sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
@@ -303,7 +302,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_array_without_id_v2(){
+        fun `test when credentialStatus is of type 'array' and 'id' is missing for v2`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(TYPE, "Type")
@@ -316,7 +315,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credentialStatus_array_without_type_v2(){
+        fun `test when credentialStatus is of type 'array' and 'type' is missing for v2`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
             credentialStatusObject.put(ID, "https://google.com/")
@@ -333,7 +332,7 @@ class LdpValidatorTest {
     @Nested
     inner class EvidenceTests{
         @Test
-        fun test_evidence_object_valid_v1(){
+        fun `test when evidence is of type 'object' and valid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
@@ -347,7 +346,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_evidence_object_invalid_v1(){
+        fun `test when evidence is of type 'object' and invalid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.put(EVIDENCE, "Invalid String Type")
 
@@ -357,7 +356,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_evidence_object_without_id_v1(){
+        fun `test when evidence is of type 'object' and without 'id' for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(TYPE, "Type")
@@ -370,7 +369,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_evidence_object_without_type_v1(){
+        fun `test when evidence is of type 'object' and without 'type' for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
@@ -383,8 +382,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_evidence_object_without_id_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when evidence is of type 'object' and without 'id' for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(TYPE, "Type")
             sampleVcObject.put(EVIDENCE, JSONArray())
@@ -397,7 +396,7 @@ class LdpValidatorTest {
 
 
         @Test
-        fun test_evidence_object_without_type_v2(){
+        fun `test when evidence is of type 'object' and without 'type' for v2`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
@@ -413,7 +412,7 @@ class LdpValidatorTest {
     @Nested
     inner class CredentialSchemaTests{
         @Test
-        fun test_credential_schema_object_invalid_v1(){
+        fun `test when credentialSchema is of type 'object' and invalid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.put(CREDENTIAL_SCHEMA, "Invalid String Type")
 
@@ -423,7 +422,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credential_schema_object_valid_v1(){
+        fun `test when credentialSchema is of type 'object' and valid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
@@ -436,7 +435,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credential_schema_object_missing_id_v1(){
+        fun `test when credentialSchema is of type 'object' and 'id' is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(TYPE, "Type")
@@ -448,7 +447,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credential_schema_object_missing_type_v1(){
+        fun `test when credentialSchema is of type 'object' and 'type' is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
@@ -460,8 +459,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credential_schema_array_valid_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when credentialSchema is of type 'array' and valid for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
             evidenceObject.put(TYPE, "Type")
@@ -474,8 +473,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credential_schema_array_missing_id_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when credentialSchema is of type 'array' and 'id' is missing for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(TYPE, "Type")
             sampleVcObject.put(CREDENTIAL_SCHEMA, JSONArray())
@@ -487,8 +486,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_credential_schema_array_missing_type_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when credentialSchema is of type 'array' and 'type' is missing for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
             sampleVcObject.put(CREDENTIAL_SCHEMA, JSONArray())
@@ -505,7 +504,7 @@ class LdpValidatorTest {
     inner class RefreshServiceTests{
 
         @Test
-        fun test_refresh_service_object_invalid(){
+        fun `test when refreshService is of type 'string' and invalid`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.put(REFRESH_SERVICE, "Invalid String Type")
 
@@ -515,7 +514,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_refresh_service_object_valid_v1(){
+        fun `test when refreshService is of type 'object' and valid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
@@ -528,7 +527,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_refresh_service_object_missing_id_v1(){
+        fun `test when refreshService is of type 'object' and 'id' is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(TYPE, "Type")
@@ -540,7 +539,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_refresh_service_object_missing_type_v1(){
+        fun `test when refreshService is of type 'object' and 'type' is missing for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
@@ -552,8 +551,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_refresh_service_object_valid_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when refreshService is of type 'object' and valid for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
             evidenceObject.put(TYPE, "Type")
@@ -565,8 +564,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_refresh_service_object_missing_id_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when refreshService is of type 'object' and 'id' is missing for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(TYPE, "Type")
             sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
@@ -579,8 +578,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_refresh_service_object_missing_type_v2(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when refreshService is of type 'object' and 'type' is missing for v2`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
             sampleVcObject.put(REFRESH_SERVICE, evidenceObject)
@@ -597,8 +596,8 @@ class LdpValidatorTest {
     @Nested
     inner class TermsOfUseTests{
         @Test
-        fun test_terms_of_use_object_valid(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when termsOfUse is of type object and valid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
             evidenceObject.put(TYPE, "Type")
@@ -610,8 +609,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_terms_of_use_object_missing_id(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when termsOfUse is of type object and 'id' is missing`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(TYPE, "Type")
             sampleVcObject.put(TERMS_OF_USE, evidenceObject)
@@ -623,8 +622,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun test_terms_of_use_object_missing_type(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when termsOfUse is of type object and 'type' is missing`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
             evidenceObject.put(ID, "https://google.com/")
             sampleVcObject.put(TERMS_OF_USE, evidenceObject)
@@ -639,8 +638,8 @@ class LdpValidatorTest {
     @Nested
     inner class ValidityPeriodTests{
         @Test
-        fun `test_without_validFrom_v2`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when 'validFrom' is missing`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.remove(VALID_FROM)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
@@ -650,9 +649,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_invalid_validFrom_v2`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
-            sampleVcObject.put(VALID_FROM, "222T17:36:13.644Z")
+        fun `test when 'validFrom' is not in expected format and invalid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
+            sampleVcObject.put(VALID_FROM, "2024-03-03")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
@@ -661,9 +660,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_invalid_validUntil_v2`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
-            sampleVcObject.put(VALID_UNTIL, "222T17:36:13.644Z")
+        fun `test when 'validUntil' is not in expected format and invalid`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
+            sampleVcObject.put(VALID_UNTIL, "2024-03-03")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
@@ -672,9 +671,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_without_currentDate_before_validFrom`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
-            sampleVcObject.put(VALID_FROM, "2026-12-02T17:36:13.644Z")
+        fun `test when current date comes before validFrom`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
+            sampleVcObject.put(VALID_FROM, "2076-12-02T17:36:13.644Z")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
@@ -683,8 +682,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_without_validUntil_v2`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when validUntil is missing`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.remove(VALID_UNTIL)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
@@ -693,18 +692,8 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_currentDate_after_validUntil`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
-            sampleVcObject.put(VALID_UNTIL, "2023-12-02T17:36:13.644Z")
-
-            val result = credentialsValidator.validate(sampleVcObject.toString())
-            
-            assertEquals(ERROR_VC_EXPIRED, result)
-        }
-
-        @Test
-        fun `test_without_both_date_v2`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+        fun `test when both validFrom and validUntil are missing`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.remove(VALID_UNTIL)
             sampleVcObject.remove(VALID_FROM)
 
@@ -714,19 +703,19 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_VC_expired_v2`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
-            sampleVcObject.put(VALID_UNTIL, "2014-12-02T17:36:13.644Z")
+        fun `test when vc is expired`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
+            sampleVcObject.put(VALID_UNTIL, "2023-12-02T17:36:13.644Z")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_VC_EXPIRED,result)
+            assertEquals(ERROR_VC_EXPIRED, result)
         }
 
         @Test
-        fun `test_VC_not_expired_v2`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
-            sampleVcObject.put(VALID_UNTIL, "2034-12-02T17:36:13.644Z")
+        fun `test when vc is not expired`(){
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
+            sampleVcObject.put(VALID_UNTIL, "2074-12-02T17:36:13.644Z")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
@@ -737,7 +726,7 @@ class LdpValidatorTest {
     @Nested
     inner class IssuanceAndExpirationTests{
         @Test
-        fun `test_mandatory_fields_missing_credential_issuanceDate`(){
+        fun `test when issuanceDate is missing`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.remove(ISSUANCE_DATE)
 
@@ -747,7 +736,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_passed_issuanceDate`(){
+        fun `test when issuanceDate comes before currentDate`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.put(ISSUANCE_DATE, "2024-09-02T17:36:13.644Z")
 
@@ -757,9 +746,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test not passed issuanceDate`(){
+        fun `test when issuanceDate comes after currentDate`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
-            sampleVcObject.put(ISSUANCE_DATE, "2026-09-02T17:36:13.644Z")
+            sampleVcObject.put(ISSUANCE_DATE, "2076-09-02T17:36:13.644Z")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
@@ -767,9 +756,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `invalid credential expiration date`(){
+        fun `test when expirationDate is not in expected format and invalid`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
-            sampleVcObject.put(EXPIRATION_DATE, "2034-15-02T17:36:13.644Z")
+            sampleVcObject.put(EXPIRATION_DATE, "2034-02-02")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
@@ -777,7 +766,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test VC expired`(){
+        fun `test when VC is expired`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.put(EXPIRATION_DATE, "2014-12-02T17:36:13.644Z")
 
@@ -787,9 +776,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test VC not expired`(){
+        fun `test when VC is not expired`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
-            sampleVcObject.put(EXPIRATION_DATE, "2034-12-02T17:36:13.644Z")
+            sampleVcObject.put(EXPIRATION_DATE, "2074-12-02T17:36:13.644Z")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
@@ -797,20 +786,18 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test VC without expiration`(){
+        fun `test when expirationDate is missing`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals("",result)
-            
-
         }
 
         @Test
-        fun `invalid credential issuance date`(){
+        fun `test when issuanceDate is not in expected format and invalid`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
-            sampleVcObject.put(ISSUANCE_DATE, "2024-15-02T17:36:13.644Z")
+            sampleVcObject.put(ISSUANCE_DATE, "2024-02-02")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
@@ -821,7 +808,7 @@ class LdpValidatorTest {
     @Nested
     inner class ProofTests{
         @Test
-        fun `test mandatory fields missing credential proof`(){
+        fun `test when proof is missing`(){
 
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.remove(PROOF)
@@ -832,7 +819,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test without jws`() {
+        fun `test when jws is not present in proof`() {
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.remove(JWS)
 
@@ -844,7 +831,7 @@ class LdpValidatorTest {
 
 
         @Test
-        fun `test invalid algorithm in jws`() {
+        fun `test when unsupported algorithm is used in jws`() {
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.getJSONObject(PROOF).put(JWS, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
 
@@ -854,7 +841,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test valid algorithm in jws`() {
+        fun `test when supported algorithm is used in jws`() {
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.put(JWS, "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJLYlJXRU9YQ0pVRENWVnVET2ZsSkRQWnAtXzNqMEZvajd1RVZHd19xOEdzIiwiYWxnIjoiUFMyNTYifQ..NEcXf5IuDf0eJcBbtIBsXC2bZeOzNBduWG7Vz9A3ePcvh-SuwggPcCPQLrdgl79ta5bYsKsJSKVSS0Xg-GvlY71I2OzU778Bkq52LIDtSXY3DrxQEvM-BqjKLBB-ScA850pG2gV-k_8nkCPmAdvda_jj2Vlkss7VPB5LI6skWTgM4MOyvlMzZCzqmifqTzHLVgefzfixld7E38X7wxzEZfn2lY_fRfWqcL8pKL_kijTHwdTWLb9hMQtP9vlk2iarbT8TmZqutZD8etd1PBFm7V_izcY9cO75A4N3fVrr6NC50cDHDshPZFS48uTBDK-SSePxibpmq1afaS_VX6kX7A")
 
@@ -865,7 +852,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test without proof type`() {
+        fun `test when proof_type is missing`() {
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.getJSONObject(PROOF).remove(TYPE)
 
@@ -877,7 +864,7 @@ class LdpValidatorTest {
 
 
         @Test
-        fun `test invalid proof type`() {
+        fun `test when proof type is not supported`() {
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.getJSONObject(PROOF).put(TYPE, "ASASignature2018")
 
@@ -889,7 +876,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test valid proof type`() {
+        fun `test when proof type is supported`() {
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.getJSONObject(PROOF).put(TYPE, "RsaSignature2018")
 
@@ -903,7 +890,7 @@ class LdpValidatorTest {
     @Nested
     inner class ContextTests{
         @Test
-        fun `test_mandatory_fields_missing_credential_context`(){
+        fun `test when context is missing for v1`(){
 
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.remove(CONTEXT)
@@ -914,7 +901,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `invalid_credential_context`(){
+        fun `test when context is not valid for v1`(){
 
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.getJSONArray(CONTEXT).put(0, "http://www/google.com")
@@ -925,31 +912,21 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_mandatory_fields_missing_credential_context_v2`(){
+        fun `test when context is missing for v2`(){
 
-            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.remove(CONTEXT)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
             assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result)
         }
-
-        @Test
-        fun `test_unsupported_context_version`(){
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
-            sampleVcObject.put(CONTEXT, arrayOf("http://www.google.com/"))
-
-            val result = credentialsValidator.validate(sampleVcObject.toString())
-            
-            assertEquals(ERROR_CONTEXT_FIRST_LINE, result)
-        }
     }
     
     @Nested
     inner class CredentialIssuerTests{
         @Test
-        fun `validate mandatory fields missing credential issuer`(){
+        fun `test when issuer is missing for v1`(){
 
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.remove(ISSUER)
@@ -960,7 +937,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `invalid_credential_issuer_id`(){
+        fun `test when issuer_id is not valid URI`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.put(ISSUER, "invalid-uri")
 
@@ -971,9 +948,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_mandatory_fields_missing_credential_issuer_v2`(){
+        fun `test when issuer is missing for v2`(){
 
-            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.remove(ISSUER)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
@@ -985,7 +962,7 @@ class LdpValidatorTest {
     @Nested
     inner class CredentialTypeTests{
         @Test
-        fun `test_mandatory_fields_missing_credential_type`(){
+        fun `test when type is missing for v1`(){
 
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.remove(TYPE)
@@ -995,7 +972,7 @@ class LdpValidatorTest {
             assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result)
         }
         @Test
-        fun `invalid_credential_type`() {
+        fun `test when type is invalid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             sampleVcObject.getJSONArray(TYPE).put(0, "SampleVC")
             sampleVcObject.getJSONArray(TYPE).put(1, "UnknownCredentialType")
@@ -1006,9 +983,9 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `test_mandatory_fields_missing_credential_type_v2`(){
+        fun `test when type is missing for v2`(){
 
-            val sampleVcObject = JSONObject(sampleVcDateModel2)
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
             sampleVcObject.remove(TYPE)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
@@ -1020,7 +997,7 @@ class LdpValidatorTest {
     @Nested
     inner class OtherValidationTests{
         @Test
-        fun `validateCredential should return error when JSON parsing fails`() {
+        fun `test when JSON parsing fails for credential`() {
             mockkStatic(JSONObject::class)
             val invalidJsonString = """
             {"test": "test"}
@@ -1034,7 +1011,7 @@ class LdpValidatorTest {
         }
 
         @Test
-        fun `validate empty vc json string`(){
+        fun `test when credential is empty string`(){
             val resultEmpty = credentialsValidator.validate("")
 
             assertEquals(ERROR_EMPTY_VC_JSON, resultEmpty)
@@ -1104,7 +1081,7 @@ class LdpValidatorTest {
         """.trimIndent()
     }
 
-    val sampleVcDateModel2 = """
+    val sampleVcDataModel2 = """
         {
                 "@context": [
                     "https://www.w3.org/ns/credentials/v2",
