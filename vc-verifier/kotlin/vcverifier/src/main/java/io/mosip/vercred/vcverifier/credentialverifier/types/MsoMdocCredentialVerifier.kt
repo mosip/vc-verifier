@@ -18,12 +18,15 @@ import co.nstant.`in`.cbor.model.Array
 import co.nstant.`in`.cbor.model.Map
 import com.android.identity.internal.Util
 import io.mosip.vercred.vcverifier.credentialverifier.CBORConverter
-import io.mosip.vercred.vcverifier.exception.LikelyTamperedException
 import io.mosip.vercred.vcverifier.exception.InvalidPropertyException
+import io.mosip.vercred.vcverifier.exception.LikelyTamperedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.StaleDataException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.utils.BuildConfig
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 
 class MsoMdocCredentialVerifier  {
     private val tag: String = CredentialsVerifier::class.java.name
@@ -56,12 +59,13 @@ class MsoMdocCredentialVerifier  {
             val documents: Map
             if ((cbors[0] as Map).keys.toString().contains("documents")) {
                 documents = (cbors[0]["documents"] as Array).dataItems[0] as Map
-                issuerSigned = if (documents.keys.contains(CBORConverter.toDataItem("org.iso.18013.5.1.mDL"))) {
-                    (documents["org.iso.18013.5.1.mDL"] as Map)["issuerSigned"]
-                } else {
+                issuerSigned =
+                    if (documents.keys.contains(CBORConverter.toDataItem("org.iso.18013.5.1.mDL"))) {
+                        (documents["org.iso.18013.5.1.mDL"] as Map)["issuerSigned"]
+                    } else {
 
-                    ((cbors[0] as Map)["documents"][0] as Map)["issuerSigned"]
-                }
+                        ((cbors[0] as Map)["documents"][0] as Map)["issuerSigned"]
+                    }
             } else {
                 documents = cbors[0] as Map
                 issuerSigned = (documents)["issuerSigned"]
@@ -89,8 +93,8 @@ class MsoMdocCredentialVerifier  {
              * f) The elements in the ‘ValidityInfo’ structure are verified against the current time stamp
              */
 
-//        verifyCountryName()
             return verifyCertificateChain(issuerAuth)
+                    && verifyCountryName(issuerAuth, issuerSigned)
                     && verificationOfCoseSignature(issuerAuth)
                     && verifyValueDigests(issuerSigned, mso)
                     && verifyDocType(mso, documents)
@@ -110,8 +114,33 @@ class MsoMdocCredentialVerifier  {
         }
     }
 
+
     private fun verifyCertificateChain(issuerAuth: DataItem): Boolean {
         //TODO: Validate the certificate chain by getting the trusted root IACA certificate of the Issuing Authority
+        return true
+    }
+
+    private fun verifyCountryName(issuerAuth: DataItem, issuerSigned: DataItem): Boolean {
+
+        val issuerCertificate: X509Certificate = extractCertificate(issuerAuth)
+            ?: throw SignatureVerificationException("certificate chain is empty")
+        val subjectDN: String = issuerCertificate.getSubjectX500Principal().getName()
+        var countryName: String? = null
+
+        val pattern: Pattern = Pattern.compile("C=([^,]+)")
+        val matcher: Matcher = pattern.matcher(subjectDN)
+
+        if (matcher.find()) {
+            countryName = matcher.group(1)
+        } else {
+            throw RuntimeException("CN not found in Subject DN of DS certificate")
+        }
+
+        val issuingCountry = extractField(issuerSigned, "issuing_country")
+        println("issuing - $issuingCountry, country - $countryName")
+        if (!issuingCountry.equals(countryName)) {
+            throw InvalidPropertyException("Issuing country is not valid in the credential - Mismatch in credential data and DS certificate country name dound")
+        }
         return true
     }
 
@@ -137,60 +166,26 @@ class MsoMdocCredentialVerifier  {
         return true
     }
 
+    //TODO: use utility is date past CurrTime
     @SuppressLint("NewApi")
     private fun verifyValidity(issuerSigned: DataItem, mso: Map): Boolean {
         val validityInfo: Map = mso["validityInfo"] as Map
         val validFrom = if (BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O) {
+            println("validfrom unform ${validityInfo["validFrom"]}")
             Instant.parse(
                 validityInfo["validFrom"].toString()
             )
         } else {
             TODO("VERSION.SDK_INT < O")
         }
-        val validUntil = Instant.parse(
-            validityInfo["validUntil"].toString()
-        )
-
-        val issueDateUnformatted = extractIssuerSignedNamespaceItem(
-            (issuerSigned as Map)["nameSpaces"] as Map,
-            "issue_date"
-        )
-        if (issueDateUnformatted != null) {
-            val issueDate: Instant = if (util.isTimestamp(issueDateUnformatted.toString())) {
-                Instant.parse(
-                    issueDateUnformatted.toString()
-                )
-            } else {
-                util.convertLocalDateTimeStringToInstant(issueDateUnformatted.toString())
-            }
-
-            val validFromIssueDateCheck = issueDate >= validFrom
-            if (!validFromIssueDateCheck) {
-                Log.e(
-                    tag,
-                    "Error while doing validity verification - validFrom is before issueDate"
-                )
-
-                return false
-            }
+        val validUntil = if (BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O) {
+            Instant.parse(
+                validityInfo["validUntil"].toString()
+            )
+        } else {
+            TODO("VERSION.SDK_INT < O")
         }
-        val expiryDateUnformatted = extractIssuerSignedNamespaceItem(
-            issuerSigned["nameSpaces"] as Map,
-            "expiry_date"
-        )
-        if (expiryDateUnformatted != null) {
-            val expiryDate: Instant = if (util.isTimestamp(expiryDateUnformatted.toString())) {
-                Instant.parse(
-                    expiryDateUnformatted.toString()
-                )
-            } else {
-                util.convertLocalDateTimeStringToInstant(expiryDateUnformatted.toString())
-            }
-            val validUntilExpiryDateCheck = expiryDate <= validUntil
-            Log.e(tag, "Error while doing validity verification - validUntil is beyond expiry date")
-            if (!validUntilExpiryDateCheck)
-                return false
-        }
+
         val isCurrentTimeGreaterThanValidFrom = Instant.now() >= validFrom
         val isCurrentTimeLessThanValidUntil = Instant.now() < validUntil
         val isValidUntilGreaterThanValidFrom = validUntil > validFrom
@@ -227,8 +222,19 @@ class MsoMdocCredentialVerifier  {
     }
 
     private fun verificationOfCoseSignature(issuerAuth: DataItem): Boolean {
+        val issuerCertificate: X509Certificate = extractCertificate(issuerAuth)
+            ?: throw SignatureVerificationException("Error while doing COSE signature verification - certificate chain is empty")
+        val publicKey = issuerCertificate.publicKey
+        val coseSign1CheckSignature =
+            Util.coseSign1CheckSignature(issuerAuth, byteArrayOf(), publicKey!!)
+        if (!coseSign1CheckSignature)
+            throw SignatureVerificationException("Error while doing COSE signature verification with algorithm - ${issuerCertificate.sigAlgName}")
+        return true
+    }
+
+    private fun extractCertificate(coseSignature: DataItem): X509Certificate? {
         val certificateChain: MutableCollection<DataItem>? =
-            ((issuerAuth as Array)[1] as Map).values
+            ((coseSignature as Array)[1] as Map).values
         val issuerCertificateString: DataItem = if (certificateChain?.size!! > 1) {
             certificateChain.elementAt(0)[1]
         } else if (certificateChain.size == 1) {
@@ -238,15 +244,9 @@ class MsoMdocCredentialVerifier  {
                 certificateChain.elementAt(0)
             }
         } else {
-            throw SignatureVerificationException("Error while doing COSE signature verification - certificate chain is empty")
+            return null
         }
-        val issuerCertificate = toX509Certificate(issuerCertificateString)
-        val publicKey = issuerCertificate.publicKey
-        val coseSign1CheckSignature =
-            Util.coseSign1CheckSignature(issuerAuth, byteArrayOf(), publicKey!!)
-        if (!coseSign1CheckSignature)
-            throw SignatureVerificationException("Error while doing COSE signature verification with algorithm - ${issuerCertificate.sigAlgName}")
-        return true
+        return toX509Certificate(issuerCertificateString)
     }
 
     private fun toX509Certificate(certificateString: DataItem?): X509Certificate {
@@ -255,52 +255,89 @@ class MsoMdocCredentialVerifier  {
     }
 
     private fun verifyValueDigests(issuerSigned: DataItem, mso: Map): Boolean {
-        val calculatedDigests = mutableMapOf<Number, ByteArray>()
-        val actualDigests = mutableMapOf<Number, ByteArray>()
-
-        val namespacesData: MutableList<DataItem> =
-            (((issuerSigned["nameSpaces"] as Map)["org.iso.18013.5.1"]) as Array).dataItems
-        namespacesData.forEach { issuerSignedItem ->
-            val encodedIssuerSignedItem = ByteArrayOutputStream()
-            CborEncoder(encodedIssuerSignedItem).encode(issuerSignedItem)
-            //TODO: GET THE DIGEST ALGORITHM FROM MSO
-            val digestAlgorithm = "SHA-256"
-            val digest =
-                util.calculateDigest(digestAlgorithm, encodedIssuerSignedItem)
-            val decodedIssuerSignedItem =
-                CborDecoder(ByteArrayInputStream((issuerSignedItem as ByteString).bytes)).decode()[0]
-            val digestId: Number =
-                (((decodedIssuerSignedItem as Map)["digestID"]) as UnsignedInteger).value
-
-            calculatedDigests[digestId] = digest
-        }
-        val issuerAuthPayload: DataItem = (issuerSigned["issuerAuth"] as Array)[2]
-
-        CborDecoder(ByteArrayInputStream((issuerAuthPayload as ByteString).bytes)).decode()[0]
-        val valueDigests: Map =
-            if ((mso["valueDigests"] as Map).keys.toString().contains(("nameSpaces"))) {
-                ((mso["valueDigests"]["nameSpaces"] as Map)["org.iso.18013.5.1"]) as Map
-            } else {
-                ((mso["valueDigests"] as Map)["org.iso.18013.5.1"]) as Map
-            }
-
-        valueDigests.keys.forEach { digestId ->
+        val issuerSignedNamespacedData = issuerSigned["nameSpaces"] as Map
+        issuerSignedNamespacedData.keys.forEach { namespace ->
             run {
-                val digest: ByteArray = (valueDigests[digestId] as ByteString).bytes
-                actualDigests[(digestId as UnsignedInteger).value] = digest
+                val namespaceData: MutableList<DataItem> =
+                    ((issuerSignedNamespacedData[namespace]) as Array).dataItems
+                val calculatedDigests = mutableMapOf<Number, ByteArray>()
+                val actualDigests = mutableMapOf<Number, ByteArray>()
+
+
+                namespaceData.forEach { issuerSignedItem ->
+                    val encodedIssuerSignedItem = ByteArrayOutputStream()
+                    CborEncoder(encodedIssuerSignedItem).encode(issuerSignedItem)
+                    //TODO: GET THE DIGEST ALGORITHM FROM MSO
+                    val digestAlgorithm = "SHA-256"
+                    val digest =
+                        util.calculateDigest(digestAlgorithm, encodedIssuerSignedItem)
+                    val decodedIssuerSignedItem =
+                        CborDecoder(ByteArrayInputStream((issuerSignedItem as ByteString).bytes)).decode()[0]
+                    val digestId: Number =
+                        (((decodedIssuerSignedItem as Map)["digestID"]) as UnsignedInteger).value
+
+                    calculatedDigests[digestId] = digest
+                }
+                val issuerAuthPayload: DataItem = (issuerSigned["issuerAuth"] as Array)[2]
+
+                CborDecoder(ByteArrayInputStream((issuerAuthPayload as ByteString).bytes)).decode()[0]
+                val valueDigests: Map =
+                    if ((mso["valueDigests"] as Map).keys.toString().contains(("nameSpaces"))) {
+                        ((mso["valueDigests"]["nameSpaces"] as Map)[namespace]) as Map
+                    } else {
+                        ((mso["valueDigests"] as Map)[namespace]) as Map
+                    }
+
+                valueDigests.keys.forEach { digestId ->
+                    run {
+                        val digest: ByteArray = (valueDigests[digestId] as ByteString).bytes
+                        actualDigests[(digestId as UnsignedInteger).value] = digest
+                    }
+                }
+
+                for ((actualDigestId, actualDigest) in actualDigests) {
+                    if (!actualDigest.contentEquals(calculatedDigests[actualDigestId])) {
+                        Log.e(
+                            tag,
+                            "Error while doing valueDigests verification - mismatch in digests found"
+                        )
+                        throw LikelyTamperedException("valueDigests verification failed - mismatch in digests with $actualDigestId")
+                    }
+                }
             }
         }
 
-        for ((actualDigestId, actualDigest) in actualDigests) {
-            if (!actualDigest.contentEquals(calculatedDigests[actualDigestId])) {
-                Log.e(
-                    tag,
-                    "Error while doing valueDigests verification - mismatch in digests found"
-                )
-                throw LikelyTamperedException("mismatch in digests with $actualDigestId")
+        return true
+    }
+
+    private fun extractField(issuerSigned: DataItem, fieldToBeExtracted: String): String {
+        val issuerSignedNamespacedData = issuerSigned["nameSpaces"] as Map
+        issuerSignedNamespacedData.keys.forEach { namespace ->
+            run {
+                val namespaceData: MutableList<DataItem> =
+                    ((issuerSignedNamespacedData[namespace]) as Array).dataItems
+
+                namespaceData.forEach { issuerSignedItem ->
+                    val encodedIssuerSignedItem = ByteArrayOutputStream()
+                    CborEncoder(encodedIssuerSignedItem).encode(issuerSignedItem)
+                    //TODO: GET THE DIGEST ALGORITHM FROM MSO
+                    val digestAlgorithm = "SHA-256"
+                    val digest =
+                        util.calculateDigest(digestAlgorithm, encodedIssuerSignedItem)
+                    val decodedIssuerSignedItem =
+                        CborDecoder(ByteArrayInputStream((issuerSignedItem as ByteString).bytes)).decode()[0]
+                    println("((decodedIssuerSignedItem as Map)[\"elementIdentifier\"]) as UnicodeString ${((decodedIssuerSignedItem as Map)["elementIdentifier"]).majorType}")
+                    println("((decodedIssuerSignedItem as Map)[\"elementIdentifier\"]) as UnicodeString ${((decodedIssuerSignedItem as Map)["elementIdentifier"])}")
+                    val elementIdentifier: String =
+                        ((decodedIssuerSignedItem["elementIdentifier"]) as UnicodeString).string
+
+                    if (elementIdentifier == fieldToBeExtracted) {
+                        return (decodedIssuerSignedItem["elementValue"] as UnicodeString).string
+                    }
+                }
             }
         }
-        return true
+        return ""
     }
 
     operator fun DataItem.get(name: String): DataItem {
