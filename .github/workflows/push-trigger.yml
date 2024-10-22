@@ -22,7 +22,7 @@ on:
       - '1.*'
 
 jobs:
-  build-kotlin:
+  build-maven-vc-verifier:
     runs-on: ubuntu-latest
     steps:
       - name: Set up JDK 21
