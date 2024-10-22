@@ -1,7 +1,5 @@
 package io.mosip.vercred.vcverifier.signature.impl
 
-import android.annotation.TargetApi
-import android.os.Build
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
@@ -12,7 +10,6 @@ import java.security.Signature
 class ED25519SignatureVerifierImpl : SignatureVerifier {
 
 
-    @TargetApi(Build.VERSION_CODES.TIRAMISU)
     override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray, provider: BouncyCastleProvider): Boolean {
         try {
                 Signature.getInstance(CredentialVerifierConstants.ED25519_ALGORITHM, provider)
