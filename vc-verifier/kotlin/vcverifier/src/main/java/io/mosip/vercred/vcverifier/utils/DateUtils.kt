@@ -16,6 +16,7 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class DateUtils {
     fun isValidDate(dateValue: String): Boolean {
@@ -24,9 +25,11 @@ class DateUtils {
 
     fun isDatePassedCurrentDate(inputDateString: String): Boolean {
         return try {
-            val format = SimpleDateFormat(COMMON_DATE_FORMAT, Locale.getDefault())
+            val format = SimpleDateFormat(COMMON_DATE_FORMAT, Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone(UTC)
+            }
             val inputDate = format.parse(inputDateString)
-            val currentDate = Calendar.getInstance().time
+            val currentDate = Calendar.getInstance(TimeZone.getTimeZone(UTC)).time
             inputDate.before(currentDate)
         } catch (e: Exception) {
             false
@@ -74,5 +77,6 @@ class DateUtils {
 
     companion object{
         const val COMMON_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        const val UTC = "UTC"
     }
 }
