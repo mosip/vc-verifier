@@ -2,7 +2,6 @@ package io.mosip.vercred.vcverifier.constants
 
 
 object CredentialVerifierConstants {
-    //const val PS256_ALGORITHM: String = "RSASSA-PSS"
 
     const val PUBLIC_KEY_PEM = "publicKeyPem"
 

@@ -15,16 +15,13 @@ class ED25519SignatureVerifierImpl : SignatureVerifier {
     @TargetApi(Build.VERSION_CODES.TIRAMISU)
     override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray, provider: BouncyCastleProvider): Boolean {
         try {
-            val ed25519Signature =
                 Signature.getInstance(CredentialVerifierConstants.ED25519_ALGORITHM, provider)
-                    /*.apply {
+                    .apply {
                     initVerify(publicKey)
                     update(signData)
-                    verify(signature)
-                }*/
-            ed25519Signature.initVerify(publicKey)
-            ed25519Signature.update(signData)
-            return ed25519Signature.verify(signature)
+                    return verify(signature)
+                }
+
         } catch (e: Exception) {
             throw SignatureVerificationException("Error while doing signature verification using ED25519 algorithm")
         }

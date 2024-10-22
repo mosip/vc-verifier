@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.mosip.vccred.example.ui.theme.VcverifierTheme
-import io.mosip.vercred.vcverifier.CredentialVerifier
+import io.mosip.vercred.vcverifier.CredentialsVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.data.VerificationResult
 
@@ -95,7 +95,7 @@ fun VerifyVC(modifier: Modifier = Modifier) {
 
 
 fun verifyVc(): VerificationResult{
-    val credentialsVerifier = CredentialVerifier()
+    val credentialsVerifier = CredentialsVerifier()
     return credentialsVerifier.verify(mosipVc, CredentialFormat.LDP_VC)
 }
 

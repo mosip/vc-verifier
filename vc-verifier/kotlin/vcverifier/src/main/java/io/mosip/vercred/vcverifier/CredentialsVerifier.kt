@@ -10,8 +10,8 @@ import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.data.VerificationResult
 
 
-class CredentialVerifier {
-    private val tag: String = CredentialVerifier::class.java.name
+class CredentialsVerifier {
+    private val tag: String = CredentialsVerifier::class.java.name
 
     /**
      * @deprecated This method has been deprecated because it is not extensible for future use cases of supporting different VC format's verification
@@ -27,7 +27,6 @@ class CredentialVerifier {
         val credentialVerifier = CredentialVerifierFactory().get(LDP_VC)
         return credentialVerifier.verify(credentials)
     }
-
 
     fun verify(credential: String, credentialFormat: CredentialFormat): VerificationResult {
         val credentialVerifier = CredentialVerifierFactory().get(credentialFormat)

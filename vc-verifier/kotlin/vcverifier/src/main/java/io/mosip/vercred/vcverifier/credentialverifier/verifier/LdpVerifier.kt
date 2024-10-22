@@ -11,7 +11,6 @@ import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
-import io.mosip.vercred.vcverifier.CredentialVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_ALGORITHM
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_ALGORITHM
@@ -25,12 +24,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.io.pem.PemReader
-import java.io.IOException
 import java.io.StringReader
 import java.net.URI
 import java.security.KeyFactory
 import java.security.KeyManagementException
-import java.security.NoSuchAlgorithmException
 import java.security.PublicKey
 import java.security.Security
 import java.security.cert.CertificateException
@@ -39,12 +36,8 @@ import java.util.Objects
 
 class LdpVerifier {
 
-    private val tag: String = CredentialVerifier::class.java.name
+    private val tag: String = LdpVerifier::class.java.name
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
-
-    init {
-        Security.addProvider(provider);
-    }
 
     private val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
         CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
@@ -57,6 +50,10 @@ class LdpVerifier {
         CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST to RSA_ALGORITHM,
         CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST to ED25519_ALGORITHM
     )
+
+    init {
+        Security.addProvider(provider);
+    }
 
      fun verify(credential: String): Boolean {
 
@@ -123,13 +120,6 @@ class LdpVerifier {
         }
     }
 
-    @Throws(
-        CertificateException::class,
-        IOException::class,
-        KeyStoreException::class,
-        NoSuchAlgorithmException::class,
-        KeyManagementException::class
-    )
     private fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
         val confDocumentLoader = ConfigurableDocumentLoader()
         confDocumentLoader.isEnableHttps = true
