@@ -1,6 +1,6 @@
 
 import {validate} from "../../src/validator/LdpValidator.js";
-import {ContextUrls, Errors, Fields} from "../../src/constant/ValidatorConstants.js";
+import {Errors, Fields} from "../../src/constant/ValidatorConstants.js";
 import {DataModel, getContextVersion} from "../../src/validator/ValidationHelper.js";
 
 export let sampleVcDataModel1 = {
@@ -118,205 +118,204 @@ describe("ldpvalidator", () => {
 
 
 
-    describe('credential', () => {
-        it("test valid vc", () => {
+    describe('Credential', () => {
+        it("test when valid credential is present", () => {
+
             const result = validate(sampleVcDataModel1)
-            expect(result.verificationErrorMessage).toBe("");
-            expect(result.verificationStatus).toBe(true);
+            expect(result).toBe("");
 
         });
 
-        it("test empty json vc", () => {
+        it("test when credential is empty json", () => {
 
             const result = validate({})
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(Errors.ERROR_EMPTY_VC_JSON)
+            expect(result).toBe(Errors.ERROR_EMPTY_VC_JSON)
+
         });
 
-        it("test empty string vc", () => {
+        it("test when credential is empty string", () => {
 
             const result = validate("")
-
-            expect(result.verificationErrorMessage).toBe(Errors.ERROR_EMPTY_VC_JSON)
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(Errors.ERROR_EMPTY_VC_JSON)
+            
         });
 
-        it("test null credential", () => {
+        it("test when credential is null", () => {
 
             const result = validate(null)
 
-            expect(result.verificationErrorMessage).toBe(`${Errors.EXCEPTION_DURING_VALIDATION}Cannot convert undefined or null to object`)
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(`${Errors.EXCEPTION_DURING_VALIDATION}Cannot convert undefined or null to object`)
+            
         });
     })
 
     describe("Context", () => {
 
-        it("should return Context URL for Data Model1.1", () => {
+        it("test when contextUrl returns Data Model 1.1", () => {
+
             const result = getContextVersion(sampleVcDataModel1)
             expect(result).toBe(DataModel.DATA_MODEL_1_1);
 
         });
 
-        it("should return Context URL for Data Model2.0", () => {
+        it("test when contextUrl returns Data Model 2.0", () => {
+
             const result = getContextVersion(sampleVcDataModel2)
             expect(result).toBe(DataModel.DATA_MODEL_2_0);
 
         });
 
+        it("test when context url is not matching with both the data models", () => {
 
-        it("test invalid Context URL", () => {
             const tempVc = { ...sampleVcDataModel1}
             tempVc["@context"] = "http://www.google.com/"
 
             const result = validate(tempVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(Errors.ERROR_CONTEXT_FIRST_LINE);
+            expect(result).toBe(Errors.ERROR_CONTEXT_FIRST_LINE);
 
         });
 
 
-        it("should validate when Context field is missing", () => {
+        it("test when @context field is missing", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             delete testVc[Fields.CONTEXT];
 
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CONTEXT}`);
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CONTEXT}`);
 
         });
-
     })
 
     describe("Issuer", () => {
         it("test when Issuer field is missing", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             delete testVc[Fields.ISSUER];
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.ISSUER}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.ISSUER}`)
         });
 
         it("test when Issuer.id field is null", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ISSUER] = null;
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
         });
 
-        it("test when Issuer.id string is invalid URI", () => {
+        it("test when Issuer.id is of type string and invalid URI", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ISSUER] = "invalid-uri";
 
-
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
 
         });
 
-        it("test when Issuer.id object is invalid URI", () => {
+        it("test when Issuer.id is of type object and invalid URI", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ISSUER] = { "id" : "invalid-uri"};
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
         });
 
-        it("test when Issuer.id string is valid", () => {
+        it("test when Issuer.id is of type string and valid", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ISSUER] = "https://www.test.com/";
 
-
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
+
         });
 
-        it("test when Issuer.id object is valid", () => {
+        it("test when Issuer.id is of type object and valid", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ISSUER] ={ "id" : "https://www.test.com/"};
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
+
         });
-
-
-
     })
 
     describe("CredentialSubject", () => {
+
         it("test when CredentialSubject field is missing", () => {
 
             const testVc = { ...sampleVcDataModel1 };
             delete testVc[Fields.CREDENTIAL_SUBJECT];
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SUBJECT}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SUBJECT}`)
+
         });
 
-        it("when CredentialSubject field is array valid", () => {
+        it("test when CredentialSubject field is of type array and valid", () => {
 
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SUBJECT] = [{"id": "https://test.com"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            
+            expect(result).toBe("")
         });
 
-        it("when CredentialSubject field is array and id is invalid uri", () => {
+        it("test when CredentialSubject field is of type array and id is invalid uri", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SUBJECT] = [{"id": "invalid-uri"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SUBJECT}.${Fields.ID}`)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SUBJECT}.${Fields.ID}`)
         });
 
-        it("when CredentialSubject field is object valid", () => {
+        it("test when CredentialSubject field is of type object and valid", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SUBJECT] = {"id": "https://test.com"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            
+            expect(result).toBe("")
         });
 
-        it("when CredentialSubject field is object and id is invalid uri", () => {
+        it("test when CredentialSubject field is of type object and id is invalid uri", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SUBJECT] = {"id": "invalid-uri"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SUBJECT}.${Fields.ID}`)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SUBJECT}.${Fields.ID}`)
         });
 
-        it("when CredentialSubject  is different", () => {
+        it("test when CredentialSubject is of type string", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SUBJECT] = ""
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT}`)
+            
+            expect(result).toBe(`${Errors.ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT}`)
         });
 
     })
 
     describe("Proof", () => {
-        it("test when Proof field missing", () => {
+        it("test when Proof field is missing", () => {
+
             const testVc = { ...sampleVcDataModel1 };
             delete testVc[Fields.PROOF];
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.PROOF}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.PROOF}`)
+
         });
 
         it("test when proof has no type", () => {
@@ -324,8 +323,7 @@ describe("ldpvalidator", () => {
             delete testVc[Fields.PROOF][Fields.TYPE]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.PROOF}.${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.PROOF}.${Fields.TYPE}`)
         })
 
         it("test when proof type is invalid", () => {
@@ -333,8 +331,7 @@ describe("ldpvalidator", () => {
             testVc[Fields.PROOF][Fields.TYPE] = "ASASignature"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_PROOF_TYPE_NOT_SUPPORTED}`)
+            expect(result).toBe(`${Errors.ERROR_PROOF_TYPE_NOT_SUPPORTED}`)
         })
 
         it("test when proof type is valid", () => {
@@ -342,8 +339,7 @@ describe("ldpvalidator", () => {
             testVc[Fields.PROOF][Fields.TYPE] = "RsaSignature2018"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         })
 
         it("test when proof is empty", () => {
@@ -351,83 +347,85 @@ describe("ldpvalidator", () => {
             testVc[Fields.PROOF] = ""
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.PROOF}`)
+            expect(result).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.PROOF}`)
         })
 
         it("test when proof is null", () => {
+
             const testVc = {...sampleVcDataModel1}
             testVc[Fields.PROOF] = null
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.PROOF}`)
+            expect(result).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.PROOF}`)
+
         })
 
         it("test when proof has no JWS", () => {
+
             const testVc = {...sampleVcDataModel1}
             delete testVc[Fields.PROOF][Fields.JWS]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
+
         })
 
-        it("test when proof has algorithm invalid", () => {
+        it("test when proof has invalid algorithm", () => {
+
             const testVc = {...sampleVcDataModel1}
             testVc[Fields.PROOF][Fields.JWS] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_ALGORITHM_NOT_SUPPORTED}`)
+            expect(result).toBe(`${Errors.ERROR_ALGORITHM_NOT_SUPPORTED}`)
+            
         })
 
-        it("test when proof has algorithm valid", () => {
+        it("test when proof has valid algorithm", () => {
+
             const testVc = {...sampleVcDataModel1}
             testVc[Fields.PROOF][Fields.JWS] = "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJLYlJXRU9YQ0pVRENWVnVET2ZsSkRQWnAtXzNqMEZvajd1RVZHd19xOEdzIiwiYWxnIjoiUFMyNTYifQ..NEcXf5IuDf0eJcBbtIBsXC2bZeOzNBduWG7Vz9A3ePcvh-SuwggPcCPQLrdgl79ta5bYsKsJSKVSS0Xg-GvlY71I2OzU778Bkq52LIDtSXY3DrxQEvM-BqjKLBB-ScA850pG2gV-k_8nkCPmAdvda_jj2Vlkss7VPB5LI6skWTgM4MOyvlMzZCzqmifqTzHLVgefzfixld7E38X7wxzEZfn2lY_fRfWqcL8pKL_kijTHwdTWLb9hMQtP9vlk2iarbT8TmZqutZD8etd1PBFm7V_izcY9cO75A4N3fVrr6NC50cDHDshPZFS48uTBDK-SSePxibpmq1afaS_VX6kX7A"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
+
         })
 
     })
 
     describe("IssuanceDate", () => {
-        it("test when issuanceDate field is missing", () => {
+
+        it("test when issuanceDate field is missing for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             delete testVc[Fields.ISSUANCE_DATE];
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.ISSUANCE_DATE}`)
+            
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.ISSUANCE_DATE}`)
         });
 
-        it("test when issuanceDate field is missing v2", () => {
+        it("test when issuanceDate field is missing for v2", () => {
             const testVc = { ...sampleVcDataModel2 };
             delete testVc[Fields.ISSUANCE_DATE];
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            
+            expect(result).toBe("")
         });
 
-        it("test when issuanceDate is invalid", () => {
+        it("test when issuanceDate is of invalid format", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ISSUANCE_DATE] = "2022/02/03"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_ISSUANCE_DATE_INVALID}`)
+            expect(result).toBe(`${Errors.ERROR_ISSUANCE_DATE_INVALID}`)
         });
 
         it("test when currentDate is before issuanceDate", () => {
             const testVc = { ...sampleVcDataModel1 };
-            testVc[Fields.ISSUANCE_DATE] = "2026-07-22T07:49:22.219Z"
+            testVc[Fields.ISSUANCE_DATE] = "2076-07-22T07:49:22.219Z"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE}`)
+            expect(result).toBe(`${Errors.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE}`)
         });
 
         it("test when issuanceDate field is unsupported Type", () => {
@@ -435,8 +433,7 @@ describe("ldpvalidator", () => {
             testVc[Fields.ISSUANCE_DATE] = 123456
 
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_ISSUANCE_DATE_INVALID}`)
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(`${Errors.ERROR_ISSUANCE_DATE_INVALID}`)
 
         });
 
@@ -444,22 +441,21 @@ describe("ldpvalidator", () => {
 
     describe("ExpirationDate", () => {
 
-        it("test when expirationDate is invalid", () => {
+        it("test when expirationDate is of invalid format", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.EXPIRATION_DATE] = "2022/02/03"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_EXPIRATION_DATE_INVALID}`)
+            expect(result).toBe(`${Errors.ERROR_EXPIRATION_DATE_INVALID}`)
         });
 
         it("test when VC is expired", () => {
             const testVc = { ...sampleVcDataModel1 };
-            testVc[Fields.EXPIRATION_DATE] = "2024-07-22T07:49:22.219Z"
+            testVc[Fields.EXPIRATION_DATE] = "2014-07-22T07:49:22.219Z"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_VC_EXPIRED}`)
+            
+            expect(result).toBe(`${Errors.ERROR_VC_EXPIRED}`)
         });
 
     })
@@ -467,410 +463,381 @@ describe("ldpvalidator", () => {
     describe("ValidFrom", () => {
 
 
-        it("test when validFrom is invalid", () => {
+        it("test when validFrom is of invalid format", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.VALID_FROM] = "2022/02/03"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_VALID_FROM_INVALID}`)
+            expect(result).toBe(`${Errors.ERROR_VALID_FROM_INVALID}`)
         });
 
-        it("test when currentDate is before validFrom", () => {
+        it("test when currentDate comes before validFrom", () => {
             const testVc = { ...sampleVcDataModel2 };
-            testVc[Fields.VALID_FROM] = "2026-07-22T07:49:22.219Z"
+            testVc[Fields.VALID_FROM] = "2076-07-22T07:49:22.219Z"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_CURRENT_DATE_BEFORE_VALID_FROM}`)
+            expect(result).toBe(`${Errors.ERROR_CURRENT_DATE_BEFORE_VALID_FROM}`)
         });
 
     })
 
     describe("ValidUntil", () => {
 
-        it("test when validUntil is invalid", () => {
+        it("test when validUntil is of invalid format", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.VALID_UNTIL] = "2022/02/03"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_VALID_UNTIL_INVALID}`)
+            expect(result).toBe(`${Errors.ERROR_VALID_UNTIL_INVALID}`)
         });
 
-        it("test when VC is expired v2", () => {
+        it("test when VC is expired for v2", () => {
             const testVc = { ...sampleVcDataModel2 };
-            testVc[Fields.VALID_UNTIL] = "2024-07-22T07:49:22.219Z"
+            testVc[Fields.VALID_UNTIL] = "2014-07-22T07:49:22.219Z"
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_VC_EXPIRED}`)
+            
+            expect(result).toBe(`${Errors.ERROR_VC_EXPIRED}`)
         });
 
     })
 
     describe("Id", () => {
-        it("test id valid uri", () => {
+        it("test when id is valid uri", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ID] = "did:testsss";
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
-        it("test id invalid uri", () => {
+        it("test when id is invalid uri", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.ID] = "invalid-uri";
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ID}`)
         });
 
     })
 
     describe("Type", () => {
-        it("test type missing", () => {
+        it("test when type is missing", () => {
             const testVc = { ...sampleVcDataModel1 };
             delete testVc[Fields.TYPE]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TYPE}`)
         });
-        it("test type valid", () => {
+        it("test when type is valid", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.TYPE] = ["VerifiableCredential", "NationalID"];
 
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe("")
-            expect(result.verificationStatus).toBe(true);
+            expect(result).toBe("")
+            
         });
-        it("test type empty", () => {
+        it("test when type is empty", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.TYPE] = [];
 
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
+            
         });
-        it("test type invalid", () => {
+        it("test when type is invalid", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.TYPE] = ["Credential", "NationalID"];
 
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
+            
         });
-        it("test type null", () => {
+        it("test when type is null", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.TYPE] = null;
 
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
-            expect(result.verificationStatus).toBe(false);
+            expect(result).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
+            
         });
 
     })
 
     describe("Name", () => {
-        it("test name valid", () => {
+        it("test when name is valid", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.NAME] = "Tester";
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
-        it("test name object valid", () => {
+        it("test when name is array of language object and valid", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.NAME] = [{"language": "en", "value": "Tester"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
-        it("test name object invalid", () => {
+        it("test when name is array of language object and invalid", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.NAME] = [{"value": "Tester Objet"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(Errors.ERROR_NAME)
+            expect(result).toBe(Errors.ERROR_NAME)
         });
 
-        it("test name unknown type invalid", () => {
+        it("test when name is of unknown type and invalid", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.NAME] = true
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(Errors.ERROR_NAME)
+            expect(result).toBe(Errors.ERROR_NAME)
         });
 
     })
 
     describe("Description", () => {
-        it("test description valid", () => {
+        it("test when description is of type string and valid", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.DESCRIPTION] = "Tester";
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
-        it("test description object valid", () => {
+        it("test when description is of type language object and valid", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.DESCRIPTION] = [{"language": "en", "value": "Tester"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
-        it("test description object invalid", () => {
+        it("test when description is of type language object and invalid", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.DESCRIPTION] = [{"value": "Tester Object"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(Errors.ERROR_DESCRIPTION)
+            expect(result).toBe(Errors.ERROR_DESCRIPTION)
         });
 
     })
 
     describe("CredentialStatus", () => {
 
-        it("test credentialStatus valid v1", () => {
+        it("test when credentialStatus is valid v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_STATUS] = {"id": "https://test.com", "type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            
+            expect(result).toBe("")
         });
-        it("test credentialStatus missing Type v1", () => {
+        it("test when credentialStatus_type is missing for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_STATUS] = {"id": "https://test.com"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_STATUS}.${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_STATUS}.${Fields.TYPE}`)
         });
 
-        it("test credentialStatus missing ID v1", () => {
+        it("test when credentialStatus_ID is missing for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_STATUS] = {"type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_STATUS}.${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_STATUS}.${Fields.ID}`)
         });
 
 
-        it("test credentialStatus invalid Id uri v1", () => {
+        it("test when credentialStatus_ID is invalid uri", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_STATUS] = {"id": "test.com", "type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_STATUS}.${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_STATUS}.${Fields.ID}`)
         });
 
     })
 
     describe("Evidence", () => {
 
-        it("test evidence valid v1", () => {
+        it("test when evidence is valid for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.EVIDENCE] = [{"id": "https://test.com", "type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
 
-        it("test evidence missing Type v1", () => {
+        it("test when evidence_type for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.EVIDENCE] = [{"id": "https://test.com"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.EVIDENCE}.${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.EVIDENCE}.${Fields.TYPE}`)
         });
 
-        it("test evidence invalid Id uri v1", () => {
+        it("test when evidence_id is invalid uri", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.EVIDENCE] = [{"id": "test.com", "type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.EVIDENCE}.${Fields.ID}`)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.EVIDENCE}.${Fields.ID}`)
         });
 
     })
 
     describe("TermsOfUse", () => {
 
-        it("test termsOfUse valid v1", () => {
+        it("test when termsOfUse is valid for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.TERMS_OF_USE] = [{"id": "https://test.com", "type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
 
-        it("test termsOfUse missing Type v1", () => {
+        it("test when termsOfUse_type is missing for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.TERMS_OF_USE] = [{"id": "https://test.com"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TERMS_OF_USE}.${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TERMS_OF_USE}.${Fields.TYPE}`)
         });
 
-        it("test termsOfUse valid v2", () => {
+        it("test when termsOfUse is valid for v2", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.TERMS_OF_USE] = {"id": "https://test.com", "type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            
+            expect(result).toBe("")
         });
 
-        it("test termsOfUse missing Type v2", () => {
+        it("test when termsOfUse_type is missing for v2", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.TERMS_OF_USE] = {"id": "https://test.com"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TERMS_OF_USE}.${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TERMS_OF_USE}.${Fields.TYPE}`)
         });
 
-        it("test termsOfUse invalid Id uri v1", () => {
+        it("test when termsOfUse_id is invalid uri for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.TERMS_OF_USE] = [{"id": "test.com", "type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.TERMS_OF_USE}.${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.TERMS_OF_USE}.${Fields.ID}`)
         });
 
     });
 
     describe("RefreshService", () => {
 
-        it("test refreshService valid v1", () => {
+        it("test when refreshService is valid for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.REFRESH_SERVICE] = {"id": "https://test.com", "type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
 
-        it("test refreshService missing ID v1", () => {
+        it("test when refreshService_id is missing", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.REFRESH_SERVICE] = {"type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.REFRESH_SERVICE}.${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.REFRESH_SERVICE}.${Fields.ID}`)
         });
 
-        it("test refreshService missing Type v1", () => {
+        it("test when refreshService_type is missing", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.REFRESH_SERVICE] = {"id": "https://test.com"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.REFRESH_SERVICE}.${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.REFRESH_SERVICE}.${Fields.TYPE}`)
         });
 
-        it("test refreshService invalid Id uri v1", () => {
+        it("test when refreshService_id is invalid uri for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.REFRESH_SERVICE] = [{"id": "test.com", "type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.REFRESH_SERVICE}.${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.REFRESH_SERVICE}.${Fields.ID}`)
         });
 
     });
 
     describe("CredentialSchema", () => {
 
-        it("test credentialSchema valid v1", () => {
+        it("test when credentialSchema is valid for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SCHEMA] = {"id": "https://test.com", "type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(true);
-            expect(result.verificationErrorMessage).toBe("")
+            expect(result).toBe("")
         });
 
-        it("test credentialSchema missing Type v1", () => {
+        it("test when credentialSchema_type is missing for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SCHEMA] = {"id": "https://test.com"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.TYPE}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.TYPE}`)
         });
 
-        it("test credentialSchema missing ID v1", () => {
+        it("test when credentialSchema_id is missing for v1", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SCHEMA] = {"type": "Test Type"}
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
         });
 
-        it("test credentialSchema valid v2", () => {
+        it("test when credentialSchema is valid for v2", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.CREDENTIAL_SCHEMA] = [{"id": "https://test.com", "type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationErrorMessage).toBe("")
-            expect(result.verificationStatus).toBe(true);
+            expect(result).toBe("")
+            
 
         });
 
-        it("test credentialSchema missing Type v2", () => {
+        it("test when credentialSchema_type is missing for v2", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.CREDENTIAL_SCHEMA] = [{"id": "https://test.com"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.TYPE}`)
+            
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.TYPE}`)
         });
 
-        it("test credentialSchema missing ID v2", () => {
+        it("test when credentialSchema_id is missing for v2", () => {
             const testVc = { ...sampleVcDataModel2 };
             testVc[Fields.CREDENTIAL_SCHEMA] = [{"type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
+            
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
         });
 
-        it("test credentialSchema invalid Id uri v1", () => {
+        it("test when credentialSchema_id is invalid uri for v2", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SCHEMA] = [{"id": "test.com", "type": "Test Type"}]
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
         });
 
-        it("test credentialSchema unknown datatype for ID", () => {
+        it("test when credentialSchema is of unknown datatype", () => {
             const testVc = { ...sampleVcDataModel1 };
             testVc[Fields.CREDENTIAL_SCHEMA] = true
 
             const result = validate(testVc)
-            expect(result.verificationStatus).toBe(false);
-            expect(result.verificationErrorMessage).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.CREDENTIAL_SCHEMA}`)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.CREDENTIAL_SCHEMA}`)
         });
 
     });

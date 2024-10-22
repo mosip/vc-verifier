@@ -5,11 +5,8 @@ import { getJwsSigningInput } from './utils/JwsSigningInput.js';
 import { URDNA2015Canonicalizer } from './utils/URDNA2015Canonicalizer.js';
 import axios from 'axios';
 import {validate} from "./validator/LdpValidator.js";
-import {
-    verificationFailure,
-    verificationSuccess
-} from "./validator/ValidationHelper.js";
 import {Errors} from "./constant/ValidatorConstants.js";
+import {isNotNullOrEmpty} from "./validator/Utils.js";
 
 
 const getPublicKeyFromVerificationMethod = async (url) => {
@@ -49,10 +46,10 @@ const verifyCredentialSignature = (jwsHeaderAlgoName, publicKey, actualData, sig
 
 export const verifyCredentials = async (credential) => {
     try {
-        const validationResult = validate(credential)
+        const validationErrorMessage = validate(credential)
 
-        if(!validationResult.verificationStatus){
-            verificationFailure(validationResult.verificationErrorMessage)
+        if(isNotNullOrEmpty(validationErrorMessage) && (validationErrorMessage !== Errors.ERROR_VC_EXPIRED)){
+            verificationFailure(validationErrorMessage)
         }
         const { signature, header } = jws.decode(credential.proof.jws);
         const decodedSignature = Buffer.from(signature, 'base64');
@@ -62,11 +59,20 @@ export const verifyCredentials = async (credential) => {
         const verificationResult = verifyCredentialSignature(header.alg, publicKeyObject, inputData, decodedSignature);
         if(!verificationResult) {
             return verificationFailure(`${Errors.SIGNATURE_VERIFICATION_FAILED}`)
-        } else {
-            return verificationSuccess(validationResult.verificationErrorMessage)
         }
+        return verificationSuccess(validationErrorMessage)
 
     } catch (error) {
-        throw error;
+        return verificationFailure(`${Errors.EXCEPTION_DURING_VERIFICATION}${error.message}`)
     }
 }
+
+const verificationSuccess = (message) => ({
+    verificationStatus: true,
+    verificationErrorMessage: message ? message: ""
+});
+
+const verificationFailure = (error) => ({
+    verificationStatus: false,
+    verificationErrorMessage: error
+});

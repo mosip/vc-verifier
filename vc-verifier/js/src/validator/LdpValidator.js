@@ -2,8 +2,15 @@ import {Errors, Fields} from "../constant/ValidatorConstants.js";
 import {
     DataModel,
     getContextVersion,
-    validateCredentialSubject, validateFieldsWithID, validateFieldsWithType, validateID, validateIssuer,
-    validateMandatoryFields, validateNameAndDescription, validateProof, validateType, verificationFailure, verificationSuccess
+    validateCredentialSubject,
+    validateFieldsWithID,
+    validateFieldsWithType,
+    validateID,
+    validateIssuer,
+    validateMandatoryFields,
+    validateNameAndDescription,
+    validateProof,
+    validateType
 } from "./ValidationHelper.js";
 import {ValidationError} from "./ValidationError.js";
 import {isVCExpired, validateV1SpecificDateFields, validateV2SpecificDateFields} from "./DateUtils.js";
@@ -25,30 +32,25 @@ export const validate = (credential) => {
             case DataModel.DATA_MODEL_1_1 : {
                 v1SpecificFieldsValidation(credential)
                 commonValidations(credential)
-                const expirationMessage = (credential.hasOwnProperty(Fields.EXPIRATION_DATE) && isVCExpired(credential[Fields.EXPIRATION_DATE]))
+                return (credential.hasOwnProperty(Fields.EXPIRATION_DATE) && isVCExpired(credential[Fields.EXPIRATION_DATE]))
                     ? Errors.ERROR_VC_EXPIRED
-                    : "";
-                return verificationSuccess(expirationMessage)
+                    : ""
             }
             case DataModel.DATA_MODEL_2_0: {
                 v2SpecificFieldsValidation(credential)
                 commonValidations(credential)
-                const expirationMessage = (credential.hasOwnProperty(Fields.VALID_UNTIL) && isVCExpired(credential[Fields.VALID_UNTIL]))
+                return (credential.hasOwnProperty(Fields.VALID_UNTIL) && isVCExpired(credential[Fields.VALID_UNTIL]))
                     ? Errors.ERROR_VC_EXPIRED
                     : "";
-                return verificationSuccess(expirationMessage)
             }
         }
-
     } catch (error){
         if(error instanceof ValidationError){
-            return verificationFailure(`${error.message}`)
+             return `${error.message}`
         } else {
-            return verificationFailure(`${Errors.EXCEPTION_DURING_VALIDATION}${error.message}`)
+            return `${Errors.EXCEPTION_DURING_VALIDATION}${error.message}`
         }
-
     }
-
 }
 
 const v1SpecificFieldsValidation = (credential) => {
@@ -109,10 +111,4 @@ const commonValidations = (credential) => {
 
     validateCredentialSubject(credential)
 
-
 }
-
-
-
-
-

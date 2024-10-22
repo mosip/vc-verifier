@@ -16,7 +16,7 @@ export const validateV1SpecificDateFields = (credential) => {
         }
     }
 
-    const issuanceDate = new Date(credential[Fields.ISSUANCE_DATE])
+    const issuanceDate = credential[Fields.ISSUANCE_DATE]
     if(!isDatePassedCurrentDate(issuanceDate)){
         throw new ValidationError(`${Errors.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE}`)
     }
@@ -38,7 +38,7 @@ export const validateV2SpecificDateFields = (credential) => {
         }
     }
 
-    const validFrom = new Date(credential[Fields.VALID_FROM])
+    const validFrom = credential[Fields.VALID_FROM]
     if(!isDatePassedCurrentDate(validFrom)){
         throw new ValidationError(`${Errors.ERROR_CURRENT_DATE_BEFORE_VALID_FROM}`)
     }
@@ -55,16 +55,17 @@ export const isValidDate = (dateValue) => {
     return dateFormatRegex.test(dateValue)
 }
 
-export const  isDatePassedCurrentDate = (inputDateString) => {
+export const isDatePassedCurrentDate = (inputDateString) => {
     try {
         const inputDate = new Date(inputDateString);
 
-        if (isNaN(inputDate)) {
+        if (isNaN(inputDate.getTime())) {
             return false;
         }
 
         const currentDate = new Date();
-        return inputDate < currentDate;
+
+        return inputDate.getTime() < currentDate.getTime();
     } catch (e) {
         return false;
     }

@@ -101,7 +101,10 @@ describe('verifyCredentials', () => {
     it('should throw an error if verification fails', async () => {
         const mockError = new Error(`${Errors.SIGNATURE_VERIFICATION_FAILED}`);
         jws.decode.mockImplementation(() => { throw mockError; });
-        await expect(verifyCredentials(mockCredential)).rejects.toThrow(mockError);
+        const result = (await verifyCredentials(mockCredential));
+
+        expect(result.verificationStatus).toBe(false)
+        expect(result.verificationErrorMessage).toMatch(`${Errors.EXCEPTION_DURING_VERIFICATION}`)
     });
 
 });

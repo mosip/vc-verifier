@@ -11,7 +11,7 @@ export const DataModel = {
 export const getContextVersion = (credential) => {
     if (credential.hasOwnProperty(Fields.CONTEXT)) {
         const contextArray = credential[Fields.CONTEXT];
-        const contextUrl = contextArray[0]; // Get the first element of the context array
+        const contextUrl = contextArray[0];
 
         switch (contextUrl) {
             case ContextUrls.CREDENTIALS_CONTEXT_V1_URL:
@@ -171,17 +171,6 @@ const validateSingleTypeObject = (fieldName, fieldValueObject) => {
     }
 };
 
-
-
-export const verificationSuccess = (message) => ({
-    verificationStatus: true,
-    verificationErrorMessage: message ? message: ""
-});
-
-export const verificationFailure = (error) => ({
-    verificationStatus: false,
-    verificationErrorMessage: error
-});
 
 const ALGORITHMS_SUPPORTED = ["PS256", "RS256"]
 const PROOF_TYPES_SUPPORTED = ["RsaSignature2018"]

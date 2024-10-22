@@ -42,6 +42,7 @@ export const Errors = {
      ERROR_INVALID_FIELD : `${VALIDATION_ERROR}Invalid Field: `,
      ERROR_VC_EXPIRED : `${VALIDATION_ERROR}VC is expired`,
      EXCEPTION_DURING_VALIDATION : `Unknown Exception during Validation: `,
+     EXCEPTION_DURING_VERIFICATION : `Unknown Exception during Verification: `,
      ERROR_ALGORITHM_NOT_SUPPORTED : `${VALIDATION_ERROR}Algorithm used in the proof is not matching with supported algorithms`,
      ERROR_PROOF_TYPE_NOT_SUPPORTED : `${VALIDATION_ERROR}Proof Type is not matching with supported types`,
 
