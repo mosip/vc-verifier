@@ -61,6 +61,7 @@ object CredentialValidatorConstants {
 
     val PROOF_TYPES_SUPPORTED = listOf(
         "RsaSignature2018",
-        "Ed25519Signature2018"
+        "Ed25519Signature2018",
+        "Ed25519Signature2020"
     )
 }
