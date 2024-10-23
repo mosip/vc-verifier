@@ -1,13 +1,11 @@
 package io.mosip.vercred.vcverifier.utils
 
 import android.util.Log
-import io.mockk.InternalPlatformDsl.toArray
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkStatic
 import org.json.JSONArray
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -97,16 +95,6 @@ class UtilsTest {
     fun `invalid date`() {
         val result = dateUtils.isDatePassedCurrentDate("12345")
         assertFalse(result)
-    }
-
-    @Test
-    fun `test if date1 is greater than date2`() {
-        val date1 = "2026-10-23T07:01:17Z"
-        val date2 = "2024-10-23T07:01:17Z"
-
-        val isDate1GreaterThanDate2 = dateUtils.isDate1GreaterThanDate2(date1, date2)
-
-        assertTrue(isDate1GreaterThanDate2)
     }
 
     @Test

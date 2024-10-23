@@ -3,11 +3,7 @@ package io.mosip.vercred.vcverifier.utils
 import co.nstant.`in`.cbor.CborDecoder
 import co.nstant.`in`.cbor.CborEncoder
 import co.nstant.`in`.cbor.CborException
-import co.nstant.`in`.cbor.model.Array
 import co.nstant.`in`.cbor.model.DataItem
-import co.nstant.`in`.cbor.model.MajorType
-import co.nstant.`in`.cbor.model.Map
-import co.nstant.`in`.cbor.model.UnicodeString
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 

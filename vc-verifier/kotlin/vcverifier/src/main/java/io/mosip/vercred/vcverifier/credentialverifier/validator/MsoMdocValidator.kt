@@ -2,7 +2,6 @@ package io.mosip.vercred.vcverifier.credentialverifier.validator
 
 import android.annotation.SuppressLint
 import android.util.Log
-import co.nstant.`in`.cbor.model.Array
 import co.nstant.`in`.cbor.model.DataItem
 import co.nstant.`in`.cbor.model.MajorType
 import co.nstant.`in`.cbor.model.Map
@@ -37,10 +36,12 @@ class MsoMdocValidator {
                 DateUtils.isDatePassedCurrentDate(validFrom.toString())
             val isCurrentTimeLessThanValidUntil =
                 !DateUtils.isDatePassedCurrentDate(validUntil.toString())
-            val isValidUntilGreaterThanValidFrom = DateUtils.isDate1GreaterThanDate2(
-                validUntil.toString(),
-                validFrom.toString()
-            )
+            val isValidUntilGreaterThanValidFrom: Boolean =
+                DateUtils.parseDate(validUntil.toString())?.after(
+                    DateUtils.parseDate(
+                        validFrom.toString()
+                    ) ?: return false
+                ) ?: false
             if (!(isCurrentTimeLessThanValidUntil && isCurrentTimeGreaterThanValidFrom && isValidUntilGreaterThanValidFrom)) {
                 Log.e(
                     tag,

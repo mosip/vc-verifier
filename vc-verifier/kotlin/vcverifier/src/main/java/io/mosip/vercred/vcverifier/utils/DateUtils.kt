@@ -42,29 +42,14 @@ object DateUtils {
             }
 
             val currentDate = Calendar.getInstance(TimeZone.getTimeZone(UTC)).time
-            inputDate!!.before(currentDate)
+            inputDate.before(currentDate)
         } catch (e: Exception) {
             Log.e("VC-VERIFIER", "Error while comparing dates ${e.message}")
             false
         }
     }
 
-    fun isDate1GreaterThanDate2(date1: String, date2: String): Boolean {
-        return try {
-            val inputDate1: Date? = parseDate(date1)
-            val inputDate2: Date? = parseDate(date2)
-
-            if (inputDate1 == null || inputDate2 == null) {
-                throw RuntimeException("Given date is not available in supported date formats")
-            }
-            inputDate2.before(inputDate1)
-        } catch (e: Exception) {
-            Log.e("VC-VERIFIER", "Error while comparing dates ${e.message}")
-            false
-        }
-    }
-
-    private fun parseDate(date: String): Date? {
+    fun parseDate(date: String): Date? {
         dateFormats.forEach {
             try {
                 val format = SimpleDateFormat(it, Locale.getDefault()).apply {
