@@ -1,18 +1,20 @@
 package io.mosip.vercred.vcverifier.utils
 
-import android.os.Build
 import android.util.Log
+import io.mockk.InternalPlatformDsl.toArray
 import io.mockk.clearAllMocks
 import io.mockk.every
-import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import org.json.JSONArray
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
 
 
 class UtilsTest {
@@ -105,5 +107,51 @@ class UtilsTest {
         val isDate1GreaterThanDate2 = dateUtils.isDate1GreaterThanDate2(date1, date2)
 
         assertTrue(isDate1GreaterThanDate2)
+    }
+
+    @Test
+    fun `test calculation of message digest`() {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        byteArrayOutputStream.write("hello".toByteArray())
+
+
+        val digest: ByteArray = Util().calculateDigest("SHA-256", byteArrayOutputStream)
+
+        assertArrayEquals(
+            byteArrayOf(
+                44,
+                -14,
+                77,
+                -70,
+                95,
+                -80,
+                -93,
+                14,
+                38,
+                -24,
+                59,
+                42,
+                -59,
+                -71,
+                -30,
+                -98,
+                27,
+                22,
+                30,
+                92,
+                31,
+                -89,
+                66,
+                94,
+                115,
+                4,
+                51,
+                98,
+                -109,
+                -117,
+                -104,
+                36
+            ), (digest)
+        )
     }
 }

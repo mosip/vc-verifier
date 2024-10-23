@@ -1,7 +1,5 @@
 package io.mosip.vercred.vcverifier.utils
 
-import android.annotation.SuppressLint
-import android.os.Build
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
@@ -10,7 +8,6 @@ import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.security.MessageDigest
-import java.util.Base64
 
 
 class Util {
@@ -47,22 +44,6 @@ class Util {
             }
         }
         return null
-    }
-
-    @SuppressLint("NewApi")
-    fun decodeFromBase64UrlFormatEncoded(content: String): ByteArray {
-        return if (BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O) {
-            Base64.getUrlDecoder().decode(content.toByteArray())
-        } else {
-            var base64: String = content.replace('-', '+').replace('_', '/')
-            when (base64.length % 4) {
-                2 -> base64 += "=="
-                3 -> base64 += "="
-                else -> {}
-            }
-
-            return android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
-        }
     }
 
     fun calculateDigest(
