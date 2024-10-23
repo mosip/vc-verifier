@@ -11,7 +11,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
 import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
 import io.mosip.vercred.vcverifier.credentialverifier.validator.MsoMdocValidator
 import io.mosip.vercred.vcverifier.credentialverifier.verifier.MsoMdocVerifier
-import io.mosip.vercred.vcverifier.utils.CBORConverter
 import io.mosip.vercred.vcverifier.utils.Encoder
 import java.io.ByteArrayInputStream
 
