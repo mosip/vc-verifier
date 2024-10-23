@@ -28,5 +28,6 @@ object CredentialVerifierConstants {
     const val EXCEPTION_DURING_VERIFICATION = "Exception during Verification: "
     const val VERIFICATION_FAILED = "Verification Failed"
 
+    // This is used to turn public key bytes into a buffer in DER format
     const val DER_PUBLIC_KEY_PREFIX = "302a300506032b6570032100"
 }
