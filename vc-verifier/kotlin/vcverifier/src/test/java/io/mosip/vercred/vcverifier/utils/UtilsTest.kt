@@ -1,43 +1,64 @@
 package io.mosip.vercred.vcverifier.utils
 
+import android.os.Build
+import android.util.Log
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import org.json.JSONArray
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 
 class UtilsTest {
+    @BeforeEach
+    fun setUp() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any()) } returns 0
+        every { Log.e(any(), any(), any()) } returns 0
+    }
+
+    @AfterEach
+    fun after() {
+        clearAllMocks()
+    }
 
     private val utils = Util()
-    private val dateUtils = DateUtils()
+    private val dateUtils = DateUtils
 
     @Test
     fun `test validate date invalid`() {
         val result = dateUtils.isValidDate("123456789")
-        assertEquals(false, result)
+        assertFalse(result)
     }
 
     @Test
     fun `test validate date valid`() {
         val result = dateUtils.isValidDate("2024-09-02T17:36:13.644Z")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
     fun `test validate uri invalid`() {
         val result = utils.isValidUri("invalid_uri")
-        assertEquals(false, result)
+        assertFalse(result)
     }
 
     @Test
     fun `test validate uri valid`() {
         val result = utils.isValidUri("http://www.google.com")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
     fun `test validate uri valid did`() {
         val result = utils.isValidUri("did:jwk:eysdsdsd")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
@@ -59,20 +80,30 @@ class UtilsTest {
     }
 
     @Test
-    fun `date expired`(){
+    fun `date expired`() {
         val result = dateUtils.isVCExpired("2024-09-02T17:36:13.644Z")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
-    fun `date not expired`(){
+    fun `date not expired`() {
         val result = dateUtils.isDatePassedCurrentDate("2024-11-02T17:36:13.644Z")
-        assertEquals(false, result)
+        assertFalse(result)
     }
 
     @Test
-    fun `invalid date`(){
+    fun `invalid date`() {
         val result = dateUtils.isDatePassedCurrentDate("12345")
-        assertEquals(false, result)
+        assertFalse(result)
+    }
+
+    @Test
+    fun `test if date1 is greater than date2`() {
+        val date1 = "2026-10-23T07:01:17Z"
+        val date2 = "2024-10-23T07:01:17Z"
+
+        val isDate1GreaterThanDate2 = dateUtils.isDate1GreaterThanDate2(date1, date2)
+
+        assertTrue(isDate1GreaterThanDate2)
     }
 }
