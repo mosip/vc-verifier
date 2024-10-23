@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     `maven-publish`
+    alias(libs.plugins.dokka)
     signing
 }
 
@@ -35,6 +36,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.orgJson)
     implementation(libs.ldSignaturesJava) {
         exclude(group = "com.apicatalog", module = "titanium-json-ld")
     }
@@ -46,12 +48,17 @@ dependencies {
     implementation(libs.springWeb)
 
     testImplementation(libs.mockk)
-    testImplementation(libs.junit)
+    testImplementation(libs.junitJupiter)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 tasks.register<Jar>("jarRelease") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn("assembleRelease")
+    dependsOn("dokkaJavadoc")
     from("build/intermediates/javac/release/classes") {
         include("**/*.class")
     }
@@ -65,6 +72,16 @@ tasks.register<Jar>("jarRelease") {
     archiveBaseName.set("${project.name}-release")
     archiveVersion.set("1.1.0-SNAPSHOT")
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
+}
+
+tasks.register<Jar>("javadocJar") {
+    dependsOn("dokkaJavadoc")
+    archiveClassifier.set("javadoc")
+    from(tasks.named("dokkaHtml").get().outputs.files)
+}
+tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(android.sourceSets["main"].java.srcDirs)
 }
 
 apply(from = "publish-artifact.gradle")

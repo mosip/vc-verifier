@@ -1,5 +1,7 @@
 package io.mosip.vercred.vcverifier.credentialverifier
 
-interface CredentialVerifier {
+
+interface VerifiableCredential {
+    fun validate(credential: String): String
     fun verify(credential: String): Boolean
 }
