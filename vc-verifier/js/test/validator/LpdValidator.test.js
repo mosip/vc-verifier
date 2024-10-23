@@ -1,114 +1,9 @@
-package io.mosip.vccred.example
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import io.mosip.vccred.example.ui.theme.VcverifierTheme
-import io.mosip.vercred.vcverifier.CredentialsVerifier
-import io.mosip.vercred.vcverifier.constants.CredentialFormat
-import io.mosip.vercred.vcverifier.data.VerificationResult
+import {validate} from "../../src/validator/LdpValidator.js";
+import {Errors, Fields} from "../../src/constant/ValidatorConstants.js";
+import {DataModel, getContextVersion} from "../../src/validator/ValidationHelper.js";
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            VcverifierTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    VerifyVC(
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
-    }
-}
-@Composable
-fun VerifyVC(modifier: Modifier = Modifier) {
-    val verificationResult = remember { mutableStateOf<VerificationResult?>(null) }
-
-    Column(modifier = Modifier.padding(30.dp)) {
-        Button(
-            onClick = {
-                val thread = Thread{
-                    verificationResult.value = verifyVc()
-                }
-                thread.start()
-            },
-            modifier = Modifier
-                .padding(16.dp)
-                .height(80.dp)
-                .fillMaxWidth()
-        ) {
-
-
-            Text(
-                text = "Verify VC",
-                modifier = modifier
-            )
-        }
-        Row {
-
-            Image(
-                painter = painterResource(
-                    id = if (verificationResult.value?.verificationStatus == true) {
-                        R.drawable.success
-                    } else if(verificationResult.value?.verificationStatus == false){
-                        R.drawable.error
-                    } else {
-                        R.drawable.pending
-                    }
-                ),
-                contentDescription = null,
-                modifier = Modifier.size(80.dp)
-            )
-            Text(
-                text = verificationResult.value?.verificationMessage ?: "Status: Waiting...",
-                modifier = modifier.fillMaxWidth(),
-                maxLines = 5,
-                overflow = TextOverflow.Ellipsis
-            )
-
-        }
-    }
-}
-
-
-fun verifyVc(): VerificationResult{
-    val credentialsVerifier = CredentialsVerifier()
-    return credentialsVerifier.verify(mosipVc, CredentialFormat.LDP_VC)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    VcverifierTheme {
-        VerifyVC()
-    }
-}
-
-val mosipVc = """
-{
+export let sampleVcDataModel1 = {
     "@context": [
         "https://www.w3.org/2018/credentials/v1",
         "https://api.qa-inji.mosip.net/.well-known/mosip-ida-context.json",
@@ -154,14 +49,798 @@ val mosipVc = """
     "proof": {
         "created": "2024-07-22T07:49:22Z",
         "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJRVmRMTW9uWmNqM0doTUxjbmhuZEdmT0J2RVdHZHg0LU5qazRKRGNxb19NIiwiYWxnIjoiUFMyNTYifQ..lhM2BzYapSIWNI8oHhYKx4na7lOEO-TSzJOndP0PowTGbT1op2AOWdxnozidPckdBIFAPaIAbS4pmVj-jW-QeqiWqERbcHSNePLc-5ykz0VA-q6rFNJs-PJVldZlQMl1Ww_nNpRbTwTirGum3f0tp7MhXcqV_66tQQrFr81odP-rAntPdg-BUpsZ0tXbWUxczmmWshRIw5a67ZrslxVXx0umtE_rx3lVIStSXhUXdbwGOkZPNwAj4AdFTlSbYlRrrazWg1sAqzfT1EE8Kdj7D16TlEyKy011srtMqu2n-sRJBg69mZlcsqlDF6_sIspILMZnKueQvxZqeBOMRmQtpw",
+
         "proofPurpose": "assertionMethod",
         "type": "RsaSignature2018",
         "verificationMethod": "https://api.qa-inji.mosip.net/.well-known/ida-public-key.json"
     },
-    "type": [
-        "VerifiableCredential",
-        "MOSIPVerifiableCredential"
-    ]
+    "type": ["VerifiableCredential", "MOSIPVerifiableCredential"]
 }
 
-""".trimIndent()
+export let sampleVcDataModel2 = {
+    "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://apisip-ida-context.json",
+    {
+        "sec": "https://w3id.org/security#"
+    }
+],
+    "credentialSubject": {
+    "VID": "65327817407",
+        "face": "data:image/jpeg;base64,/9",
+        "gender": [
+        {
+            "language": "eng",
+            "value": "MLE"
+        }
+    ],
+        "phone": "+++7765837077",
+        "city": [
+        {
+            "language": "eng",
+            "value": "TEST_CITYeng"
+        }
+    ],
+        "fullName": [
+        {
+            "language": "eng",
+            "value": "TEST_FULLNAMEeng"
+        }
+    ],
+        "addressLine1": [
+        {
+            "language": "eng",
+            "value": "TEST_ADDRESSLINE1eng"
+        }
+    ],
+        "dateOfBirth": "1992/04/15",
+        "id": "did:jwk:eyJrdHkiOiJSU0EiLCJlIjoiQVFBQiIsInVzZSI6InNpZyIsImFsZyI6IlJTMjU2IiwibiI6Im5LLTkxWXRYVmxrWDJTWnFxUHBMVm44aU43aTNXbXk1SDlXMnViTHBsR1d4dWlKa0c0RW1hQklDaWlvekZuWlBrV3BYcmhleGJiMlBKVFBJQ184X2NKcThWU2g0bGtFLTY1QnpwN1dxemMtOVUxRkROU2xLZ2p3cUk0MDNGQVN2S3B0Y0xhcHZDczIzMFYybGN3S0JDTEZ5TF93RTgzcjBlVUZvd1BTR25kMkhNS0k3ZENEMmlmT0M2blphU3RYMjhJYXl6WFFDa2dxOUpIcl9ISlJaQUduZEVhMzlRVDRYekNITkpuOW9WeDQ1c2xmYnZXRVRXZXJlTVdRTTA2Wmx6amhiQWY4QTFjcU1DRHk1ekR0WUx5WmE2MWdqMi1jUkg5UWczcTEzbWhyV3RWLUFwZ0hhRV9iUFVCS2ZpLXlpelU1SDEwczRLNVpDRHdDVEp1eFlGUSJ9",
+        "email": "mosipuser123@mailinator.com"
+},
+    "id": "https://ida.test.net/credentials/b5d20f0a-a9b8-486a-9d60",
+    "issuer": "https://apn/ida-controller.json",
+    "validFrom": "2024-09-02T17:36:13.644Z",
+    "proof": {
+    "created": "2024-09-02T17:36:13Z",
+        "jws": "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJLYlJXRU9YQ0pVRENWVnVET2ZsSkRQWnAtXzNqMEZvajd1RVZHd19xOEdzIiwiYWxnIjoiUFMyNTYifQ..NEcXf5IuDf0eJcBbtIBsXC2bZeOzNBduWG7Vz9A3ePcvh-SuwggPcCPQLrdgl79ta5bYsKsJSKVSS0Xg-GvlY71I2OzU778Bkq52LIDtSXY3DrxQEvM-BqjKLBB-ScA850pG2gV-k_8nkCPmAdvda_jj2Vlkss7VPB5LI6skWTgM4MOyvlMzZCzqmifqTzHLVgefzfixld7E38X7wxzEZfn2lY_fRfWqcL8pKL_kijTHwdTWLb9hMQtP9vlk2iarbT8TmZqutZD8etd1PBFm7V_izcY9cO75A4N3fVrr6NC50cDHDshPZFS48uTBDK-SSePxibpmq1afaS_VX6kX7A",
+        "proofPurpose": "assertionMethod",
+        "type": "RsaSignature2018",
+        "verificationMethod": "https://apy.json"
+},
+    "type": [
+    "VerifiableCredential",
+    "MOSIPVerifiableCredential"
+]
+}
+
+
+describe("ldpvalidator", () => {
+
+
+
+    describe('Credential', () => {
+        it("test when valid credential is present", () => {
+
+            const result = validate(sampleVcDataModel1)
+            expect(result).toBe("");
+
+        });
+
+        it("test when credential is empty json", () => {
+
+            const result = validate({})
+            expect(result).toBe(Errors.ERROR_EMPTY_VC_JSON)
+
+        });
+
+        it("test when credential is empty string", () => {
+
+            const result = validate("")
+            expect(result).toBe(Errors.ERROR_EMPTY_VC_JSON)
+            
+        });
+
+        it("test when credential is null", () => {
+
+            const result = validate(null)
+
+            expect(result).toBe(`${Errors.EXCEPTION_DURING_VALIDATION}Cannot convert undefined or null to object`)
+            
+        });
+    })
+
+    describe("Context", () => {
+
+        it("test when contextUrl returns Data Model 1.1", () => {
+
+            const result = getContextVersion(sampleVcDataModel1)
+            expect(result).toBe(DataModel.DATA_MODEL_1_1);
+
+        });
+
+        it("test when contextUrl returns Data Model 2.0", () => {
+
+            const result = getContextVersion(sampleVcDataModel2)
+            expect(result).toBe(DataModel.DATA_MODEL_2_0);
+
+        });
+
+        it("test when context url is not matching with both the data models", () => {
+
+            const tempVc = { ...sampleVcDataModel1}
+            tempVc["@context"] = "http://www.google.com/"
+
+            const result = validate(tempVc)
+            expect(result).toBe(Errors.ERROR_CONTEXT_FIRST_LINE);
+
+        });
+
+
+        it("test when @context field is missing", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            delete testVc[Fields.CONTEXT];
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CONTEXT}`);
+
+        });
+    })
+
+    describe("Issuer", () => {
+        it("test when Issuer field is missing", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            delete testVc[Fields.ISSUER];
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.ISSUER}`)
+        });
+
+        it("test when Issuer.id field is null", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUER] = null;
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
+        });
+
+        it("test when Issuer.id is of type string and invalid URI", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUER] = "invalid-uri";
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
+
+        });
+
+        it("test when Issuer.id is of type object and invalid URI", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUER] = { "id" : "invalid-uri"};
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ISSUER}.${Fields.ID}`)
+        });
+
+        it("test when Issuer.id is of type string and valid", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUER] = "https://www.test.com/";
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+
+        });
+
+        it("test when Issuer.id is of type object and valid", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUER] ={ "id" : "https://www.test.com/"};
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+
+        });
+    })
+
+    describe("CredentialSubject", () => {
+
+        it("test when CredentialSubject field is missing", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            delete testVc[Fields.CREDENTIAL_SUBJECT];
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SUBJECT}`)
+
+        });
+
+        it("test when CredentialSubject field is of type array and valid", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SUBJECT] = [{"id": "https://test.com"}]
+
+            const result = validate(testVc)
+            
+            expect(result).toBe("")
+        });
+
+        it("test when CredentialSubject field is of type array and id is invalid uri", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SUBJECT] = [{"id": "invalid-uri"}]
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SUBJECT}.${Fields.ID}`)
+        });
+
+        it("test when CredentialSubject field is of type object and valid", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SUBJECT] = {"id": "https://test.com"}
+
+            const result = validate(testVc)
+            
+            expect(result).toBe("")
+        });
+
+        it("test when CredentialSubject field is of type object and id is invalid uri", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SUBJECT] = {"id": "invalid-uri"}
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SUBJECT}.${Fields.ID}`)
+        });
+
+        it("test when CredentialSubject is of type string", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SUBJECT] = ""
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT}`)
+        });
+
+    })
+
+    describe("Proof", () => {
+        it("test when Proof field is missing", () => {
+
+            const testVc = { ...sampleVcDataModel1 };
+            delete testVc[Fields.PROOF];
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.PROOF}`)
+
+        });
+
+        it("test when proof has no type", () => {
+            const testVc = {...sampleVcDataModel1}
+            delete testVc[Fields.PROOF][Fields.TYPE]
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.PROOF}.${Fields.TYPE}`)
+        })
+
+        it("test when proof type is invalid", () => {
+            const testVc = {...sampleVcDataModel1}
+            testVc[Fields.PROOF][Fields.TYPE] = "ASASignature"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_PROOF_TYPE_NOT_SUPPORTED}`)
+        })
+
+        it("test when proof type is valid", () => {
+            const testVc = {...sampleVcDataModel1}
+            testVc[Fields.PROOF][Fields.TYPE] = "RsaSignature2018"
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        })
+
+        it("test when proof is empty", () => {
+            const testVc = {...sampleVcDataModel1}
+            testVc[Fields.PROOF] = ""
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.PROOF}`)
+        })
+
+        it("test when proof is null", () => {
+
+            const testVc = {...sampleVcDataModel1}
+            testVc[Fields.PROOF] = null
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.PROOF}`)
+
+        })
+
+        it("test when proof has no JWS", () => {
+
+            const testVc = {...sampleVcDataModel1}
+            delete testVc[Fields.PROOF][Fields.JWS]
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+
+        })
+
+        it("test when proof has invalid algorithm", () => {
+
+            const testVc = {...sampleVcDataModel1}
+            testVc[Fields.PROOF][Fields.JWS] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_ALGORITHM_NOT_SUPPORTED}`)
+            
+        })
+
+        it("test when proof has valid algorithm", () => {
+
+            const testVc = {...sampleVcDataModel1}
+            testVc[Fields.PROOF][Fields.JWS] = "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJraWQiOiJLYlJXRU9YQ0pVRENWVnVET2ZsSkRQWnAtXzNqMEZvajd1RVZHd19xOEdzIiwiYWxnIjoiUFMyNTYifQ..NEcXf5IuDf0eJcBbtIBsXC2bZeOzNBduWG7Vz9A3ePcvh-SuwggPcCPQLrdgl79ta5bYsKsJSKVSS0Xg-GvlY71I2OzU778Bkq52LIDtSXY3DrxQEvM-BqjKLBB-ScA850pG2gV-k_8nkCPmAdvda_jj2Vlkss7VPB5LI6skWTgM4MOyvlMzZCzqmifqTzHLVgefzfixld7E38X7wxzEZfn2lY_fRfWqcL8pKL_kijTHwdTWLb9hMQtP9vlk2iarbT8TmZqutZD8etd1PBFm7V_izcY9cO75A4N3fVrr6NC50cDHDshPZFS48uTBDK-SSePxibpmq1afaS_VX6kX7A"
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+
+        })
+
+    })
+
+    describe("IssuanceDate", () => {
+
+        it("test when issuanceDate field is missing for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            delete testVc[Fields.ISSUANCE_DATE];
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.ISSUANCE_DATE}`)
+        });
+
+        it("test when issuanceDate field is missing for v2", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            delete testVc[Fields.ISSUANCE_DATE];
+
+            const result = validate(testVc)
+            
+            expect(result).toBe("")
+        });
+
+        it("test when issuanceDate is of invalid format", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUANCE_DATE] = "2022/02/03"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_ISSUANCE_DATE_INVALID}`)
+        });
+
+        it("test when currentDate is before issuanceDate", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUANCE_DATE] = "2076-07-22T07:49:22.219Z"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE}`)
+        });
+
+        it("test when issuanceDate field is unsupported Type", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ISSUANCE_DATE] = 123456
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_ISSUANCE_DATE_INVALID}`)
+
+        });
+
+    })
+
+    describe("ExpirationDate", () => {
+
+        it("test when expirationDate is of invalid format", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.EXPIRATION_DATE] = "2022/02/03"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_EXPIRATION_DATE_INVALID}`)
+        });
+
+        it("test when VC is expired", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.EXPIRATION_DATE] = "2014-07-22T07:49:22.219Z"
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_VC_EXPIRED}`)
+        });
+
+    })
+
+    describe("ValidFrom", () => {
+
+
+        it("test when validFrom is of invalid format", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.VALID_FROM] = "2022/02/03"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_VALID_FROM_INVALID}`)
+        });
+
+        it("test when currentDate comes before validFrom", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.VALID_FROM] = "2076-07-22T07:49:22.219Z"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_CURRENT_DATE_BEFORE_VALID_FROM}`)
+        });
+
+    })
+
+    describe("ValidUntil", () => {
+
+        it("test when validUntil is of invalid format", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.VALID_UNTIL] = "2022/02/03"
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_VALID_UNTIL_INVALID}`)
+        });
+
+        it("test when VC is expired for v2", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.VALID_UNTIL] = "2014-07-22T07:49:22.219Z"
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_VC_EXPIRED}`)
+        });
+
+    })
+
+    describe("Id", () => {
+        it("test when id is valid uri", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ID] = "did:testsss";
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+        it("test when id is invalid uri", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.ID] = "invalid-uri";
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.ID}`)
+        });
+
+    })
+
+    describe("Type", () => {
+        it("test when type is missing", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            delete testVc[Fields.TYPE]
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TYPE}`)
+        });
+        it("test when type is valid", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.TYPE] = ["VerifiableCredential", "NationalID"];
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+            
+        });
+        it("test when type is empty", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.TYPE] = [];
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
+            
+        });
+        it("test when type is invalid", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.TYPE] = ["Credential", "NationalID"];
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
+            
+        });
+        it("test when type is null", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.TYPE] = null;
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_TYPE_VERIFIABLE_CREDENTIAL}`)
+            
+        });
+
+    })
+
+    describe("Name", () => {
+        it("test when name is valid", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.NAME] = "Tester";
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+        it("test when name is array of language object and valid", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.NAME] = [{"language": "en", "value": "Tester"}]
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+        it("test when name is array of language object and invalid", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.NAME] = [{"value": "Tester Objet"}]
+
+            const result = validate(testVc)
+            expect(result).toBe(Errors.ERROR_NAME)
+        });
+
+        it("test when name is of unknown type and invalid", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.NAME] = true
+
+            const result = validate(testVc)
+            expect(result).toBe(Errors.ERROR_NAME)
+        });
+
+    })
+
+    describe("Description", () => {
+        it("test when description is of type string and valid", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.DESCRIPTION] = "Tester";
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+        it("test when description is of type language object and valid", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.DESCRIPTION] = [{"language": "en", "value": "Tester"}]
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+        it("test when description is of type language object and invalid", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.DESCRIPTION] = [{"value": "Tester Object"}]
+
+            const result = validate(testVc)
+            expect(result).toBe(Errors.ERROR_DESCRIPTION)
+        });
+
+    })
+
+    describe("CredentialStatus", () => {
+
+        it("test when credentialStatus is valid v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_STATUS] = {"id": "https://test.com", "type": "Test Type"}
+
+            const result = validate(testVc)
+            
+            expect(result).toBe("")
+        });
+        it("test when credentialStatus_type is missing for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_STATUS] = {"id": "https://test.com"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_STATUS}.${Fields.TYPE}`)
+        });
+
+        it("test when credentialStatus_ID is missing for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_STATUS] = {"type": "Test Type"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_STATUS}.${Fields.ID}`)
+        });
+
+
+        it("test when credentialStatus_ID is invalid uri", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_STATUS] = {"id": "test.com", "type": "Test Type"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_STATUS}.${Fields.ID}`)
+        });
+
+    })
+
+    describe("Evidence", () => {
+
+        it("test when evidence is valid for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.EVIDENCE] = [{"id": "https://test.com", "type": "Test Type"}]
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+
+        it("test when evidence_type for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.EVIDENCE] = [{"id": "https://test.com"}]
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.EVIDENCE}.${Fields.TYPE}`)
+        });
+
+        it("test when evidence_id is invalid uri", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.EVIDENCE] = [{"id": "test.com", "type": "Test Type"}]
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.EVIDENCE}.${Fields.ID}`)
+        });
+
+    })
+
+    describe("TermsOfUse", () => {
+
+        it("test when termsOfUse is valid for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.TERMS_OF_USE] = [{"id": "https://test.com", "type": "Test Type"}]
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+
+        it("test when termsOfUse_type is missing for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.TERMS_OF_USE] = [{"id": "https://test.com"}]
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TERMS_OF_USE}.${Fields.TYPE}`)
+        });
+
+        it("test when termsOfUse is valid for v2", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.TERMS_OF_USE] = {"id": "https://test.com", "type": "Test Type"}
+
+            const result = validate(testVc)
+            
+            expect(result).toBe("")
+        });
+
+        it("test when termsOfUse_type is missing for v2", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.TERMS_OF_USE] = {"id": "https://test.com"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.TERMS_OF_USE}.${Fields.TYPE}`)
+        });
+
+        it("test when termsOfUse_id is invalid uri for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.TERMS_OF_USE] = [{"id": "test.com", "type": "Test Type"}]
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.TERMS_OF_USE}.${Fields.ID}`)
+        });
+
+    });
+
+    describe("RefreshService", () => {
+
+        it("test when refreshService is valid for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.REFRESH_SERVICE] = {"id": "https://test.com", "type": "Test Type"}
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+
+        it("test when refreshService_id is missing", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.REFRESH_SERVICE] = {"type": "Test Type"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.REFRESH_SERVICE}.${Fields.ID}`)
+        });
+
+        it("test when refreshService_type is missing", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.REFRESH_SERVICE] = {"id": "https://test.com"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.REFRESH_SERVICE}.${Fields.TYPE}`)
+        });
+
+        it("test when refreshService_id is invalid uri for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.REFRESH_SERVICE] = [{"id": "test.com", "type": "Test Type"}]
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.REFRESH_SERVICE}.${Fields.ID}`)
+        });
+
+    });
+
+    describe("CredentialSchema", () => {
+
+        it("test when credentialSchema is valid for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = {"id": "https://test.com", "type": "Test Type"}
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+        });
+
+        it("test when credentialSchema_type is missing for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = {"id": "https://test.com"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.TYPE}`)
+        });
+
+        it("test when credentialSchema_id is missing for v1", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = {"type": "Test Type"}
+
+            const result = validate(testVc)
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
+        });
+
+        it("test when credentialSchema is valid for v2", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = [{"id": "https://test.com", "type": "Test Type"}]
+
+            const result = validate(testVc)
+            expect(result).toBe("")
+            
+
+        });
+
+        it("test when credentialSchema_type is missing for v2", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = [{"id": "https://test.com"}]
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.TYPE}`)
+        });
+
+        it("test when credentialSchema_id is missing for v2", () => {
+            const testVc = { ...sampleVcDataModel2 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = [{"type": "Test Type"}]
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_MISSING_REQUIRED_FIELDS}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
+        });
+
+        it("test when credentialSchema_id is invalid uri for v2", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = [{"id": "test.com", "type": "Test Type"}]
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_URI}${Fields.CREDENTIAL_SCHEMA}.${Fields.ID}`)
+        });
+
+        it("test when credentialSchema is of unknown datatype", () => {
+            const testVc = { ...sampleVcDataModel1 };
+            testVc[Fields.CREDENTIAL_SCHEMA] = true
+
+            const result = validate(testVc)
+            
+            expect(result).toBe(`${Errors.ERROR_INVALID_FIELD}${Fields.CREDENTIAL_SCHEMA}`)
+        });
+
+    });
+
+});
+
