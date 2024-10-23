@@ -170,8 +170,7 @@ class MsoMdocVerifier {
                 namespaceData.forEach { issuerSignedItem ->
                     val encodedIssuerSignedItem = ByteArrayOutputStream()
                     CborEncoder(encodedIssuerSignedItem).encode(issuerSignedItem)
-                    //TODO: GET THE DIGEST ALGORITHM FROM MSO
-                    val digestAlgorithm = "SHA-256"
+                    val digestAlgorithm = mso["digestAlgorithm"].toString()
                     val digest =
                         util.calculateDigest(digestAlgorithm, encodedIssuerSignedItem)
                     val decodedIssuerSignedItem =
