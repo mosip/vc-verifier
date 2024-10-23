@@ -10,10 +10,6 @@ import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.security.MessageDigest
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneOffset
-import java.time.format.DateTimeParseException
 import java.util.Base64
 
 
@@ -31,7 +27,7 @@ class Util {
 
         return try {
             val uri = URI(value)
-            (uri.scheme=="did") || (uri.scheme != null && uri.host != null)
+            (uri.scheme == "did") || (uri.scheme != null && uri.host != null)
         } catch (e: Exception) {
             false
         }
@@ -41,10 +37,10 @@ class Util {
         return List(jsonArray.length()) { jsonArray.get(it) }
     }
 
-    fun getContextVersion(vcJsonObject: JSONObject): DATA_MODEL?{
-        if(vcJsonObject.has(CONTEXT)){
+    fun getContextVersion(vcJsonObject: JSONObject): DATA_MODEL? {
+        if (vcJsonObject.has(CONTEXT)) {
             val contextUrl = vcJsonObject.getJSONArray(CONTEXT).get(0)
-            return when(contextUrl){
+            return when (contextUrl) {
                 CREDENTIALS_CONTEXT_V1_URL -> DATA_MODEL.DATA_MODEL_1_1
                 CREDENTIALS_CONTEXT_V2_URL -> DATA_MODEL.DATA_MODEL_2_0
                 else -> DATA_MODEL.UNSUPPORTED
@@ -53,55 +49,25 @@ class Util {
         return null
     }
 
-    val isAndroid: Boolean
-        get() = System.getProperty("java.vm.name")?.contains("Dalvik") == true
-
-
     @SuppressLint("NewApi")
     fun decodeFromBase64UrlFormatEncoded(content: String): ByteArray {
         return if (BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O) {
             Base64.getUrlDecoder().decode(content.toByteArray())
         } else {
-            TODO("VERSION.SDK_INT < O")
-        }
-    }
-
-    @SuppressLint("NewApi")
-    fun decodeFromBase64FormatEncoded(content: String): ByteArray {
-        return if (BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O) {
-            Base64.getDecoder().decode(content.toByteArray())
-        } else {
-            TODO("VERSION.SDK_INT < O")
-        }
-    }
-
-    @SuppressLint("NewApi")
-    fun isTimestamp(text: String?): Boolean {
-        if (BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O) {
-            try {
-                // Try to parse as a timestamp (e.g., "2024-10-03T10:15:30")
-                Instant.parse(text)
-                return true
-            } catch (e: DateTimeParseException) {
-                println(e.message)
-                return false
+            var base64: String = content.replace('-', '+').replace('_', '/')
+            when (base64.length % 4) {
+                2 -> base64 += "=="
+                3 -> base64 += "="
+                else -> {}
             }
-        } else return false
-    }
 
-    @SuppressLint("NewApi")
-    fun convertLocalDateTimeStringToInstant(dateStr: String): Instant {
-        return if (BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O) {
-            val localDate = LocalDate.parse(dateStr)
-            localDate.atStartOfDay(ZoneOffset.UTC).toInstant()
-        } else {
-            TODO("VERSION.SDK_INT < O")
+            return android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
         }
     }
 
-     fun calculateDigest(
-         algorithm: String,
-         data: ByteArrayOutputStream,
+    fun calculateDigest(
+        algorithm: String,
+        data: ByteArrayOutputStream,
     ): ByteArray =
         MessageDigest.getInstance(algorithm).digest(data.toByteArray())
 }

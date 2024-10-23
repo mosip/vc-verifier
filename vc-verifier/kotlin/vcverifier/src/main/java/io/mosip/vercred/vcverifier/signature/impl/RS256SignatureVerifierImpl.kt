@@ -8,7 +8,7 @@ import java.security.PublicKey
 import java.security.Signature
 
 class RS256SignatureVerifierImpl : SignatureVerifier {
-    override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray, provider: BouncyCastleProvider): Boolean {
+    override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray?, provider: BouncyCastleProvider?): Boolean {
         try {
             Signature.getInstance(CredentialVerifierConstants.RS256_ALGORITHM, provider)
                 .apply {

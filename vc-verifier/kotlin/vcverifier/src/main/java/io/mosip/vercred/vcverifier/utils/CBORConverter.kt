@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.credentialverifier
+package io.mosip.vercred.vcverifier.utils
 
 import co.nstant.`in`.cbor.CborDecoder
 import co.nstant.`in`.cbor.model.*

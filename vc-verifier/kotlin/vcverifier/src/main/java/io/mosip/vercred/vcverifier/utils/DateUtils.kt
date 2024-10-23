@@ -42,11 +42,9 @@ object DateUtils {
             }
 
             val currentDate = Calendar.getInstance(TimeZone.getTimeZone(UTC)).time
-            println("inputDate!!.before(currentDate) ${inputDate!!.before(currentDate)} , curr $currentDate")
             inputDate!!.before(currentDate)
         } catch (e: Exception) {
             Log.e("VC-VERIFIER", "Error while comparing dates ${e.message}")
-            println("Error while comparing dates ${e.message}")
             false
         }
     }
@@ -62,7 +60,6 @@ object DateUtils {
             inputDate2.before(inputDate1)
         } catch (e: Exception) {
             Log.e("VC-VERIFIER", "Error while comparing dates ${e.message}")
-            println("Error while comparing dates ${e.message}")
             false
         }
     }
