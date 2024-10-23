@@ -23,6 +23,7 @@ on:
 jobs:
   build-maven-vc-verifier:
     uses: mosip/kattu/.github/workflows/gradle-build.yml@master
+
     with:
       SERVICE_LOCATION: vc-verifier/kotlin/vcverifier
       JAVA_VERSION: 17
