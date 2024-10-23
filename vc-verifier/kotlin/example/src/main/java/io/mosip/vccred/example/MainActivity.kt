@@ -83,7 +83,7 @@ fun VerifyVC(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(80.dp)
             )
             Text(
-                text = verificationResult.value?.verificationErrorMessage ?: "Status: Waiting...",
+                text = verificationResult.value?.verificationMessage ?: "Status: Waiting...",
                 modifier = modifier.fillMaxWidth(),
                 maxLines = 5,
                 overflow = TextOverflow.Ellipsis
