@@ -10,7 +10,7 @@ import java.security.Signature
 class ED25519SignatureVerifierImpl : SignatureVerifier {
 
 
-    override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray, provider: BouncyCastleProvider): Boolean {
+    override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray?, provider: BouncyCastleProvider?): Boolean {
         try {
                 Signature.getInstance(CredentialVerifierConstants.ED25519_ALGORITHM, provider)
                     .apply {

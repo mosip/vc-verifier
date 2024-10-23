@@ -43,6 +43,5 @@ class CredentialsVerifier {
         } catch (e: Exception) {
             VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}")
         }
-
     }
 }

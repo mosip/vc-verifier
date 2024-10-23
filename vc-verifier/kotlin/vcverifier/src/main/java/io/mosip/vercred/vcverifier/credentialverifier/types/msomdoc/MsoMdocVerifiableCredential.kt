@@ -1,0 +1,86 @@
+package io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc
+
+import android.util.Log
+import co.nstant.`in`.cbor.CborDecoder
+import co.nstant.`in`.cbor.model.Array
+import co.nstant.`in`.cbor.model.DataItem
+import co.nstant.`in`.cbor.model.MajorType
+import co.nstant.`in`.cbor.model.Map
+import co.nstant.`in`.cbor.model.UnicodeString
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
+import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
+import io.mosip.vercred.vcverifier.credentialverifier.validator.MsoMdocValidator
+import io.mosip.vercred.vcverifier.credentialverifier.verifier.MsoMdocVerifier
+import io.mosip.vercred.vcverifier.utils.Encoder
+import java.io.ByteArrayInputStream
+
+class MsoMdocVerifiableCredential : VerifiableCredential {
+    private val tag: String = MsoMdocVerifiableCredential::class.java.name
+
+    override fun validate(credential: String): String {
+        try {
+            MsoMdocValidator().validate(credential)
+            return ""
+        } catch (exception: Exception) {
+            return "${CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION}${exception.message}"
+        }
+    }
+
+    override fun verify(credential: String): Boolean {
+        return MsoMdocVerifier().verify(credential)
+    }
+
+    fun parse(credential: String): MsoMdocCredentialData {
+        val decodedData: ByteArray = try {
+            Encoder().decodeFromBase64UrlFormatEncoded(credential)
+        } catch (exception: Exception) {
+            Log.e(
+                tag,
+                "Error occurred while base64Url decoding the credential " + exception.message
+            )
+            throw RuntimeException("Error on decoding base64Url encoded data " + exception.message)
+        }
+
+        val cbors: MutableList<DataItem>
+        try {
+            cbors = CborDecoder(ByteArrayInputStream(decodedData)).decode()
+        } catch (exception: Exception) {
+            Log.e(tag, "Error occurred while CBOR decoding the credential " + exception.message)
+            throw RuntimeException("Error on decoding CBOR encoded data " + exception.message)
+
+        }
+        val issuerSigned: DataItem
+        val documents: Map
+        if ((cbors[0] as Map).keys.toString().contains("documents")) {
+            documents = (cbors[0]["documents"] as Array).dataItems[0] as Map
+            issuerSigned = ((cbors[0] as Map)["documents"][0] as Map)["issuerSigned"]
+        } else {
+            documents = cbors[0] as Map
+            issuerSigned = (documents)["issuerSigned"]
+        }
+
+        val issuerAuth: Array = (issuerSigned["issuerAuth"]) as Array
+        val issuerSignedNamespaces: Map = (issuerSigned["nameSpaces"]) as Map
+        val docType: DataItem? = if (documents.keys.toString().contains("docType")) {
+            documents["docType"]
+        } else {
+            null
+        }
+        return MsoMdocCredentialData(
+            docType,
+            issuerSigned = MsoMdocCredentialData.IssuerSigned(issuerAuth, issuerSignedNamespaces)
+        )
+    }
+}
+
+operator fun DataItem.get(name: String): DataItem {
+    check(this.majorType == MajorType.MAP)
+    this as Map
+    return this.get(UnicodeString(name))
+}
+
+operator fun DataItem.get(index: Int): DataItem {
+    check(this.majorType == MajorType.ARRAY)
+    this as Array
+    return this.dataItems[index]
+}

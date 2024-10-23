@@ -46,6 +46,10 @@ dependencies {
     implementation(libs.jsonldCommonJava)
     implementation(libs.nimbusJoseJwt)
     implementation(libs.springWeb)
+    implementation("co.nstant.in:cbor:0.9")
+    implementation ( "com.android.identity:identity-credential:20231002")
+
+
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)

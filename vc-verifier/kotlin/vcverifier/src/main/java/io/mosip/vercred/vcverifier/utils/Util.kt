@@ -5,7 +5,9 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDEN
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.net.URI
+import java.security.MessageDigest
 
 
 class Util {
@@ -22,7 +24,7 @@ class Util {
 
         return try {
             val uri = URI(value)
-            (uri.scheme=="did") || (uri.scheme != null && uri.host != null)
+            (uri.scheme == "did") || (uri.scheme != null && uri.host != null)
         } catch (e: Exception) {
             false
         }
@@ -32,10 +34,10 @@ class Util {
         return List(jsonArray.length()) { jsonArray.get(it) }
     }
 
-    fun getContextVersion(vcJsonObject: JSONObject): DATA_MODEL?{
-        if(vcJsonObject.has(CONTEXT)){
+    fun getContextVersion(vcJsonObject: JSONObject): DATA_MODEL? {
+        if (vcJsonObject.has(CONTEXT)) {
             val contextUrl = vcJsonObject.getJSONArray(CONTEXT).get(0)
-            return when(contextUrl){
+            return when (contextUrl) {
                 CREDENTIALS_CONTEXT_V1_URL -> DATA_MODEL.DATA_MODEL_1_1
                 CREDENTIALS_CONTEXT_V2_URL -> DATA_MODEL.DATA_MODEL_2_0
                 else -> DATA_MODEL.UNSUPPORTED
@@ -44,4 +46,9 @@ class Util {
         return null
     }
 
+    fun calculateDigest(
+        algorithm: String,
+        data: ByteArrayOutputStream,
+    ): ByteArray =
+        MessageDigest.getInstance(algorithm).digest(data.toByteArray())
 }

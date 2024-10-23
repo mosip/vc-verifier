@@ -50,7 +50,7 @@ class LdpValidator {
     )
 
     private val validationHelper = ValidationHelper()
-    private val dateUtils = DateUtils()
+    private val dateUtils = DateUtils
 
     fun validate(credential: String): String {
         try {

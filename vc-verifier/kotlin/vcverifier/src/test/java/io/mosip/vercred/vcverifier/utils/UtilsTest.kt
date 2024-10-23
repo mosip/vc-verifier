@@ -1,43 +1,64 @@
 package io.mosip.vercred.vcverifier.utils
 
+import android.util.Log
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.mockkStatic
 import org.json.JSONArray
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
 
 
 class UtilsTest {
+    @BeforeEach
+    fun setUp() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any()) } returns 0
+        every { Log.e(any(), any(), any()) } returns 0
+    }
+
+    @AfterEach
+    fun after() {
+        clearAllMocks()
+    }
 
     private val utils = Util()
-    private val dateUtils = DateUtils()
+    private val dateUtils = DateUtils
 
     @Test
     fun `test validate date invalid`() {
         val result = dateUtils.isValidDate("123456789")
-        assertEquals(false, result)
+        assertFalse(result)
     }
 
     @Test
     fun `test validate date valid`() {
         val result = dateUtils.isValidDate("2024-09-02T17:36:13.644Z")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
     fun `test validate uri invalid`() {
         val result = utils.isValidUri("invalid_uri")
-        assertEquals(false, result)
+        assertFalse(result)
     }
 
     @Test
     fun `test validate uri valid`() {
         val result = utils.isValidUri("http://www.google.com")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
     fun `test validate uri valid did`() {
         val result = utils.isValidUri("did:jwk:eysdsdsd")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
@@ -59,20 +80,66 @@ class UtilsTest {
     }
 
     @Test
-    fun `date expired`(){
+    fun `date expired`() {
         val result = dateUtils.isVCExpired("2024-09-02T17:36:13.644Z")
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
-    fun `date not expired`(){
+    fun `date not expired`() {
         val result = dateUtils.isDatePassedCurrentDate("2024-11-02T17:36:13.644Z")
-        assertEquals(false, result)
+        assertFalse(result)
     }
 
     @Test
-    fun `invalid date`(){
+    fun `invalid date`() {
         val result = dateUtils.isDatePassedCurrentDate("12345")
-        assertEquals(false, result)
+        assertFalse(result)
+    }
+
+    @Test
+    fun `test calculation of message digest`() {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        byteArrayOutputStream.write("hello".toByteArray())
+
+
+        val digest: ByteArray = Util().calculateDigest("SHA-256", byteArrayOutputStream)
+
+        assertArrayEquals(
+            byteArrayOf(
+                44,
+                -14,
+                77,
+                -70,
+                95,
+                -80,
+                -93,
+                14,
+                38,
+                -24,
+                59,
+                42,
+                -59,
+                -71,
+                -30,
+                -98,
+                27,
+                22,
+                30,
+                92,
+                31,
+                -89,
+                66,
+                94,
+                115,
+                4,
+                51,
+                98,
+                -109,
+                -117,
+                -104,
+                36
+            ), (digest)
+        )
     }
 }

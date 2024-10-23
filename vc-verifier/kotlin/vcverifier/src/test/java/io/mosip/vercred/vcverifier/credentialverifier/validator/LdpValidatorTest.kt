@@ -1,6 +1,10 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
+import android.os.Build
+import android.util.Log
+import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SCHEMA
@@ -41,13 +45,35 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_FROM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALUE
+import io.mosip.vercred.vcverifier.utils.BuildConfig
+import io.mosip.vercred.vcverifier.utils.DateUtils
 import org.json.JSONArray
 import org.json.JSONObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class LdpValidatorTest {
+    @BeforeEach
+    fun setUp() {
+        mockkObject(BuildConfig)
+        mockkObject(DateUtils)
+
+        every { BuildConfig.getVersionSDKInt() } returns Build.VERSION_CODES.O
+
+        mockkStatic(Log::class)
+        every { Log.e(any(), any()) } returns 0
+        every { Log.e(any(), any(), any()) } returns 0
+        every { Log.i(any(), any()) } returns 0
+        every { Log.w(any(), any<String>()) } returns 0
+    }
+
+    @AfterEach
+    fun after() {
+        clearAllMocks()
+    }
 
     private val credentialsValidator: LdpValidator = LdpValidator()
 
