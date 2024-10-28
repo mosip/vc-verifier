@@ -4,10 +4,15 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEX
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SCHEMA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CONTEXT_FIRST_LINE
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EMPTY_VC_JSON
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_EMPTY_VC_JSON
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_GENERIC
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_MISSING
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_CONTEXT_FIRST_LINE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_EMPTY_VC_JSON
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EVIDENCE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
@@ -19,6 +24,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TERMS_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
+import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.DateUtils
 import io.mosip.vercred.vcverifier.utils.Util
@@ -52,41 +58,45 @@ class LdpValidator {
     private val validationHelper = ValidationHelper()
     private val dateUtils = DateUtils
 
-    fun validate(credential: String): String {
+    fun validate(credential: String): ValidationStatus {
         try {
             if (credential.isEmpty()) {
-                throw ValidationException(ERROR_EMPTY_VC_JSON)
+                throw ValidationException(ERROR_MESSAGE_EMPTY_VC_JSON, ERROR_CODE_EMPTY_VC_JSON)
             }
 
             val vcJsonObject = JSONObject(credential)
 
             val contextVersion = Util().getContextVersion(vcJsonObject)
-                ?: throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$CONTEXT")
+                ?: throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$CONTEXT", "${ERROR_CODE_MISSING}${CONTEXT.uppercase()}")
             when (contextVersion) {
                 DATA_MODEL.DATA_MODEL_1_1 -> {
                     validateV1SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     val expirationMessage = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
-                            EXPIRATION_DATE))) ERROR_VC_EXPIRED else ""
-                    return expirationMessage
+                            EXPIRATION_DATE))) ERROR_MESSAGE_VC_EXPIRED else ""
+                    val verificationStatusCode = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
+                            EXPIRATION_DATE))) ERROR_CODE_VC_EXPIRED else ""
+                    return ValidationStatus(expirationMessage, verificationStatusCode)
                 }
                 DATA_MODEL.DATA_MODEL_2_0 -> {
                     validateV2SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
-                    val expirationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_VC_EXPIRED else ""
-                    return expirationMessage
+                    val expirationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_MESSAGE_VC_EXPIRED else ""
+                    val verificationStatusCode = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(
+                            VALID_UNTIL))) ERROR_CODE_VC_EXPIRED else ""
+                    return ValidationStatus(expirationMessage, verificationStatusCode)
                 }
                 else -> {
-                    throw ValidationException(ERROR_CONTEXT_FIRST_LINE)
+                    throw ValidationException(ERROR_MESSAGE_CONTEXT_FIRST_LINE, "${ERROR_CODE_INVALID}${CONTEXT.uppercase()}")
                 }
             }
 
         }
         catch (e: ValidationException) {
-            return "${e.message}"
+            return ValidationStatus(e.errorMessage, e.errorCode)
         }
         catch (e: Exception) {
-            return "${EXCEPTION_DURING_VALIDATION}${e.message}"
+            return ValidationStatus("${EXCEPTION_DURING_VALIDATION}${e.message}", ERROR_CODE_GENERIC)
         }
 
     }

@@ -7,10 +7,13 @@ import co.nstant.`in`.cbor.model.MajorType
 import co.nstant.`in`.cbor.model.Map
 import co.nstant.`in`.cbor.model.UnicodeString
 import io.mosip.vercred.vcverifier.CredentialsVerifier
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_DATE_MSO
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_DATE_MSO
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.MsoMdocVerifiableCredential
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.extractMso
 import io.mosip.vercred.vcverifier.exception.StaleDataException
 import io.mosip.vercred.vcverifier.exception.UnknownException
+import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.DateUtils
 
 class MsoMdocValidator {
@@ -30,7 +33,7 @@ class MsoMdocValidator {
             val validUntil: DataItem? = validityInfo["validUntil"]
             if (validUntil == null || validFrom == null) {
                 Log.e(tag, "validUntil / validFrom is not available in the credential's MSO")
-                throw StaleDataException("invalid validUntil / validFrom in the MSO of the credential")
+                throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
             val isCurrentTimeGreaterThanValidFrom =
                 DateUtils.isDatePassedCurrentDate(validFrom.toString())
@@ -47,18 +50,15 @@ class MsoMdocValidator {
                     tag,
                     "Error while doing validity verification - invalid validUntil / validFrom in the MSO of the credential"
                 )
-                throw StaleDataException("invalid validUntil / validFrom in the MSO of the credential")
+                throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
             return true
         } catch (exception: Exception) {
-            when (exception) {
-                is StaleDataException,
-                -> throw exception
+            when(exception){
+                is ValidationException -> throw exception
 
-                else -> {
-                    throw UnknownException("Error while doing validation of credential - ${exception.message}")
-                }
             }
+            throw UnknownException("Error while doing validation of credential - ${exception.message}")
         }
     }
 }

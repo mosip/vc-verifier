@@ -2,6 +2,9 @@ package io.mosip.vercred.vcverifier.utils
 
 import android.util.Log
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATE_REGEX
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_VALID_FROM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EXPIRATION_DATE_INVALID
@@ -68,13 +71,15 @@ object DateUtils {
             EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID
         ).map { (dateKey, errorMessage) ->
             if (vcJsonObject.has(dateKey) && !isValidDate(vcJsonObject.get(dateKey).toString())) {
-                throw ValidationException(errorMessage)
+                throw ValidationException(errorMessage, "${ERROR_CODE_INVALID}${dateKey.uppercase()}")
             }
         }
 
 
         if (!isDatePassedCurrentDate(vcJsonObject.optString(ISSUANCE_DATE))) {
-            throw ValidationException(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE)
+            throw ValidationException(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE,
+                ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
+            )
         }
 
     }
@@ -86,7 +91,7 @@ object DateUtils {
             VALID_UNTIL to ERROR_VALID_UNTIL_INVALID
         ).map { (dateKey, errorMessage) ->
             if (vcJsonObject.has(dateKey) && !isValidDate(vcJsonObject.get(dateKey).toString())) {
-                throw ValidationException(errorMessage)
+                throw ValidationException(errorMessage,"${ERROR_CODE_INVALID}${dateKey.uppercase()}")
             }
         }
 
@@ -96,7 +101,7 @@ object DateUtils {
                 )
             )
         ) {
-            throw ValidationException(ERROR_CURRENT_DATE_BEFORE_VALID_FROM)
+            throw ValidationException(ERROR_CURRENT_DATE_BEFORE_VALID_FROM, ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM)
         }
     }
 

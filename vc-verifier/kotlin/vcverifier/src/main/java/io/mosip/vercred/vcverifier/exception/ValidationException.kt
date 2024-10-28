@@ -1,3 +1,3 @@
 package io.mosip.vercred.vcverifier.exception
 
-class ValidationException(message: String?) : BaseUncheckedException(message)
+class ValidationException(val errorMessage: String, val errorCode: String) : BaseUncheckedException(errorMessage)
