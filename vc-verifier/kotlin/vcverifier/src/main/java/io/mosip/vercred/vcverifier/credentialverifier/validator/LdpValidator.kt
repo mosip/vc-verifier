@@ -41,12 +41,8 @@ class LdpValidator {
         PROOF
     )
 
-    private val commonIDMandatoryFields = listOf(
-        CREDENTIAL_SCHEMA
-    )
-
-    //All Fields has Type Property as mandatory with few fields as ID as optional.
-    private val fieldsWithIDAndType = listOf(
+    //All Fields has Type Property as mandatory with few fields as ID as mandatory.
+    private val allFieldsWithIDAndType = listOf(
         PROOF,
         CREDENTIAL_STATUS,
         EVIDENCE,
@@ -108,21 +104,22 @@ class LdpValidator {
             ISSUANCE_DATE
         )
 
-        val v1SpecificIDMandatoryFields = listOf(
-            REFRESH_SERVICE,
-            CREDENTIAL_STATUS
-        )
-
         validationHelper.checkMandatoryFields(vcJsonObject, commonMandatoryFields+v1SpecificMandatoryFields)
 
         dateUtils.validateV1DateFields(vcJsonObject)
 
-        fieldsWithIDAndType.forEach { field ->
+        val v1SpecificIdMandatoryFields = listOf(
+            CREDENTIAL_STATUS,
+            REFRESH_SERVICE,
+            CREDENTIAL_SCHEMA
+        )
+
+        allFieldsWithIDAndType.forEach { field ->
             if(vcJsonObject.has(field)){
                 validationHelper.validateFieldsByIdAndType(
                     vcJsonObject = vcJsonObject,
                     fieldName = field,
-                    idMandatoryFields = commonIDMandatoryFields+v1SpecificIDMandatoryFields
+                    idMandatoryFields = v1SpecificIdMandatoryFields
                 )
             }
         }
@@ -136,11 +133,15 @@ class LdpValidator {
 
         dateUtils.validateV2DateFields(vcJsonObject)
 
-        fieldsWithIDAndType.forEach { field ->
+        val v2SpecificIdMandatoryFields = listOf(
+            CREDENTIAL_SCHEMA
+        )
+
+        allFieldsWithIDAndType.forEach { field ->
             if(vcJsonObject.has(field)){
                 validationHelper.validateFieldsByIdAndType(vcJsonObject = vcJsonObject,
                     fieldName = field,
-                    idMandatoryFields = commonIDMandatoryFields
+                    idMandatoryFields = v2SpecificIdMandatoryFields
                 )
             }
         }
