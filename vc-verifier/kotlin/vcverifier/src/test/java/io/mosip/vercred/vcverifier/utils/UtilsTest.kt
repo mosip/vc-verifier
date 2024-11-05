@@ -3,6 +3,7 @@ package io.mosip.vercred.vcverifier.utils
 import android.util.Log
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkStatic
 import org.json.JSONArray
 import org.junit.jupiter.api.AfterEach
@@ -13,9 +14,11 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
+import java.util.Calendar
 
 
 class UtilsTest {
+
     @BeforeEach
     fun setUp() {
         mockkStatic(Log::class)
@@ -87,6 +90,9 @@ class UtilsTest {
 
     @Test
     fun `date not expired`() {
+        val calendar: Calendar = mockk(relaxed = true)
+        mockkStatic(Calendar::class)
+        every { Calendar.getInstance() } returns calendar
         val result = dateUtils.isDatePassedCurrentDate("2024-11-02T17:36:13.644Z")
         assertFalse(result)
     }

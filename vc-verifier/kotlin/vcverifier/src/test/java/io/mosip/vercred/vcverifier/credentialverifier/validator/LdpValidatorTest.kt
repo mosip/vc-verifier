@@ -6,29 +6,37 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ALGORITHM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SCHEMA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DESCRIPTION
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ALGORITHM_NOT_SUPPORTED
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CONTEXT_FIRST_LINE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_EMPTY_VC_JSON
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_GENERIC
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_MISSING
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_ALGORITHM_NOT_SUPPORTED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_CONTEXT_FIRST_LINE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_VALID_FROM
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_DESCRIPTION
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EMPTY_VC_JSON
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_DESCRIPTION
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_EXPIRATION_DATE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_FIELD
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_ISSUANCE_DATE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MISSING_REQUIRED_FIELDS
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_PROOF_TYPE_NOT_SUPPORTED
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_TYPE_VERIFIABLE_CREDENTIAL
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_PROOF_TYPE_NOT_SUPPORTED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_TYPE_VERIFIABLE_CREDENTIAL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_NAME
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_NAME
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VALID_FROM_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VALID_UNTIL_INVALID
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EVIDENCE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXPIRATION_DATE
@@ -85,7 +93,8 @@ class LdpValidatorTest {
             sampleVcObject.put(NAME, "test name")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -100,7 +109,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -114,7 +124,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals(ERROR_NAME, result)
+            assertEquals(ERROR_MESSAGE_NAME, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${NAME.uppercase()}", result.validationErrorCode)
         }
 
     }
@@ -128,7 +139,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -143,7 +155,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -157,7 +170,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals(ERROR_DESCRIPTION, result)
+            assertEquals(ERROR_MESSAGE_DESCRIPTION, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${DESCRIPTION.uppercase()}", result.validationErrorCode)
         }
     }
 
@@ -171,7 +185,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL_SUBJECT", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL_SUBJECT", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${CREDENTIAL_SUBJECT.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -182,7 +197,8 @@ class LdpValidatorTest {
             sampleVcObject.put(CREDENTIAL_SUBJECT, credSubjectObject)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
             
         }
 
@@ -193,7 +209,8 @@ class LdpValidatorTest {
             sampleVcObject.put(CREDENTIAL_SUBJECT, "")
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
-            assertEquals(ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT, result)
+            assertEquals(ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${CREDENTIAL_SUBJECT.uppercase()}", result.validationErrorCode)
             
         }
 
@@ -205,7 +222,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL_SUBJECT", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CREDENTIAL_SUBJECT", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${CREDENTIAL_SUBJECT.uppercase()}", result.validationErrorCode)
         }
     }
 
@@ -222,7 +240,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -233,7 +252,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_INVALID_FIELD$CREDENTIAL_STATUS", result)
+            assertEquals("$ERROR_INVALID_FIELD$CREDENTIAL_STATUS", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_STATUS.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -245,7 +265,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -257,7 +278,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -272,7 +294,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -286,7 +309,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -300,7 +324,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -312,7 +337,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -324,7 +350,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -337,7 +364,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -350,7 +378,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
     }
@@ -368,7 +397,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -378,7 +408,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_INVALID_FIELD$EVIDENCE", result)
+            assertEquals("$ERROR_INVALID_FIELD$EVIDENCE", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${EVIDENCE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -391,7 +422,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -404,7 +436,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$EVIDENCE.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$EVIDENCE.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${EVIDENCE.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+
         }
 
         @Test
@@ -417,7 +451,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
 
@@ -431,7 +466,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$EVIDENCE.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$EVIDENCE.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${EVIDENCE.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
     }
 
@@ -444,7 +480,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_INVALID_FIELD$CREDENTIAL_SCHEMA", result)
+            assertEquals("$ERROR_INVALID_FIELD$CREDENTIAL_SCHEMA", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_SCHEMA.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -457,7 +494,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -469,7 +507,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$ID", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_SCHEMA.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -481,7 +520,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_SCHEMA.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -495,7 +535,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -508,7 +549,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$ID", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_SCHEMA.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
+
         }
 
         @Test
@@ -521,7 +564,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_SCHEMA.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_SCHEMA.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
     }
@@ -536,7 +580,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_INVALID_FIELD$REFRESH_SERVICE", result)
+            assertEquals("$ERROR_INVALID_FIELD$REFRESH_SERVICE", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${REFRESH_SERVICE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -549,7 +594,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -561,7 +607,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$ID", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${REFRESH_SERVICE.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -573,7 +620,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${REFRESH_SERVICE.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -586,7 +634,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -598,8 +647,8 @@ class LdpValidatorTest {
 
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
-            assertEquals("", result)
-            
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
 
         }
 
@@ -613,7 +662,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$REFRESH_SERVICE.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${REFRESH_SERVICE.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
 
         }
 
@@ -631,7 +681,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
         }
 
         @Test
@@ -642,8 +693,8 @@ class LdpValidatorTest {
             sampleVcObject.put(TERMS_OF_USE, evidenceObject)
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
-            assertEquals("", result)
-            
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
 
         }
 
@@ -656,7 +707,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$TERMS_OF_USE.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$TERMS_OF_USE.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${TERMS_OF_USE.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
 
         }
     }
@@ -670,7 +722,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
 
         }
 
@@ -681,7 +734,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_VALID_FROM_INVALID, result)
+            assertEquals(ERROR_VALID_FROM_INVALID, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${VALID_FROM.uppercase()}", result.validationErrorCode)
 
         }
 
@@ -692,7 +746,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_VALID_UNTIL_INVALID, result)
+            assertEquals(ERROR_VALID_UNTIL_INVALID, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${VALID_UNTIL.uppercase()}", result.validationErrorCode)
 
         }
 
@@ -703,7 +758,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_CURRENT_DATE_BEFORE_VALID_FROM, result)
+            assertEquals(ERROR_CURRENT_DATE_BEFORE_VALID_FROM, result.validationMessage)
+            assertEquals("$ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM", result.validationErrorCode)
 
         }
 
@@ -714,7 +770,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
+
         }
 
         @Test
@@ -725,7 +783,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
+
         }
 
         @Test
@@ -735,7 +795,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_VC_EXPIRED, result)
+            assertEquals(ERROR_MESSAGE_VC_EXPIRED, result.validationMessage)
+            assertEquals("$ERROR_CODE_VC_EXPIRED", result.validationErrorCode)
         }
 
         @Test
@@ -745,7 +806,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("",result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
+
         }
     }
 
@@ -758,7 +821,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUANCE_DATE", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUANCE_DATE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${ISSUANCE_DATE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -768,7 +832,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("", result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
+
         }
 
         @Test
@@ -778,7 +844,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE, result)
+            assertEquals(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE, result.validationMessage)
+            assertEquals("$ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE", result.validationErrorCode)
         }
 
         @Test
@@ -788,7 +855,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals(ERROR_EXPIRATION_DATE_INVALID, result)
+            assertEquals(ERROR_EXPIRATION_DATE_INVALID, result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${EXPIRATION_DATE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -798,7 +866,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals(ERROR_VC_EXPIRED,result)
+            assertEquals(ERROR_MESSAGE_VC_EXPIRED, result.validationMessage)
+            assertEquals("$ERROR_CODE_VC_EXPIRED", result.validationErrorCode)
         }
 
         @Test
@@ -808,7 +877,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("",result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
+
         }
 
         @Test
@@ -817,7 +888,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals("",result)
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
+
         }
 
         @Test
@@ -827,7 +900,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals(ERROR_ISSUANCE_DATE_INVALID, result)
+            assertEquals(ERROR_ISSUANCE_DATE_INVALID, result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${ISSUANCE_DATE.uppercase()}", result.validationErrorCode)
         }
     }
 
@@ -841,7 +915,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$PROOF", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$PROOF", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${PROOF.uppercase()}", result.validationErrorCode)
+
         }
 
         @Test
@@ -851,7 +927,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcDataModel1)
 
-            assertEquals(result, "")
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
             
         }
 
@@ -863,7 +940,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_ALGORITHM_NOT_SUPPORTED, result)
+            assertEquals(ERROR_MESSAGE_ALGORITHM_NOT_SUPPORTED, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${ALGORITHM.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -873,7 +951,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(result, "")
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
             
         }
 
@@ -884,7 +963,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$PROOF.$TYPE", result)
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$PROOF.$TYPE", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${PROOF.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
             
         }
 
@@ -896,7 +976,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_PROOF_TYPE_NOT_SUPPORTED, result)
+            assertEquals(ERROR_MESSAGE_PROOF_TYPE_NOT_SUPPORTED, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${PROOF.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
             
 
         }
@@ -908,7 +989,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(result, "")
+            assertEquals("", result.validationMessage)
+            assertEquals("", result.validationErrorCode)
             
         }
     }
@@ -923,7 +1005,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${CONTEXT.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -934,7 +1017,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals(ERROR_CONTEXT_FIRST_LINE, result)
+            assertEquals(ERROR_MESSAGE_CONTEXT_FIRST_LINE, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${CONTEXT.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -945,7 +1029,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$CONTEXT", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${CONTEXT.uppercase()}", result.validationErrorCode)
         }
     }
     
@@ -959,7 +1044,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUER", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUER", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${ISSUER.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -969,7 +1055,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals("$ERROR_INVALID_URI$ISSUER", result)
+            assertEquals("$ERROR_INVALID_URI${ISSUER}", result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${ISSUER.uppercase()}", result.validationErrorCode)
             
         }
 
@@ -981,7 +1068,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUER", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$ISSUER", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${ISSUER.uppercase()}", result.validationErrorCode)
         }
     }
     
@@ -995,7 +1083,9 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${TYPE.uppercase()}", result.validationErrorCode)
+
         }
         @Test
         fun `test when type is invalid for v1`(){
@@ -1005,7 +1095,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals(ERROR_TYPE_VERIFIABLE_CREDENTIAL, result)
+            assertEquals(ERROR_MESSAGE_TYPE_VERIFIABLE_CREDENTIAL, result.validationMessage)
+            assertEquals("${ERROR_CODE_INVALID}${TYPE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -1016,7 +1107,8 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
-            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result)
+            assertEquals("${ERROR_MISSING_REQUIRED_FIELDS}$TYPE", result.validationMessage)
+            assertEquals("${ERROR_CODE_MISSING}${TYPE.uppercase()}", result.validationErrorCode)
         }
     }
     
@@ -1033,14 +1125,16 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(invalidJsonString)
 
-            assertEquals("${EXCEPTION_DURING_VALIDATION}JSON parsing error", result)
+            assertEquals("${EXCEPTION_DURING_VALIDATION}JSON parsing error", result.validationMessage)
+            assertEquals(ERROR_CODE_GENERIC, result.validationErrorCode)
         }
 
         @Test
         fun `test when credential is empty string`(){
             val resultEmpty = credentialsValidator.validate("")
 
-            assertEquals(ERROR_EMPTY_VC_JSON, resultEmpty)
+            assertEquals(ERROR_MESSAGE_EMPTY_VC_JSON, resultEmpty.validationMessage)
+            assertEquals(ERROR_CODE_EMPTY_VC_JSON, resultEmpty.validationErrorCode)
         }
     }
     

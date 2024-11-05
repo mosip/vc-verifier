@@ -3,9 +3,10 @@ package io.mosip.vercred.vcverifier
 import android.util.Log
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialFormat.LDP_VC
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_VC_EXPIRED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_FAILED
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.data.VerificationResult
 
@@ -30,18 +31,18 @@ class CredentialsVerifier {
 
     fun verify(credential: String, credentialFormat: CredentialFormat): VerificationResult {
         val credentialVerifier = CredentialVerifierFactory().get(credentialFormat)
-        val validationErrorMessage = credentialVerifier.validate(credential)
-        if (validationErrorMessage.isNotEmpty() && !validationErrorMessage.contentEquals(ERROR_VC_EXPIRED)) {
-            return VerificationResult(false, validationErrorMessage)
+        val validationStatus = credentialVerifier.validate(credential)
+        if (validationStatus.validationMessage.isNotEmpty() && !validationStatus.validationErrorCode.contentEquals(ERROR_CODE_VC_EXPIRED)) {
+            return VerificationResult(false, validationStatus.validationMessage, validationStatus.validationErrorCode)
         }
         return try {
             val verifySignatureStatus = credentialVerifier.verify(credential)
             if (!verifySignatureStatus) {
-                return  VerificationResult(false, VERIFICATION_FAILED)
+                return  VerificationResult(false, ERROR_MESSAGE_VERIFICATION_FAILED, ERROR_CODE_VERIFICATION_FAILED)
             }
-            VerificationResult(true, validationErrorMessage)
+            VerificationResult(true, validationStatus.validationMessage, validationStatus.validationErrorCode)
         } catch (e: Exception) {
-            VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}")
+            VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}", validationStatus.validationErrorCode)
         }
     }
 }

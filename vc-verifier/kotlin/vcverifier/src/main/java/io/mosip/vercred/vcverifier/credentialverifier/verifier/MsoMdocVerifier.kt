@@ -18,7 +18,6 @@ import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.extractMso
 import io.mosip.vercred.vcverifier.exception.InvalidPropertyException
 import io.mosip.vercred.vcverifier.exception.LikelyTamperedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
-import io.mosip.vercred.vcverifier.exception.StaleDataException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.CoseSignatureVerifierImpl
@@ -61,7 +60,6 @@ class MsoMdocVerifier {
             when (exception) {
                 is SignatureVerificationException,
                 is LikelyTamperedException,
-                is StaleDataException,
                 is InvalidPropertyException,
                 -> throw exception
 

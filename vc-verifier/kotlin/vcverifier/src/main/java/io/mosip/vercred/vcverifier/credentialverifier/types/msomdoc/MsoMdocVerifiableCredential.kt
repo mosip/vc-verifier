@@ -8,21 +8,32 @@ import co.nstant.`in`.cbor.model.MajorType
 import co.nstant.`in`.cbor.model.Map
 import co.nstant.`in`.cbor.model.UnicodeString
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_GENERIC
 import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
 import io.mosip.vercred.vcverifier.credentialverifier.validator.MsoMdocValidator
 import io.mosip.vercred.vcverifier.credentialverifier.verifier.MsoMdocVerifier
+import io.mosip.vercred.vcverifier.data.ValidationStatus
+import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.Encoder
 import java.io.ByteArrayInputStream
 
 class MsoMdocVerifiableCredential : VerifiableCredential {
     private val tag: String = MsoMdocVerifiableCredential::class.java.name
 
-    override fun validate(credential: String): String {
+    override fun validate(credential: String): ValidationStatus {
         try {
             MsoMdocValidator().validate(credential)
-            return ""
+            return ValidationStatus("", "")
         } catch (exception: Exception) {
-            return "${CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION}${exception.message}"
+            return when(exception){
+                is ValidationException -> {
+                    ValidationStatus(exception.errorMessage, exception.errorCode)
+                }
+                else -> {
+                    ValidationStatus("${CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION}${exception.message}", ERROR_CODE_GENERIC)
+                }
+            }
+
         }
     }
 
