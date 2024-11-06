@@ -1,12 +1,9 @@
 package io.mosip.vercred.vcverifier.utils
 
-import android.util.Log
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import org.json.JSONArray
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -18,18 +15,6 @@ import java.util.Calendar
 
 
 class UtilsTest {
-
-    @BeforeEach
-    fun setUp() {
-        mockkStatic(Log::class)
-        every { Log.e(any(), any()) } returns 0
-        every { Log.e(any(), any(), any()) } returns 0
-    }
-
-    @AfterEach
-    fun after() {
-        clearAllMocks()
-    }
 
     private val utils = Util()
     private val dateUtils = DateUtils

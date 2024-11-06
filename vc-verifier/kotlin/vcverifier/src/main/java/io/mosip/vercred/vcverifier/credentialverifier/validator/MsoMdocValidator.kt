@@ -1,7 +1,7 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
-import android.annotation.SuppressLint
-import android.util.Log
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import co.nstant.`in`.cbor.model.DataItem
 import co.nstant.`in`.cbor.model.MajorType
 import co.nstant.`in`.cbor.model.Map
@@ -16,9 +16,9 @@ import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.DateUtils
 
 class MsoMdocValidator {
-    private val tag: String = CredentialsVerifier::class.java.name
+    private val Logger: Logger = LoggerFactory.getLogger(MsoMdocValidator::class.java.name)
 
-    @SuppressLint("NewApi")
+
     fun validate(credential: String): Boolean {
         try {
             val (_, issuerSigned) = MsoMdocVerifiableCredential().parse(credential)
@@ -31,7 +31,7 @@ class MsoMdocValidator {
             val validFrom: DataItem? = validityInfo["validFrom"]
             val validUntil: DataItem? = validityInfo["validUntil"]
             if (validUntil == null || validFrom == null) {
-                Log.e(tag, "validUntil / validFrom is not available in the credential's MSO")
+                Logger.error("validUntil / validFrom is not available in the credential's MSO")
                 throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
             val isCurrentTimeGreaterThanValidFrom =
@@ -45,10 +45,7 @@ class MsoMdocValidator {
                     ) ?: return false
                 ) ?: false
             if (!(isCurrentTimeLessThanValidUntil && isCurrentTimeGreaterThanValidFrom && isValidUntilGreaterThanValidFrom)) {
-                Log.e(
-                    tag,
-                    "Error while doing validity verification - invalid validUntil / validFrom in the MSO of the credential"
-                )
+                Logger.error("Error while doing validity verification - invalid validUntil / validFrom in the MSO of the credential")
                 throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
             return true

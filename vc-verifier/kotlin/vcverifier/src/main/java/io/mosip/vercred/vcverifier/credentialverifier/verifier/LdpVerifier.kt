@@ -1,7 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
-import android.security.KeyStoreException
-import android.util.Log
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.nimbusds.jose.JWSObject
@@ -11,7 +9,6 @@ import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
 import io.ipfs.multibase.Base58
-import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.DER_PUBLIC_KEY_PREFIX
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_ALGORITHM
@@ -27,6 +24,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFIC
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
+import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
@@ -35,6 +33,8 @@ import okhttp3.Request
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
 import org.bouncycastle.util.io.pem.PemReader
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.StringReader
 import java.net.URI
 import java.security.KeyFactory
@@ -44,9 +44,11 @@ import java.security.Security
 import java.security.cert.CertificateException
 import java.security.spec.X509EncodedKeySpec
 
+
 class LdpVerifier {
 
-    private val tag: String = LdpVerifier::class.java.name
+    private val Logger: Logger = LoggerFactory.getLogger(LdpVerifier::class.java.name)
+
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
     private val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
         JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
@@ -66,7 +68,7 @@ class LdpVerifier {
 
     fun verify(credential: String): Boolean {
 
-        Log.i(tag, "Received Credentials Verification - Start")
+        Logger.info("Received Credentials Verification - Start")
         val confDocumentLoader: ConfigurableDocumentLoader = getConfigurableDocumentLoader()
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credential)
         vcJsonLdObject.documentLoader = confDocumentLoader
@@ -106,7 +108,7 @@ class LdpVerifier {
         }
     }
 
-    @Throws(CertificateException::class, KeyStoreException::class, KeyManagementException::class)
+    @Throws(CertificateException::class, KeyManagementException::class)
     private fun getPublicKeyFromHttpVerificationMethod(verificationMethod: URI, signatureSuite: String ): PublicKey? {
         return try {
             val okHttpClient = OkHttpClient.Builder().build().newBuilder().build()
@@ -134,7 +136,7 @@ class LdpVerifier {
                     throw PublicKeyNotFoundException("Public key object is null")
             }
         } catch (e: Exception) {
-            Log.e(tag, "Error Generating public key object", e)
+            Logger.error("Error Generating public key object", e)
             throw PublicKeyNotFoundException("Public key object is null")
         }
     }
@@ -163,7 +165,7 @@ class LdpVerifier {
             }
             throw PublicKeyNotFoundException("Public key object is null")
         } catch (e: Exception) {
-            Log.e(tag, "Error generating public key object", e)
+            Logger.error("Error generating public key object", e)
             throw PublicKeyNotFoundException("Public key object is null")
         }
     }

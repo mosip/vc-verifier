@@ -1,11 +1,9 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
 import android.os.Build
-import android.util.Log
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
-import io.mockk.mockkStatic
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_DATE_MSO
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_DATE_MSO
 import io.mosip.vercred.vcverifier.exception.UnknownException
@@ -30,11 +28,6 @@ class MsoMdocValidatorTest {
         every { DateUtils.parseDate("2024-10-23T07:01:17Z") } returns Date(1729666877000L)
         every { DateUtils.parseDate("2026-10-23T07:01:17Z") } returns Date(1792738877000L)
 
-        mockkStatic(Log::class)
-        every { Log.e(any(), any()) } returns 0
-        every { Log.e(any(), any(), any()) } returns 0
-        every { Log.i(any(), any()) } returns 0
-        every { Log.w(any(), any<String>()) } returns 0
     }
 
     @AfterEach

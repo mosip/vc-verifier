@@ -1,6 +1,7 @@
 package io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc
 
-import android.util.Log
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import co.nstant.`in`.cbor.CborDecoder
 import co.nstant.`in`.cbor.model.Array
 import co.nstant.`in`.cbor.model.DataItem
@@ -19,6 +20,8 @@ import java.io.ByteArrayInputStream
 
 class MsoMdocVerifiableCredential : VerifiableCredential {
     private val tag: String = MsoMdocVerifiableCredential::class.java.name
+    private val Logger: Logger = LoggerFactory.getLogger(MsoMdocVerifiableCredential::class.java.name)
+
 
     override fun validate(credential: String): ValidationStatus {
         try {
@@ -45,10 +48,7 @@ class MsoMdocVerifiableCredential : VerifiableCredential {
         val decodedData: ByteArray = try {
             Encoder().decodeFromBase64UrlFormatEncoded(credential)
         } catch (exception: Exception) {
-            Log.e(
-                tag,
-                "Error occurred while base64Url decoding the credential " + exception.message
-            )
+            Logger.error("Error occurred while base64Url decoding the credential " + exception.message)
             throw RuntimeException("Error on decoding base64Url encoded data " + exception.message)
         }
 
@@ -56,7 +56,7 @@ class MsoMdocVerifiableCredential : VerifiableCredential {
         try {
             cbors = CborDecoder(ByteArrayInputStream(decodedData)).decode()
         } catch (exception: Exception) {
-            Log.e(tag, "Error occurred while CBOR decoding the credential " + exception.message)
+            Logger.error("Error occurred while CBOR decoding the credential " + exception.message)
             throw RuntimeException("Error on decoding CBOR encoded data " + exception.message)
 
         }

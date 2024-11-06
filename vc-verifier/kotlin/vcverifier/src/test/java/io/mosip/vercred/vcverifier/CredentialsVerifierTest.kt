@@ -1,38 +1,18 @@
 package io.mosip.vercred.vcverifier
 
-import android.util.Log
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockkStatic
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_MISSING
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.util.concurrent.TimeUnit
 
 
 class CredentialsVerifierTest {
-
-    @BeforeEach
-    fun before() {
-        mockkStatic(Log::class)
-        every { Log.e(any(), any()) } returns 0
-        every { Log.e(any(), any(), any()) } returns 0
-        every { Log.i(any(), any()) } returns 0
-        every { Log.w(any(), any<String>()) } returns 0
-    }
-
-    @AfterEach
-    fun after() {
-        clearAllMocks()
-    }
 
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
