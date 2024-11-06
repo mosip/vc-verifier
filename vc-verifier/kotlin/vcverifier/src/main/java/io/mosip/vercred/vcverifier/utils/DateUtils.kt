@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier.utils
 
-import android.util.Log
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATE_REGEX
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM
@@ -17,6 +16,8 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -24,6 +25,8 @@ import java.util.Locale
 import java.util.TimeZone
 
 object DateUtils {
+
+    private val Logger: Logger = LoggerFactory.getLogger("VC-Verifier")
 
     private val dateFormats = listOf(
         ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -40,14 +43,14 @@ object DateUtils {
         return try {
             val inputDate: Date? = parseDate(inputDateString)
             if (inputDate == null) {
-                Log.e("VC-VERIFIER", "Given date is not available in supported date formats")
+                Logger.error("Given date is not available in supported date formats")
                 return false
             }
 
             val currentDate = Calendar.getInstance(TimeZone.getTimeZone(UTC)).time
             inputDate.before(currentDate)
         } catch (e: Exception) {
-            Log.e("VC-VERIFIER", "Error while comparing dates ${e.message}")
+            Logger.error("Error while comparing dates ${e.message}")
             false
         }
     }

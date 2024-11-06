@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc
 
-import android.util.Log
 import co.nstant.`in`.cbor.CborDecoder
 import co.nstant.`in`.cbor.model.ByteString
 import co.nstant.`in`.cbor.model.DataItem
@@ -10,10 +9,15 @@ import co.nstant.`in`.cbor.CborEncoder
 import co.nstant.`in`.cbor.model.*
 import co.nstant.`in`.cbor.model.Array
 import co.nstant.`in`.cbor.model.Map
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
 
 typealias IssuerAuth = Array?
 typealias IssuerSignedNamespaces = Map
+
+private val Logger: Logger = LoggerFactory.getLogger("VC-Verifier")
+
 
 fun IssuerSignedNamespaces.extractFieldValue(fieldToBeExtracted: String): String {
     val issuerSignedNamespacedData = this
@@ -41,7 +45,7 @@ fun IssuerSignedNamespaces.extractFieldValue(fieldToBeExtracted: String): String
 
 fun IssuerAuth.extractMso(): Map {
     if (this == null) {
-        Log.e("VC-VERIFIER", "IssuerAuth in credential is not available")
+        Logger.error("IssuerAuth in credential is not available")
         throw RuntimeException("Invalid Issuer Auth")
     }
 

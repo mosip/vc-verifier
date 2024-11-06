@@ -1,6 +1,7 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
-import android.util.Log
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import co.nstant.`in`.cbor.CborDecoder
 import co.nstant.`in`.cbor.CborEncoder
 import co.nstant.`in`.cbor.model.Array
@@ -10,7 +11,6 @@ import co.nstant.`in`.cbor.model.MajorType
 import co.nstant.`in`.cbor.model.Map
 import co.nstant.`in`.cbor.model.UnicodeString
 import co.nstant.`in`.cbor.model.UnsignedInteger
-import io.mosip.vercred.vcverifier.CredentialsVerifier
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.IssuerSignedNamespaces
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.MsoMdocVerifiableCredential
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.extractFieldValue
@@ -32,7 +32,9 @@ import java.util.regex.Pattern
 private const val ISSUING_COUNTRY = "issuing_country"
 
 class MsoMdocVerifier {
-    private val tag: String = CredentialsVerifier::class.java.name
+
+    private val Logger: Logger = LoggerFactory.getLogger(MsoMdocVerifier::class.java.name)
+
 
     private val util: io.mosip.vercred.vcverifier.utils.Util =
         io.mosip.vercred.vcverifier.utils.Util()
@@ -106,17 +108,11 @@ class MsoMdocVerifier {
     private fun verifyDocType(mso: Map, docTypeInDocuments: DataItem?): Boolean {
         val docTypeInMso = mso["docType"]
         if (docTypeInDocuments == null) {
-            Log.e(
-                tag,
-                "Error while doing docType property verification - docType property not found in the credential"
-            )
+            Logger.error("Error while doing docType property verification - docType property not found in the credential")
             throw InvalidPropertyException("Property docType not found in the credential")
         }
         if (docTypeInMso != docTypeInDocuments) {
-            Log.e(
-                tag,
-                "Error while doing docType property verification - Property mismatch with docType in the credential"
-            )
+            Logger.error("Error while doing docType property verification - Property mismatch with docType in the credential")
             throw InvalidPropertyException("Property mismatch with docType in the credential")
         }
         return true
@@ -195,10 +191,7 @@ class MsoMdocVerifier {
 
                 for ((actualDigestId, actualDigest) in actualDigests) {
                     if (!actualDigest.contentEquals(calculatedDigests[actualDigestId])) {
-                        Log.e(
-                            tag,
-                            "Error while doing valueDigests verification - mismatch in digests found"
-                        )
+                        Logger.error("Error while doing valueDigests verification - mismatch in digests found")
                         throw LikelyTamperedException("valueDigests verification failed - mismatch in digests with $actualDigestId")
                     }
                 }
