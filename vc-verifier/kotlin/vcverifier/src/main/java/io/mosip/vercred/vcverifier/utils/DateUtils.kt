@@ -79,7 +79,10 @@ object DateUtils {
         }
 
 
-        if (!isDatePassedCurrentDate(vcJsonObject.optString(ISSUANCE_DATE))) {
+        val issuanceDate: Date = parseDate(vcJsonObject.optString(ISSUANCE_DATE))
+            ?: throw ValidationException(ERROR_ISSUANCE_DATE_INVALID, "${ERROR_CODE_INVALID}${ISSUANCE_DATE}")
+
+        if (issuanceDate.isFutureDateWithTolerance()) {
             throw ValidationException(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE,
                 ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
             )
@@ -112,4 +115,12 @@ object DateUtils {
         return inputDate.isNotEmpty() && isDatePassedCurrentDate(inputDate)
     }
 
+}
+
+fun Date.isFutureDateWithTolerance(toleranceInMilliSeconds: Long = 3000): Boolean {
+    val currentTime = System.currentTimeMillis()
+    val inputDateTime = this.time
+
+    val upperBound = currentTime + toleranceInMilliSeconds
+    return inputDateTime > upperBound
 }
