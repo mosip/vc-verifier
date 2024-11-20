@@ -11,10 +11,11 @@ import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.extractMso
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.DateUtils
-import io.mosip.vercred.vcverifier.utils.Logger
+import java.util.logging.Logger
 
 class MsoMdocValidator {
-    private val loggerName = MsoMdocValidator::class.java.name
+    private val logger = Logger.getLogger(MsoMdocValidator::class.java.name)
+
 
 
     fun validate(credential: String): Boolean {
@@ -29,7 +30,7 @@ class MsoMdocValidator {
             val validFrom: DataItem? = validityInfo["validFrom"]
             val validUntil: DataItem? = validityInfo["validUntil"]
             if (validUntil == null || validFrom == null) {
-                Logger.error(loggerName, "validUntil / validFrom is not available in the credential's MSO")
+                logger.severe("validUntil / validFrom is not available in the credential's MSO")
                 throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
             val isCurrentTimeGreaterThanValidFrom =
@@ -43,7 +44,7 @@ class MsoMdocValidator {
                     ) ?: return false
                 ) ?: false
             if (!(isCurrentTimeLessThanValidUntil && isCurrentTimeGreaterThanValidFrom && isValidUntilGreaterThanValidFrom)) {
-                Logger.error(loggerName, "Error while doing validity verification - invalid validUntil / validFrom in the MSO of the credential")
+                logger.severe("Error while doing validity verification - invalid validUntil / validFrom in the MSO of the credential")
                 throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
             return true

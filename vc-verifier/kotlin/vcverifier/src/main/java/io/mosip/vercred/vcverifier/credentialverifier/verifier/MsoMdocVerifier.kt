@@ -20,11 +20,11 @@ import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.CoseSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.CborDataItemUtils
-import io.mosip.vercred.vcverifier.utils.Logger
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.util.logging.Logger
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -32,7 +32,8 @@ private const val ISSUING_COUNTRY = "issuing_country"
 
 class MsoMdocVerifier {
 
-    private val loggerName = MsoMdocVerifier::class.java.name
+    private val logger = Logger.getLogger(MsoMdocVerifier::class.java.name)
+
 
 
     private val util: io.mosip.vercred.vcverifier.utils.Util =
@@ -107,11 +108,11 @@ class MsoMdocVerifier {
     private fun verifyDocType(mso: Map, docTypeInDocuments: DataItem?): Boolean {
         val docTypeInMso = mso["docType"]
         if (docTypeInDocuments == null) {
-            Logger.error(loggerName, "Error while doing docType property verification - docType property not found in the credential")
+            logger.severe("Error while doing docType property verification - docType property not found in the credential")
             throw InvalidPropertyException("Property docType not found in the credential")
         }
         if (docTypeInMso != docTypeInDocuments) {
-            Logger.error(loggerName, "Error while doing docType property verification - Property mismatch with docType in the credential")
+            logger.severe("Error while doing docType property verification - Property mismatch with docType in the credential")
             throw InvalidPropertyException("Property mismatch with docType in the credential")
         }
         return true
@@ -190,7 +191,7 @@ class MsoMdocVerifier {
 
                 for ((actualDigestId, actualDigest) in actualDigests) {
                     if (!actualDigest.contentEquals(calculatedDigests[actualDigestId])) {
-                        Logger.error(loggerName,"Error while doing valueDigests verification - mismatch in digests found")
+                        logger.severe("Error while doing valueDigests verification - mismatch in digests found")
                         throw LikelyTamperedException("valueDigests verification failed - mismatch in digests with $actualDigestId")
                     }
                 }
