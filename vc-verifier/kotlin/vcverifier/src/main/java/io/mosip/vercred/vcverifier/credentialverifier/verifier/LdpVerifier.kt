@@ -28,13 +28,12 @@ import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
+import io.mosip.vercred.vcverifier.utils.Logger
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
 import org.bouncycastle.util.io.pem.PemReader
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.StringReader
 import java.net.URI
 import java.security.KeyFactory
@@ -47,7 +46,7 @@ import java.security.spec.X509EncodedKeySpec
 
 class LdpVerifier {
 
-    private val Logger: Logger = LoggerFactory.getLogger(LdpVerifier::class.java.name)
+    private val loggerName = LdpVerifier::class.java.name
 
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
     private val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
@@ -68,7 +67,7 @@ class LdpVerifier {
 
     fun verify(credential: String): Boolean {
 
-        Logger.info("Received Credentials Verification - Start")
+        Logger.info(loggerName, "Received Credentials Verification - Start")
         val confDocumentLoader: ConfigurableDocumentLoader = getConfigurableDocumentLoader()
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credential)
         vcJsonLdObject.documentLoader = confDocumentLoader
@@ -136,7 +135,7 @@ class LdpVerifier {
                     throw PublicKeyNotFoundException("Public key object is null")
             }
         } catch (e: Exception) {
-            Logger.error("Error Generating public key object", e)
+            Logger.error(loggerName, "Error Generating public key object$e")
             throw PublicKeyNotFoundException("Public key object is null")
         }
     }
@@ -165,7 +164,7 @@ class LdpVerifier {
             }
             throw PublicKeyNotFoundException("Public key object is null")
         } catch (e: Exception) {
-            Logger.error("Error generating public key object", e)
+            Logger.error(loggerName, "Error generating public key object $e")
             throw PublicKeyNotFoundException("Public key object is null")
         }
     }

@@ -9,14 +9,13 @@ import co.nstant.`in`.cbor.CborEncoder
 import co.nstant.`in`.cbor.model.*
 import co.nstant.`in`.cbor.model.Array
 import co.nstant.`in`.cbor.model.Map
-import org.slf4j.LoggerFactory
-import org.slf4j.Logger
+import io.mosip.vercred.vcverifier.utils.Logger
 
 
 typealias IssuerAuth = Array?
 typealias IssuerSignedNamespaces = Map
 
-private val Logger: Logger = LoggerFactory.getLogger("VC-Verifier")
+private val loggerName = MsoMdocCredentialData::class.java.name
 
 
 fun IssuerSignedNamespaces.extractFieldValue(fieldToBeExtracted: String): String {
@@ -45,7 +44,7 @@ fun IssuerSignedNamespaces.extractFieldValue(fieldToBeExtracted: String): String
 
 fun IssuerAuth.extractMso(): Map {
     if (this == null) {
-        Logger.error("IssuerAuth in credential is not available")
+        Logger.error(loggerName, "IssuerAuth in credential is not available")
         throw RuntimeException("Invalid Issuer Auth")
     }
 

@@ -7,15 +7,12 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_C
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
-import io.mosip.vercred.vcverifier.credentialverifier.verifier.LdpVerifier
 import io.mosip.vercred.vcverifier.data.VerificationResult
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import io.mosip.vercred.vcverifier.utils.Logger
 
 
 class CredentialsVerifier {
-    private val Logger: Logger = LoggerFactory.getLogger(CredentialsVerifier::class.java.name)
-
+    private val loggerName = CredentialsVerifier::class.java.name
 
     /**
      * @deprecated This method has been deprecated because it is not extensible for future use cases of supporting different VC format's verification
@@ -25,7 +22,7 @@ class CredentialsVerifier {
     @Deprecated("This method has been deprecated because it is not extensible for future use cases of supporting different VC format's verification")
     fun verifyCredentials(credentials: String?): Boolean {
         if(credentials==null){
-            Logger.error("Error - Input credential is null")
+            Logger.error(loggerName, "Error - Input credential is null")
             throw RuntimeException("Input credential is null")
         }
         val credentialVerifier = CredentialVerifierFactory().get(LDP_VC)

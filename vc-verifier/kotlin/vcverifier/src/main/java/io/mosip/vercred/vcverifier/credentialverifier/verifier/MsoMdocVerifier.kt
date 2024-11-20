@@ -1,7 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import co.nstant.`in`.cbor.CborDecoder
 import co.nstant.`in`.cbor.CborEncoder
 import co.nstant.`in`.cbor.model.Array
@@ -22,6 +20,7 @@ import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.CoseSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.CborDataItemUtils
+import io.mosip.vercred.vcverifier.utils.Logger
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.security.cert.CertificateFactory
@@ -33,7 +32,7 @@ private const val ISSUING_COUNTRY = "issuing_country"
 
 class MsoMdocVerifier {
 
-    private val Logger: Logger = LoggerFactory.getLogger(MsoMdocVerifier::class.java.name)
+    private val loggerName = MsoMdocVerifier::class.java.name
 
 
     private val util: io.mosip.vercred.vcverifier.utils.Util =
@@ -108,11 +107,11 @@ class MsoMdocVerifier {
     private fun verifyDocType(mso: Map, docTypeInDocuments: DataItem?): Boolean {
         val docTypeInMso = mso["docType"]
         if (docTypeInDocuments == null) {
-            Logger.error("Error while doing docType property verification - docType property not found in the credential")
+            Logger.error(loggerName, "Error while doing docType property verification - docType property not found in the credential")
             throw InvalidPropertyException("Property docType not found in the credential")
         }
         if (docTypeInMso != docTypeInDocuments) {
-            Logger.error("Error while doing docType property verification - Property mismatch with docType in the credential")
+            Logger.error(loggerName, "Error while doing docType property verification - Property mismatch with docType in the credential")
             throw InvalidPropertyException("Property mismatch with docType in the credential")
         }
         return true
@@ -191,7 +190,7 @@ class MsoMdocVerifier {
 
                 for ((actualDigestId, actualDigest) in actualDigests) {
                     if (!actualDigest.contentEquals(calculatedDigests[actualDigestId])) {
-                        Logger.error("Error while doing valueDigests verification - mismatch in digests found")
+                        Logger.error(loggerName,"Error while doing valueDigests verification - mismatch in digests found")
                         throw LikelyTamperedException("valueDigests verification failed - mismatch in digests with $actualDigestId")
                     }
                 }
