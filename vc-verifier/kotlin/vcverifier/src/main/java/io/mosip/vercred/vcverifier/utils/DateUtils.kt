@@ -16,17 +16,16 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONObject
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.logging.Logger
 
 object DateUtils {
 
-    private val Logger: Logger = LoggerFactory.getLogger("VC-Verifier")
+    private val logger = Logger.getLogger(DateUtils::class.java.name)
 
     private val dateFormats = listOf(
         ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -43,14 +42,14 @@ object DateUtils {
         return try {
             val inputDate: Date? = parseDate(inputDateString)
             if (inputDate == null) {
-                Logger.error("Given date is not available in supported date formats")
+                logger.severe("Given date is not available in supported date formats")
                 return false
             }
 
             val currentDate = Calendar.getInstance(TimeZone.getTimeZone(UTC)).time
             inputDate.before(currentDate)
         } catch (e: Exception) {
-            Logger.error("Error while comparing dates ${e.message}")
+            logger.severe("Error while comparing dates ${e.message}")
             false
         }
     }
