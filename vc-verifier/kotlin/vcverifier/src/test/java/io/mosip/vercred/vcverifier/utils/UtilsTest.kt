@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 import java.util.Calendar
+import java.util.Date
 
 
 class UtilsTest {
@@ -132,5 +132,47 @@ class UtilsTest {
                 36
             ), (digest)
         )
+    }
+
+    @Test
+    fun `test when issuanceDate time is not future date and 10 seconds less than currentDate time `() {
+        val currentDate = Date()
+        val issuanceDate = Date(currentDate.time-10000)
+        val result = issuanceDate.isFutureDateWithTolerance()
+        assertFalse(result)
+    }
+
+    @Test
+    fun `test when issuanceDate time is not future date and 3 seconds less than currentDate time `() {
+        val currentDate = Date()
+        val issuanceDate = Date(currentDate.time-3000)
+        val result = issuanceDate.isFutureDateWithTolerance()
+        assertFalse(result)
+    }
+
+    @Test
+    fun `test when issuanceDate time equal to future date time`() {
+        val issuanceDate = Date()
+        val result = issuanceDate.isFutureDateWithTolerance()
+        assertFalse(result)
+    }
+
+
+    @Test
+    fun `test when issuanceDate time is future date time but within tolerance range`() {
+        val currentDate = Date()
+        val issuanceDate = Date(currentDate.time+3000)
+
+        val result = issuanceDate.isFutureDateWithTolerance()
+        assertFalse(result)
+    }
+
+    @Test
+    fun `test when issuanceDate time is future date time but outside tolerance range`() {
+        val currentDate = Date()
+        val issuanceDate = Date(currentDate.time+5000)
+
+        val result = issuanceDate.isFutureDateWithTolerance()
+        assertTrue(result)
     }
 }
