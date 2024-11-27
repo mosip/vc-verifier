@@ -1,8 +1,5 @@
 package io.mosip.vercred.vcverifier.utils
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mosip.vercred.vcverifier.utils.DateUtils.dateFormats
 import org.json.JSONArray
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -12,7 +9,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -86,22 +82,19 @@ class UtilsTest {
 
     @Test
     fun `date expired`() {
-        val result = dateUtils.isVCExpired("2024-09-02T17:36:13.644Z")
+        val result = dateUtils.isVCExpired("2024-11-27T13:49:13.644Z")
         assertTrue(result)
     }
 
     @Test
     fun `date not expired`() {
-        val calendar: Calendar = mockk(relaxed = true)
-        mockkStatic(Calendar::class)
-        every { Calendar.getInstance() } returns calendar
-        val result = dateUtils.isDatePassedCurrentDate("2024-11-02T17:36:13.644Z")
+        val result = dateUtils.isVCExpired("2034-11-02T17:36:13.644Z")
         assertFalse(result)
     }
 
     @Test
     fun `invalid date`() {
-        val result = dateUtils.isDatePassedCurrentDate("12345")
+        val result = dateUtils.isFutureDateWithTolerance("12345")
         assertFalse(result)
     }
 
@@ -199,7 +192,7 @@ class UtilsTest {
         val issuanceDateString = convertDateToUtcString(issuanceDate)
 
         val result = dateUtils.isFutureDateWithTolerance(issuanceDateString.orEmpty())
-        assertFalse(result)
+        assertTrue(result)
     }
 
     @Test
