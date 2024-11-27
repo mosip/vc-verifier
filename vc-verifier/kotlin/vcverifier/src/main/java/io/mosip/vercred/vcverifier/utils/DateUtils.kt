@@ -27,7 +27,7 @@ object DateUtils {
 
     private val logger = Logger.getLogger(DateUtils::class.java.name)
 
-    private val dateFormats = listOf(
+    val dateFormats = listOf(
         ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
         ("yyyy-MM-dd'T'HH:mm:ss'Z'")
     )
@@ -78,10 +78,9 @@ object DateUtils {
         }
 
 
-        val issuanceDate: Date = parseDate(vcJsonObject.optString(ISSUANCE_DATE))
-            ?: throw ValidationException(ERROR_ISSUANCE_DATE_INVALID, "${ERROR_CODE_INVALID}${ISSUANCE_DATE}")
+        val issuanceDate = vcJsonObject.optString(ISSUANCE_DATE) ?: ""
 
-        if (issuanceDate.isInFutureWithTolerance()) {
+        if (isFutureDateWithTolerance(issuanceDate)) {
             throw ValidationException(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE,
                 ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
             )
@@ -120,15 +119,11 @@ object DateUtils {
             logger.severe("Given date is not available in supported date formats")
             return false
         }
-        return inputDate.isInFutureWithTolerance(toleranceInMilliSeconds)
+        val currentTime = System.currentTimeMillis()
+        val inputDateTime = inputDate.time
+
+        val upperBound = currentTime + toleranceInMilliSeconds
+        return inputDateTime > upperBound
     }
 
-}
-
-fun Date.isInFutureWithTolerance(toleranceInMilliSeconds: Long = 3000): Boolean {
-    val currentTime = System.currentTimeMillis()
-    val inputDateTime = this.time
-
-    val upperBound = currentTime + toleranceInMilliSeconds
-    return inputDateTime > upperBound
 }
