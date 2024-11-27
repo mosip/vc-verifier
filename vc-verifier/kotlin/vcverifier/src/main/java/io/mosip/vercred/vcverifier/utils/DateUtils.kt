@@ -38,22 +38,6 @@ object DateUtils {
         return DATE_REGEX.matches(dateValue)
     }
 
-    fun isDatePassedCurrentDate(inputDateString: String): Boolean {
-        return try {
-            val inputDate: Date? = parseDate(inputDateString)
-            if (inputDate == null) {
-                logger.severe("Given date is not available in supported date formats")
-                return false
-            }
-
-            val currentDate = Calendar.getInstance(TimeZone.getTimeZone(UTC)).time
-            inputDate.before(currentDate)
-        } catch (e: Exception) {
-            logger.severe("Error while comparing dates ${e.message}")
-            false
-        }
-    }
-
     fun parseDate(date: String): Date? {
         dateFormats.forEach {
             try {
@@ -99,7 +83,7 @@ object DateUtils {
             }
         }
 
-        if (vcJsonObject.has(VALID_FROM) && !isDatePassedCurrentDate(
+        if (vcJsonObject.has(VALID_FROM) && isFutureDateWithTolerance(
                 vcJsonObject.optString(
                     VALID_FROM
                 )
@@ -110,7 +94,7 @@ object DateUtils {
     }
 
     fun isVCExpired(inputDate: String): Boolean {
-        return inputDate.isNotEmpty() && isDatePassedCurrentDate(inputDate)
+        return inputDate.isNotEmpty() && !isFutureDateWithTolerance(inputDate)
     }
 
     fun isFutureDateWithTolerance(inputDateString: String, toleranceInMilliSeconds: Long = 3000): Boolean {
