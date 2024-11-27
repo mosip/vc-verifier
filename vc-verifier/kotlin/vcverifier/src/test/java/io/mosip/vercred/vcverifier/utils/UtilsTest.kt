@@ -138,7 +138,7 @@ class UtilsTest {
     fun `test when issuanceDate time is not future date and 10 seconds less than currentDate time `() {
         val currentDate = Date()
         val issuanceDate = Date(currentDate.time-10000)
-        val result = issuanceDate.isFutureDateWithTolerance()
+        val result = issuanceDate.isInFutureWithTolerance()
         assertFalse(result)
     }
 
@@ -146,14 +146,14 @@ class UtilsTest {
     fun `test when issuanceDate time is not future date and 3 seconds less than currentDate time `() {
         val currentDate = Date()
         val issuanceDate = Date(currentDate.time-3000)
-        val result = issuanceDate.isFutureDateWithTolerance()
+        val result = issuanceDate.isInFutureWithTolerance()
         assertFalse(result)
     }
 
     @Test
     fun `test when issuanceDate time equal to future date time`() {
         val issuanceDate = Date()
-        val result = issuanceDate.isFutureDateWithTolerance()
+        val result = issuanceDate.isInFutureWithTolerance()
         assertFalse(result)
     }
 
@@ -163,7 +163,7 @@ class UtilsTest {
         val currentDate = Date()
         val issuanceDate = Date(currentDate.time+3000)
 
-        val result = issuanceDate.isFutureDateWithTolerance()
+        val result = issuanceDate.isInFutureWithTolerance()
         assertFalse(result)
     }
 
@@ -172,7 +172,7 @@ class UtilsTest {
         val currentDate = Date()
         val issuanceDate = Date(currentDate.time+5000)
 
-        val result = issuanceDate.isFutureDateWithTolerance()
+        val result = issuanceDate.isInFutureWithTolerance()
         assertTrue(result)
     }
 }
