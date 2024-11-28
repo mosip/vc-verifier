@@ -27,7 +27,7 @@ object DateUtils {
 
     private val logger = Logger.getLogger(DateUtils::class.java.name)
 
-    private val dateFormats = listOf(
+    val dateFormats = listOf(
         ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
         ("yyyy-MM-dd'T'HH:mm:ss'Z'")
     )
@@ -36,22 +36,6 @@ object DateUtils {
 
     fun isValidDate(dateValue: String): Boolean {
         return DATE_REGEX.matches(dateValue)
-    }
-
-    fun isDatePassedCurrentDate(inputDateString: String): Boolean {
-        return try {
-            val inputDate: Date? = parseDate(inputDateString)
-            if (inputDate == null) {
-                logger.severe("Given date is not available in supported date formats")
-                return false
-            }
-
-            val currentDate = Calendar.getInstance(TimeZone.getTimeZone(UTC)).time
-            inputDate.before(currentDate)
-        } catch (e: Exception) {
-            logger.severe("Error while comparing dates ${e.message}")
-            false
-        }
     }
 
     fun parseDate(date: String): Date? {
@@ -78,10 +62,9 @@ object DateUtils {
         }
 
 
-        val issuanceDate: Date = parseDate(vcJsonObject.optString(ISSUANCE_DATE))
-            ?: throw ValidationException(ERROR_ISSUANCE_DATE_INVALID, "${ERROR_CODE_INVALID}${ISSUANCE_DATE}")
+        val issuanceDate = vcJsonObject.optString(ISSUANCE_DATE) ?: ""
 
-        if (issuanceDate.isFutureDateWithTolerance()) {
+        if (isFutureDateWithTolerance(issuanceDate)) {
             throw ValidationException(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE,
                 ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
             )
@@ -100,7 +83,7 @@ object DateUtils {
             }
         }
 
-        if (vcJsonObject.has(VALID_FROM) && !isDatePassedCurrentDate(
+        if (vcJsonObject.has(VALID_FROM) && isFutureDateWithTolerance(
                 vcJsonObject.optString(
                     VALID_FROM
                 )
@@ -111,15 +94,20 @@ object DateUtils {
     }
 
     fun isVCExpired(inputDate: String): Boolean {
-        return inputDate.isNotEmpty() && isDatePassedCurrentDate(inputDate)
+        return inputDate.isNotEmpty() && !isFutureDateWithTolerance(inputDate)
     }
 
-}
+    fun isFutureDateWithTolerance(inputDateString: String, toleranceInMilliSeconds: Long = 3000): Boolean {
+        val inputDate: Date? = parseDate(inputDateString)
+        if (inputDate == null) {
+            logger.severe("Given date is not available in supported date formats")
+            return false
+        }
+        val currentTime = System.currentTimeMillis()
+        val inputDateTime = inputDate.time
 
-fun Date.isFutureDateWithTolerance(toleranceInMilliSeconds: Long = 3000): Boolean {
-    val currentTime = System.currentTimeMillis()
-    val inputDateTime = this.time
+        val upperBound = currentTime + toleranceInMilliSeconds
+        return inputDateTime > upperBound
+    }
 
-    val upperBound = currentTime + toleranceInMilliSeconds
-    return inputDateTime > upperBound
 }
