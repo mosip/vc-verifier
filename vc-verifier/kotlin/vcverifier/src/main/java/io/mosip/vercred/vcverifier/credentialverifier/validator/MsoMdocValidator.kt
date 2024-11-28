@@ -5,12 +5,17 @@ import co.nstant.`in`.cbor.model.MajorType
 import co.nstant.`in`.cbor.model.Map
 import co.nstant.`in`.cbor.model.UnicodeString
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_DATE_MSO
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_VALID_FROM_MSO
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_VALID_UNTIL_MSO
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_DATE_MSO
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_VALID_FROM_MSO
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_VALID_UNTIL_MSO
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.MsoMdocVerifiableCredential
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.extractMso
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.DateUtils
+import io.mosip.vercred.vcverifier.utils.DateUtils.parseDate
 import java.util.logging.Logger
 
 class MsoMdocValidator {
@@ -33,18 +38,29 @@ class MsoMdocValidator {
                 logger.severe("validUntil / validFrom is not available in the credential's MSO")
                 throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
-            val isCurrentTimeGreaterThanValidFrom =
-                DateUtils.isDatePassedCurrentDate(validFrom.toString())
-            val isCurrentTimeLessThanValidUntil =
-                !DateUtils.isDatePassedCurrentDate(validUntil.toString())
+            val isValidFromIsFutureDate =
+                DateUtils.isFutureDateWithTolerance(validFrom.toString())
+            val isValidUntilIsPastDate =
+                !DateUtils.isFutureDateWithTolerance(validUntil.toString())
             val isValidUntilGreaterThanValidFrom: Boolean =
-                DateUtils.parseDate(validUntil.toString())?.after(
-                    DateUtils.parseDate(
+                parseDate(validUntil.toString())?.after(
+                    parseDate(
                         validFrom.toString()
                     ) ?: return false
                 ) ?: false
-            if (!(isCurrentTimeLessThanValidUntil && isCurrentTimeGreaterThanValidFrom && isValidUntilGreaterThanValidFrom)) {
-                logger.severe("Error while doing validity verification - invalid validUntil / validFrom in the MSO of the credential")
+
+            if(isValidFromIsFutureDate){
+                logger.severe("Error while doing validity verification - invalid validFrom in the MSO of the credential")
+                throw ValidationException(ERROR_MESSAGE_INVALID_VALID_FROM_MSO, ERROR_CODE_INVALID_VALID_FROM_MSO)
+            }
+
+            if(isValidUntilIsPastDate){
+                logger.severe("Error while doing validity verification - invalid validUntil in the MSO of the credential")
+                throw ValidationException(ERROR_MESSAGE_INVALID_VALID_UNTIL_MSO, ERROR_CODE_INVALID_VALID_UNTIL_MSO)
+            }
+
+            if(!isValidUntilGreaterThanValidFrom){
+                logger.severe("Error while doing validity verification - invalid validFrom / validUntil in the MSO of the credential")
                 throw ValidationException(ERROR_MESSAGE_INVALID_DATE_MSO, ERROR_CODE_INVALID_DATE_MSO)
             }
             return true
