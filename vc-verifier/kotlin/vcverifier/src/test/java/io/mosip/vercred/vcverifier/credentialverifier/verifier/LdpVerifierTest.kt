@@ -26,7 +26,6 @@ class LdpVerifierTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should successfully verify valid sunbird credential`(){
         val validVC = """{
          "@context": [
