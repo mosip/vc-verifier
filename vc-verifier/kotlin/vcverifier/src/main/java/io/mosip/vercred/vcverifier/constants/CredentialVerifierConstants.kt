@@ -6,6 +6,7 @@ object CredentialVerifierConstants {
     const val PUBLIC_KEY_PEM = "publicKeyPem"
     const val PUBLIC_KEY_MULTIBASE = "publicKeyMultibase"
     const val VERIFICATION_METHOD = "verificationMethod"
+    const val KEY_TYPE = "type"
 
     const val PSS_PARAM_SHA_256 = "SHA-256"
     const val PSS_PARAM_MGF1 = "MGF1"
@@ -24,6 +25,12 @@ object CredentialVerifierConstants {
     const val RSA_SIGNATURE = "RsaSignature2018"
     const val ED25519_SIGNATURE_2018 = "Ed25519Signature2018"
     const val ED25519_SIGNATURE_2020 = "Ed25519Signature2020"
+
+    const val RSA_KEY_TYPE = "RsaVerificationKey2018"
+    const val ED25519_KEY_TYPE_2018 = "Ed25519VerificationKey2018"
+    const val ED25519_KEY_TYPE_2020 = "Ed25519VerificationKey2020"
+
+
 
     const val EXCEPTION_DURING_VERIFICATION = "Exception during Verification: "
     const val ERROR_MESSAGE_VERIFICATION_FAILED = "Verification Failed"
