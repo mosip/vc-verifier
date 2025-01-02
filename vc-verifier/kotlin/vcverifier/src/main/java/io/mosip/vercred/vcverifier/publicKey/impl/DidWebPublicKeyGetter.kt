@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_MULTIBASE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_METHOD
+import io.mosip.vercred.vcverifier.credentialverifier.verifier.LdpVerifier
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
@@ -16,18 +17,18 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
 import java.security.PublicKey
+import java.util.logging.Logger
 
 class DidWebPublicKeyGetter: PublicKeyGetter {
+
+    private val logger = Logger.getLogger(DidWebPublicKeyGetter::class.java.name)
 
     private val RESOLVER_API = "https://resolver.identity.foundation/1.0/identifiers/"
 
     override fun get(verificationMethod: URI): PublicKey {
         val resolverUrl = "$RESOLVER_API$verificationMethod"
         try {
-            val request = Request.Builder()
-                .url(resolverUrl)
-                .get()
-                .build()
+            val request = Request.Builder().url(resolverUrl).get().build()
             val response = OkHttpClient.Builder().build().newCall(request).execute()
             response.body?.use { responseBody ->
                 val jsonNode = ObjectMapper().readTree(responseBody.string())
@@ -39,14 +40,11 @@ class DidWebPublicKeyGetter: PublicKeyGetter {
                         isPublicKeyMultibase(publicKeyStr) -> getPublicKeyObjectFromPublicKeyMultibase(publicKeyStr, keyType)
                         else -> throw PublicKeyTypeNotSupportedException("Public Key type is not supported")
                     }
-
                 }
             }
-
-
             throw PublicKeyNotFoundException("Public key string not found")
         } catch (e: Exception) {
-            //logger.severe("Error fetching public key string $e")
+            logger.severe("Error fetching public key string $e")
             throw PublicKeyNotFoundException("Public key string not found")
         }
     }

@@ -11,19 +11,14 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDD
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
-import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
-import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyGetter
-import io.mosip.vercred.vcverifier.publicKey.impl.HttpsPublicKeyGetter
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.net.URI
-import java.security.PublicKey
 import java.security.Security
 import java.util.logging.Logger
 
@@ -33,6 +28,7 @@ class LdpVerifier {
     private val logger = Logger.getLogger(LdpVerifier::class.java.name)
 
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
+
     private val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
         JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
         JWS_RS256_SIGN_ALGO_CONST to RS256SignatureVerifierImpl(),
@@ -72,7 +68,7 @@ class LdpVerifier {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
                 val signatureVerifier = ED25519SignatureVerifierImpl()
-                return signatureVerifier.verify(publicKeyObj!!, canonicalHashBytes, signature, provider)
+                return signatureVerifier.verify(publicKeyObj, canonicalHashBytes, signature, provider)
             }
             false
         } catch (e: Exception) {

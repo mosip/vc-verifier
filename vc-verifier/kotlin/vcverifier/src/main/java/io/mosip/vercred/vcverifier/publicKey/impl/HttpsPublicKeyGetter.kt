@@ -14,23 +14,22 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
 import java.security.PublicKey
+import java.util.logging.Logger
 
 class HttpsPublicKeyGetter : PublicKeyGetter {
+
+    private val logger = Logger.getLogger(HttpsPublicKeyGetter::class.java.name)
+
     override fun get(verificationMethod: URI): PublicKey {
         try {
             val okHttpClient = OkHttpClient.Builder().build().newBuilder().build()
-            val request = Request.Builder()
-                .url(verificationMethod.toURL())
-                .get()
-                .build()
-
+            val request = Request.Builder().url(verificationMethod.toURL()).get().build()
             val response = okHttpClient.newCall(request).execute()
             response.body?.let { responseBody ->
                 val objectMapper = ObjectMapper()
                 val jsonNode = objectMapper.readTree(responseBody.string())
                 val responseObjectNode = jsonNode as ObjectNode
-                val publicKeyStr =
-                    responseObjectNode[CredentialVerifierConstants.PUBLIC_KEY_PEM].asText()
+                val publicKeyStr = responseObjectNode[CredentialVerifierConstants.PUBLIC_KEY_PEM].asText()
                 val keyType = responseObjectNode[CredentialVerifierConstants.KEY_TYPE].asText()
                 return when {
                     isPemPublicKey(publicKeyStr) -> getPublicKeyObjectFromPemPublicKey(publicKeyStr, keyType)
@@ -40,10 +39,8 @@ class HttpsPublicKeyGetter : PublicKeyGetter {
             }
             throw PublicKeyNotFoundException("Public key string not found")
         } catch (e: Exception) {
-            //logger.severe("Error fetching public key string $e")
+            logger.severe("Error fetching public key string $e")
             throw PublicKeyNotFoundException("Public key string not found")
-
         }
     }
-
 }

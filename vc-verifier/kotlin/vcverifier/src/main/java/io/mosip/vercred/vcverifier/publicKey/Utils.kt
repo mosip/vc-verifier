@@ -16,10 +16,10 @@ import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
 
-
 private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
 fun isPublicKeyMultibase(publicKeyMultibase: String): Boolean {
+    //ref: https://w3c.github.io/vc-di-eddsa/#multikey
     val rawPublicKeyWithHeader = Base58.decode(publicKeyMultibase.substring(1))
     return rawPublicKeyWithHeader.size > 2 &&
             rawPublicKeyWithHeader[0] == 0xed.toByte() &&
@@ -44,7 +44,6 @@ fun getPublicKeyObjectFromPemPublicKey(publicKeyPem: String, keyType: String): P
         val keyFactory = KeyFactory.getInstance(PUBLIC_KEY_ALGORITHM[keyType], provider)
         return keyFactory.generatePublic(pubKeySpec)
     } catch (e: Exception) {
-        //logger.severe("Error Generating public key object$e")
         throw PublicKeyNotFoundException("Public key object is null")
     }
 }
@@ -54,12 +53,10 @@ fun getPublicKeyObjectFromPublicKeyMultibase(publicKeyPem: String, keyType: Stri
         val rawPublicKeyWithHeader = Base58.decode(publicKeyPem.substring(1))
         val rawPublicKey = rawPublicKeyWithHeader.copyOfRange(2, rawPublicKeyWithHeader.size)
         val publicKey = Hex.decode(DER_PUBLIC_KEY_PREFIX) + rawPublicKey
-
         val pubKeySpec = X509EncodedKeySpec(publicKey)
         val keyFactory = KeyFactory.getInstance(PUBLIC_KEY_ALGORITHM[keyType], provider)
         return keyFactory.generatePublic(pubKeySpec)
     } catch (e: Exception) {
-        //logger.severe("Error Generating public key object$e")
         throw PublicKeyNotFoundException("Public key object is null")
     }
 }
