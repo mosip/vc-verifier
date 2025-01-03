@@ -64,6 +64,7 @@ class LdpVerifier {
                 return signatureVerifier.verify(publicKeyObj, actualData, signature, provider)
             }
 
+            //Currently we are getting proofValue only in ED25519Signature2020 sunbird VC
             else if (!ldProof.proofValue.isNullOrEmpty()) {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
