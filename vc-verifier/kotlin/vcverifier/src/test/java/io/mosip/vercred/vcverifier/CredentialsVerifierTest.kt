@@ -19,7 +19,7 @@ class CredentialsVerifierTest {
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should return true for valid credential validation success`() {
-        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "VC/PS256SignedMosipVC.json")
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/PS256SignedMosipVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
         val verificationResult = CredentialsVerifier().verify(vc, LDP_VC)
@@ -32,7 +32,7 @@ class CredentialsVerifierTest {
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should return false for invalid credential validation failure`() {
-        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "VC/invalidVC.json")
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/invalidVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
         val verificationResult = CredentialsVerifier().verify(vc, LDP_VC)
@@ -44,7 +44,7 @@ class CredentialsVerifierTest {
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should return true for valid credential verification success`() {
-        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "VC/PS256SignedMosipVC.json")
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/PS256SignedMosipVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
         val verificationResult = CredentialsVerifier().verify(vc, LDP_VC)
@@ -58,7 +58,7 @@ class CredentialsVerifierTest {
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should return false for invalid credential verification failure`() {
-        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "VC/tamperedVC.json")
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/tamperedVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
         val verify = CredentialsVerifier().verify(vc, LDP_VC)
