@@ -1,5 +1,11 @@
 ## **Vc Verifier**
 
+### supported VC formats
+
+- ldp_vc
+- mso_mdoc 
+  - Limitations: Validation of Document Signer certificate is not performed. This validation helps in establishing trust with issuing entity for the verification of authenticity and integrity of document.
+
 ### Validate the VC
 - Validation should be done before doing actual signature verification which identifies invalid or missing fields in the earlier stage.
 ##### VC Context/Schema validation
