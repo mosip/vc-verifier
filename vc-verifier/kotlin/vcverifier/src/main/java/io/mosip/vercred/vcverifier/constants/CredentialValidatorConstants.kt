@@ -91,4 +91,9 @@ object CredentialValidatorConstants {
         "Ed25519Signature2018",
         "Ed25519Signature2020"
     )
+    enum class DATA_MODEL {
+        DATA_MODEL_1_1,
+        DATA_MODEL_2_0,
+        UNSUPPORTED
+    }
 }
