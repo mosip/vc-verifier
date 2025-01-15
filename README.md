@@ -24,7 +24,6 @@
 -   Ed25519Signature2020
 
 #### Project Structure
-### Project Structure
 
 `io.mosip.vercred.vcverifier`
 - **constants**
@@ -39,6 +38,7 @@
 - **utils**
 - **CredentialVerifier.kt**
 
+#### Package Description
 
 - **constants** - All Validator and Verifier constants are declared in this package.
 - **credentialverifier** - CredentialFactory for different credential formats are declared in this package. It also consists of classes for different credential formats.
