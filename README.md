@@ -31,8 +31,8 @@
     - `types`
     - `validator`
     - `verifier`
+- **data**
 - **exception**
-- **response**
 - **signature**
     - `impl`
 - **utils**
@@ -42,8 +42,8 @@
 
 - **constants** - All Validator and Verifier constants are declared in this package.
 - **credentialverifier** - CredentialFactory for different credential formats are declared in this package. It also consists of classes for different credential formats.
+- **data** - It has data classes for Validation Status and Verification Result.
 - **exception** - Custom exceptions are defined in this package.
-- **response** - It has data classes for Validation Status and Verification Result.
 - **signature** - Interface and Implementations for multiple Signature Verification are available in this package.
 - **utils** - It helper classes and methods that provide reusable and general-purpose functionalities across the project.
 - **CredentialVerifier.kt** - The `CredentialVerifier.kt` file serves as the main entry point to the VC Verifier Library. This class provides the primary interface for interacting with the library and encapsulates all the core functionalities related to validating and verifying Verifiable Credentials (VCs).
