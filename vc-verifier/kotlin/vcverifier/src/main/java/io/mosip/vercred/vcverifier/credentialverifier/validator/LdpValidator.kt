@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SCHEMA
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_STATUS
@@ -24,10 +23,9 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.REFRES
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TERMS_OF_USE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATA_MODEL.DATA_MODEL_1_1
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATA_MODEL.DATA_MODEL_2_0
+import io.mosip.vercred.vcverifier.data.DATA_MODEL
+import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
-import io.mosip.vercred.vcverifier.response.ValidationStatus
 import io.mosip.vercred.vcverifier.utils.DateUtils
 import io.mosip.vercred.vcverifier.utils.Util
 import io.mosip.vercred.vcverifier.utils.ValidationHelper
@@ -67,7 +65,7 @@ class LdpValidator {
             val contextVersion = Util().getContextVersion(vcJsonObject)
                 ?: throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$CONTEXT", "${ERROR_CODE_MISSING}${CONTEXT.uppercase()}")
             when (contextVersion) {
-                DATA_MODEL_1_1 -> {
+                DATA_MODEL.DATA_MODEL_1_1 -> {
                     validateV1SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     var expirationMessage = ""
@@ -79,7 +77,7 @@ class LdpValidator {
                     }
                     return ValidationStatus(expirationMessage, verificationStatusCode)
                 }
-                DATA_MODEL_2_0 -> {
+                DATA_MODEL.DATA_MODEL_2_0 -> {
                     validateV2SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     var expirationMessage = ""

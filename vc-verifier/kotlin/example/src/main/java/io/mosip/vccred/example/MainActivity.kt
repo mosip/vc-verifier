@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import io.mosip.vccred.example.ui.theme.VcverifierTheme
 import io.mosip.vercred.vcverifier.CredentialsVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
-import io.mosip.vercred.vcverifier.response.VerificationResult
+import io.mosip.vercred.vcverifier.data.VerificationResult
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
