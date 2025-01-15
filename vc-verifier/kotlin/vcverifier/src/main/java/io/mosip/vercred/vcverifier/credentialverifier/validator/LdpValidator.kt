@@ -70,18 +70,25 @@ class LdpValidator {
                 DATA_MODEL_1_1 -> {
                     validateV1SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
-                    val expirationMessage = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
-                            EXPIRATION_DATE))) ERROR_MESSAGE_VC_EXPIRED else ""
-                    val verificationStatusCode = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
-                            EXPIRATION_DATE))) ERROR_CODE_VC_EXPIRED else ""
+                    var expirationMessage = ""
+                    var verificationStatusCode = ""
+                    if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
+                            EXPIRATION_DATE))) {
+                        expirationMessage = ERROR_MESSAGE_VC_EXPIRED
+                        verificationStatusCode = ERROR_CODE_VC_EXPIRED
+                    }
                     return ValidationStatus(expirationMessage, verificationStatusCode)
                 }
                 DATA_MODEL_2_0 -> {
                     validateV2SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
-                    val expirationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_MESSAGE_VC_EXPIRED else ""
-                    val verificationStatusCode = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(
-                            VALID_UNTIL))) ERROR_CODE_VC_EXPIRED else ""
+                    var expirationMessage = ""
+                    var verificationStatusCode = ""
+                    if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(
+                            VALID_UNTIL))) {
+                        expirationMessage = ERROR_MESSAGE_VC_EXPIRED
+                        verificationStatusCode = ERROR_CODE_VC_EXPIRED
+                    }
                     return ValidationStatus(expirationMessage, verificationStatusCode)
                 }
                 else -> {
