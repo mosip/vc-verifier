@@ -56,8 +56,8 @@
         <dependency>
             <groupId>io.mosip</groupId>
             <artifactId>vcverifier-jar</artifactId>
-            <version>1.1.0</version>
-        </dependency>  
+            <version>{{version-number}}</version>
+        </dependency>
 
 To integrate **vc-verifier** library into a Maven project ,  include below additional dependencies that are not managed via the `pom.xml` file of vc-verifier library.
 
@@ -83,9 +83,22 @@ To integrate **vc-verifier** library into a Maven project ,  include below addit
 To integrate **vc-verifier** library into a Gradle project ,  add below line in module level `build.gradle`.
 
 	dependencies {
-		implementation("io.mosip:vc-verifier:1.1.0")
+		implementation("io.mosip:vc-verifier:{{version-number}}")
 	}
 
+To avoid Duplicate classes error while building the application, include the below exclusion strategy in the build.gradle file.
+
+    configurations.all {  
+      resolutionStrategy {  
+      exclude(module = "bcprov-jdk15to18")  
+      exclude(module = "bcutil-jdk18on")  
+      exclude(module = "bcprov-jdk15on")  
+      exclude(module = "bcutil-jdk15on")  
+      exclude(module = "titanium-json-ld")  
+      }  
+    }
+
+**Note**: `version-number` should be replaced with the actual version of the library from Maven Central.
 
 
 
