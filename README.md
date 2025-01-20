@@ -48,6 +48,57 @@
 - **utils** - It helper classes and methods that provide reusable and general-purpose functionalities across the project.
 - **CredentialVerifier.kt** - The `CredentialVerifier.kt` file serves as the main entry point to the VC Verifier Library. This class provides the primary interface for interacting with the library and encapsulates all the core functionalities related to validating and verifying Verifiable Credentials (VCs).
 
+#### Integrating jar to Maven Project
+
+
+##### Add Vc-Verifier in `pom.xml`
+
+        <dependency>
+            <groupId>io.mosip</groupId>
+            <artifactId>vcverifier-jar</artifactId>
+            <version>{{version-number}}</version>
+        </dependency>
+
+To integrate **vc-verifier** library into a Maven project ,  include below additional dependencies that are not managed via the `pom.xml` file of vc-verifier library.
+
+        <dependency>
+            <groupId>com.android.identity</groupId>
+            <artifactId>identity-credential</artifactId>
+            <version>20231002</version>
+        </dependency>
+        <dependency>
+            <groupId>info.weboftrust</groupId>
+            <artifactId>ld-signatures-java</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>decentralized-identity</groupId>
+            <artifactId>jsonld-common-java</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
+
+#### Integrating aar to Gradle Project
+
+To integrate **vc-verifier** library into a Gradle project ,  add below line in module level `build.gradle`.
+
+	dependencies {
+		implementation("io.mosip:vc-verifier:{{version-number}}")
+	}
+
+To avoid Duplicate classes error while building the application, include the below exclusion strategy in the build.gradle file.
+
+    configurations.all {  
+      resolutionStrategy {  
+      exclude(module = "bcprov-jdk15to18")  
+      exclude(module = "bcutil-jdk18on")  
+      exclude(module = "bcprov-jdk15on")  
+      exclude(module = "bcutil-jdk15on")  
+      exclude(module = "titanium-json-ld")  
+      }  
+    }
+
+**Note**: `version-number` should be replaced with the actual version of the library from Maven Central.
 
 
 
