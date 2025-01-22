@@ -69,7 +69,7 @@ tasks.withType<Test> {
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
-    dependsOn("test") // Make sure you adjust the task name based on your build variant (e.g., testDebugUnitTest)
+    dependsOn("testDebugUnitTest")
 
     reports {
         xml.required = true
@@ -131,7 +131,6 @@ sonarqube {
         property( "sonar.language", "kotlin")
         property( "soanr.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
         property( "sonar.scm.disabled", "true")
-//        Test coverage can be supported with jacoco
-//        property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+        property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
     }
 }
