@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
     alias(libs.plugins.dokka)
     signing
-    id("org.sonarqube") version "6.0.1.5171"
+    id("org.sonarqube") version "5.1.0.4872"
 }
 
 android {
@@ -92,4 +92,15 @@ tasks.register<Jar>("sourcesJar") {
 apply(from = "publish-artifact.gradle")
 tasks.register("generatePom") {
     dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
+}
+
+sonarqube {
+    properties {
+        property( "sonar.java.binaries", "build/intermediates/javac/debug")
+        property( "sonar.language", "kotlin")
+        property( "soanr.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
+        property( "sonar.scm.disabled", "true")
+//        Test coverage can be supported with jacoco
+//        property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+    }
 }
