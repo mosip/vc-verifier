@@ -62,10 +62,10 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-//    jacoco {
-//        isEnabled = true
-//    }
-//    finalizedBy(tasks.named("jacocoTestReport")) // Generate the Jacoco report after tests
+    jacoco {
+        isEnabled = true
+    }
+    finalizedBy(tasks.named("jacocoTestReport"))
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
