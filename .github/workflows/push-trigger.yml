@@ -19,6 +19,7 @@ on:
       - 'injimob*'
       - 'develop'
       - 'master'
+      # To be removed
       - sonar-testing
 
 jobs:
@@ -33,7 +34,7 @@ jobs:
 
   sonar_analysis:
     needs: build-maven-vc-verifier
-    # if: "${{  github.event_name != 'pull_request' }}"
+    if: "${{  github.event_name != 'pull_request' }}"
     uses: tw-mosip/kattu/.github/workflows/gradle-sonar-analysis.yml@injimob-2712-add-gradle-workflow
     with:
       SERVICE_LOCATION: vc-verifier/kotlin/vcverifier
