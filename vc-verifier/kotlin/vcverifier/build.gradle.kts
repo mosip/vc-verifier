@@ -4,8 +4,14 @@ plugins {
     `maven-publish`
     alias(libs.plugins.dokka)
     signing
-    id("org.sonarqube") version "6.0.1.5171"
+    id("org.sonarqube") version "5.1.0.4872"
+    jacoco
 }
+
+jacoco {
+    toolVersion = "0.8.8" // Ensure compatibility
+}
+
 
 android {
     namespace = "io.mosip.vccred.vcverifier"
@@ -50,14 +56,39 @@ dependencies {
     implementation("co.nstant.in:cbor:0.9")
     implementation ( "com.android.identity:identity-credential:20231002")
 
-
-
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    jacoco {
+        isEnabled = true
+    }
+    finalizedBy(tasks.named("jacocoTestReport"))
+}
+
+tasks.register("jacocoTestReport", JacocoReport::class) {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+
+    val kotlinTree = fileTree(
+        mapOf(
+            "dir" to "${layout.buildDirectory.get()}/tmp/kotlin-classes/debug",
+            "includes" to listOf("**/*.class")
+        )
+    )
+    val coverageSourceDirs = arrayOf("src/main/java")
+
+    classDirectories.setFrom(files(kotlinTree))
+    sourceDirectories.setFrom(coverageSourceDirs)
+
+    executionData.setFrom(files("${layout.buildDirectory.get()}/jacoco/testDebugUnitTest.exec"))
 }
 
 tasks.register<Jar>("jarRelease") {
@@ -92,4 +123,14 @@ tasks.register<Jar>("sourcesJar") {
 apply(from = "publish-artifact.gradle")
 tasks.register("generatePom") {
     dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
+}
+
+sonarqube {
+    properties {
+        property( "sonar.java.binaries", "build/intermediates/javac/debug")
+        property( "sonar.language", "kotlin")
+        property( "soanr.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
+        property( "sonar.scm.disabled", "true")
+        property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+    }
 }
