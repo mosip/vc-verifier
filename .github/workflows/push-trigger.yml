@@ -19,8 +19,6 @@ on:
       - 'injimob*'
       - 'develop'
       - 'master'
-      # To be removed
-      - sonar-testing
 
 jobs:
   build-maven-vc-verifier:
