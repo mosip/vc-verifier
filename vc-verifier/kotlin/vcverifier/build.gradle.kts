@@ -131,7 +131,7 @@ sonarqube {
     properties {
         property( "sonar.java.binaries", "build/intermediates/javac/debug")
         property( "sonar.language", "kotlin")
-        property( "soanr.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
+        property( "sonar.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
         property( "sonar.scm.disabled", "true")
         property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
     }
