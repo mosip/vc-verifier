@@ -69,6 +69,8 @@ tasks.withType<Test> {
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
+    description = "Generates Test coverage report"
+    group = "TestReport"
     dependsOn("testDebugUnitTest")
 
     reports {
