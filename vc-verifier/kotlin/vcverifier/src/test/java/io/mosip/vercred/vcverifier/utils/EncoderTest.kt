@@ -2,7 +2,6 @@ package io.mosip.vercred.vcverifier.utils
 
 import android.os.Build
 import io.mockk.every
-import io.mockk.mockkConstructor
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
@@ -19,7 +18,7 @@ import org.junit.jupiter.api.Test
 class EncoderTest {
     @BeforeEach
     fun setUp() {
-        mockkConstructor(Util::class)
+        mockkObject(Util.Companion)
     }
 
     @AfterEach
@@ -31,7 +30,7 @@ class EncoderTest {
     inner class JavaEnvironment {
         @BeforeEach
         fun setUp() {
-            every { anyConstructed<Util>().isAndroid() } returns false
+            every { Util.isAndroid() } returns false
         }
 
         @Test
@@ -78,7 +77,7 @@ class EncoderTest {
     inner class AndroidEnvironment {
         @BeforeEach
         fun setUp() {
-            every { anyConstructed<Util>().isAndroid() } returns true
+            every { Util.isAndroid() } returns true
 
             mockkObject(BuildConfig)
 

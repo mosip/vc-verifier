@@ -11,8 +11,10 @@ import java.security.MessageDigest
 
 
 class Util {
-    fun isAndroid(): Boolean {
-        return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
+    companion object{
+        fun isAndroid(): Boolean {
+            return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
+        }
     }
 
     fun getId(obj: Any): String? {

@@ -6,7 +6,7 @@ import java.util.Base64
 
 class Encoder {
     fun decodeFromBase64UrlFormatEncoded(content: String): ByteArray {
-        return if (Util().isAndroid()) {
+        return if (Util.isAndroid()) {
             if( BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O){
                 javaBase64UrlDecode(content)
             } else {
