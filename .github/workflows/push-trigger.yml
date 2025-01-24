@@ -36,7 +36,6 @@ jobs:
     uses: mosip/kattu/.github/workflows/gradlew-sonar-analysis.yml@master-java21
     with:
       SERVICE_LOCATION: vc-verifier/kotlin/vcverifier
-      ANDROID_LOCATION: ''
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_ORGANIZATION: ${{ secrets.ORG_KEY }}
