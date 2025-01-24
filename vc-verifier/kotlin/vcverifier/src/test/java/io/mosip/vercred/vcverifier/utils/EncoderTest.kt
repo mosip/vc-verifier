@@ -2,39 +2,119 @@ package io.mosip.vercred.vcverifier.utils
 
 import android.os.Build
 import io.mockk.every
+import io.mockk.mockkConstructor
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.unmockkAll
+import io.mockk.unmockkStatic
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 
 class EncoderTest {
     @BeforeEach
     fun setUp() {
-        mockkObject(BuildConfig)
+        mockkConstructor(Util::class)
     }
 
-    @Test
-    fun `should encode the given string to base64 url formal with API greater than or equal to Version O`() {
-        every { BuildConfig.getVersionSDKInt() } returns Build.VERSION_CODES.O
-        val encoder = Encoder()
-
-        val decodedData: ByteArray = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ=")
-
-        assertTrue("hello world".toByteArray().contentEquals(decodedData))
+    @AfterEach
+    fun tearDown() {
+        unmockkAll()
     }
 
-    @Test
-    fun `should decode the given byteArray from base64 url formal with API lesser than  Version O`() {
-        every { BuildConfig.getVersionSDKInt() } returns Build.VERSION_CODES.N
-        mockkStatic(android.util.Base64::class)
-        every { android.util.Base64.decode(any<String>(), android.util.Base64.DEFAULT) } returns "hello world".toByteArray()
-        val encoder = Encoder()
+    @Nested
+    inner class JavaEnvironment {
+        @BeforeEach
+        fun setUp() {
+            every { anyConstructed<Util>().isAndroid() } returns false
+        }
 
-        val decodedData: ByteArray = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ=")
+        @Test
+        fun `should decode the base64 url encoded content successfully`() {
+            val encoder = Encoder()
 
-        assertEquals("hello world", decodedData.toString(Charsets.UTF_8))
+            val decodedContent = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ=")
+
+            assertEquals("hello world", decodedContent.toString(Charsets.UTF_8))
+        }
+
+        @Test
+        fun `should throw error when given base64 url encoded data contains non base64 character`() {
+            val encoder = Encoder()
+
+            val exception = assertThrows(IllegalArgumentException::class.java) {
+                encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8%d29ybGQ=")
+            }
+
+            assertEquals(
+                "Illegal base64 character 25",
+                exception.message
+            )
+        }
+
+        @Test
+        fun `should throw error when given base64 url encoded data has truncated bytes`() {
+            val encoder = Encoder()
+
+            val exception = assertThrows(IllegalArgumentException::class.java) {
+                encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybG=")
+            }
+
+            assertEquals(
+                "Input byte array has wrong 4-byte ending unit",
+                exception.message
+            )
+        }
+
+    }
+
+
+    @Nested
+    inner class AndroidEnvironment {
+        @BeforeEach
+        fun setUp() {
+            every { anyConstructed<Util>().isAndroid() } returns true
+
+            mockkObject(BuildConfig)
+
+            mockkStatic(android.util.Base64::class)
+
+        }
+
+        @AfterEach
+        fun tearDown() {
+            unmockkStatic(android.util.Base64::class)
+        }
+
+        @Test
+        fun `should decode the base64 url encoded content successfully with API greater than or equal to Version O`() {
+            every { BuildConfig.getVersionSDKInt() } returns Build.VERSION_CODES.O
+            val encoder = Encoder()
+
+            val decodedData: ByteArray = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
+
+            assertTrue("hello world".toByteArray().contentEquals(decodedData))
+        }
+
+        @Test
+        fun `should decode the base64 url encoded content successfully with API lesser than  Version O`() {
+            every { BuildConfig.getVersionSDKInt() } returns Build.VERSION_CODES.N
+            every {
+                android.util.Base64.decode(
+                    "aGVsbG8gd29ybGQ=",
+                    android.util.Base64.DEFAULT
+                )
+            } returns "hello world".toByteArray()
+            val encoder = Encoder()
+
+            val decodedData: ByteArray = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
+
+            assertEquals("hello world", decodedData.toString(Charsets.UTF_8))
+        }
     }
 }
