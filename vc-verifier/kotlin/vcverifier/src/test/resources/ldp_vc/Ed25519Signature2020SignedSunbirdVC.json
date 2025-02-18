@@ -1,43 +1,43 @@
 {
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "https://holashchand.github.io/test_project/insurance-context.json",
-    {
-      "LifeInsuranceCredential": {
-        "@id": "InsuranceCredential"
-      }
-    },
-    "https://w3id.org/security/suites/ed25519-2020/v1"
-  ],
-  "credentialSubject": {
-    "id": "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2Iiwia2lkIjoiM2ZkbGlncW5RMVlEWklPRUNYRzVZcjFUcW4zbk9QNGtJNF9VdTN1eHpmRSIsIngiOiI4X1dvd3h2dXVjNmI4SGdWUmRpdzUzUmlZYWlTdUlqSHJlbEVlbEdpdHYwIiwieSI6Ikh0Q0dZLW1IcDQya0RrRmhUZWpkcFFhQllFMGNQRkhyNC1UNE1ORFYzT0EiLCJhbGciOiJFUzI1NiJ9",
-    "dob": "1986-06-17",
-    "email": "swati@gmail.com",
-    "gender": "Female",
-    "mobile": "0123456789",
-    "benefits": [
-      "Critical Surgery",
-      "Full body checkup"
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://holashchand.github.io/test_project/insurance-context.json",
+      {
+        "LifeInsuranceCredential": {
+          "@id": "InsuranceCredential"
+        }
+      },
+      "https://w3id.org/security/suites/ed25519-2020/v1"
     ],
-    "fullName": "Swati",
-    "policyName": "Start Insurance Gold Premium",
-    "policyNumber": "8793000",
-    "policyIssuedOn": "2024-07-16",
-    "policyExpiresOn": "2034-07-16"
-  },
-  "expirationDate": "2024-11-16T09:55:53.336Z",
-  "id": "did:rcw:2d2d0601-f3ec-477f-b2ef-7a504d9bc2f5",
-  "issuanceDate": "2024-10-17T09:55:53.394Z",
-  "issuer": "did:web:api.dev1.mosip.net:identity-service:8ebda1d0-665b-4bb7-abc7-d4bf56b6ee09",
-  "proof": {
-    "created": "2024-10-17T09:55:53Z",
-    "proofPurpose": "assertionMethod",
-    "proofValue": "z5gwUgKKpJQdviRzpetw4kHqtZgR29fk86eyEUYQ8ev2EGQ7NbXoPATRAPJGuXTcbiz83GGhedam2nP3pENG3Gi8Q",
-    "type": "Ed25519Signature2020",
-    "verificationMethod": "did:web:api.dev1.mosip.net:identity-service:8ebda1d0-665b-4bb7-abc7-d4bf56b6ee09#key-0"
-  },
-  "type": [
-    "VerifiableCredential",
-    "LifeInsuranceCredential"
-  ]
+    "credentialSubject": {
+      "id": "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2Iiwia2lkIjoiSlpOUHlLOE1PajRnc0VidzJBR0JpQnpzc0xZaFF0Znl1aEpaVWJESjdZZyIsIngiOiJrTlZQOTZ3TlZRWTJ5MjUwOVpfWmNMOUVtX3lTVUh3MGRQRHJLNDJoc2RjIiwieSI6IjExZ0JPSVQydVd0SEhMOXRFM19XTEpySEFDUGdvcEQxbFhaTV80T0RHdDQiLCJhbGciOiJFUzI1NiJ9",
+      "dob": "2025-01-01",
+      "email": "abcd@gmail.com",
+      "gender": "Male",
+      "mobile": "0123456789",
+      "benefits": [
+        "Critical Surgery",
+        "Full body checkup"
+      ],
+      "fullName": "wallet",
+      "policyName": "wallet",
+      "policyNumber": "5555",
+      "policyIssuedOn": "2023-04-20",
+      "policyExpiresOn": "2033-04-20"
+    },
+    "expirationDate": "2025-03-19T07:53:17.673Z",
+    "id": "did:rcw:27f18401-5385-4a8b-8824-bd9bb21202bd",
+    "issuanceDate": "2025-02-17T07:53:17.685Z",
+    "issuer": "did:web:api.released.mosip.net:identity-service:02b073b8-aacd-472e-b63f-265bb7ccdd9f",
+    "proof": {
+      "created": "2025-02-17T07:53:17Z",
+      "proofPurpose": "assertionMethod",
+      "proofValue": "z24osdjZ44Yq3kRf6WGpKGGHFENzvNFG6gpoVWbsxugFyeU63haDDUn9AH62SX6YdCbrh1BwTcB8PTBCA7ramKLTA",
+      "type": "Ed25519Signature2020",
+      "verificationMethod": "did:web:api.released.mosip.net:identity-service:02b073b8-aacd-472e-b63f-265bb7ccdd9f#key-0"
+    },
+    "type": [
+      "VerifiableCredential",
+      "LifeInsuranceCredential"
+    ]
 }
