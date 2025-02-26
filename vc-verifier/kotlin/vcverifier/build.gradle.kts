@@ -8,6 +8,10 @@ plugins {
     signing
 }
 
+configurations.all {
+    resolutionStrategy.force( "com.fasterxml.jackson.core:jackson-core:2.14.0")
+}
+
 jacoco {
     toolVersion = "0.8.8" // Ensure compatibility
 }
@@ -50,6 +54,10 @@ dependencies {
     implementation(libs.okHttp)
     implementation(libs.bouncyCastle)
     implementation(libs.jsonldCommonJava)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.core)
+    implementation(libs.jackson.annotations)
     implementation(libs.nimbusJoseJwt)
     implementation(libs.springWeb)
     implementation("co.nstant.in:cbor:0.9")

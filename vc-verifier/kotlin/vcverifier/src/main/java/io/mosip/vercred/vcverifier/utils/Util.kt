@@ -1,5 +1,7 @@
 package io.mosip.vercred.vcverifier.utils
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
@@ -56,4 +58,11 @@ class Util {
         data: ByteArrayOutputStream,
     ): ByteArray =
         MessageDigest.getInstance(algorithm).digest(data.toByteArray())
+
+    fun convertJsonToMap(jsonString: String): MutableMap<String, Any> {
+        val mapper = jacksonObjectMapper()
+        return mapper.readValue(
+            jsonString,
+            object : TypeReference<MutableMap<String, Any>>() {})
+    }
 }

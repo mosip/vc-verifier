@@ -19,6 +19,8 @@ activityCompose = "1.9.2"
 composeBom = "2024.04.01"
 orgJson = "20240303"
 sonarqube = "5.1.0.4872"
+jacksonAnnotations = "2.14.0"
+jacksonModuleKotlin = "2.14.0"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
@@ -44,6 +46,10 @@ uiTestManifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 uiTestJunit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 material3 = { group = "androidx.compose.material3", name = "material3" }
 orgJson = { group = "org.json", name = "json", version.ref="orgJson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jacksonAnnotations" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonAnnotations" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonModuleKotlin" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
