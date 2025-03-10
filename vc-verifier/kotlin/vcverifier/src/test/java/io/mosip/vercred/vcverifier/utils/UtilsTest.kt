@@ -1,17 +1,26 @@
 package io.mosip.vercred.vcverifier.utils
 
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
+import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyGetter
 import io.mosip.vercred.vcverifier.utils.DateUtils.dateFormats
+import org.bouncycastle.jce.ECNamedCurveTable
+import org.bouncycastle.jce.spec.ECParameterSpec
 import org.json.JSONArray
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
+import java.net.URI
+import java.security.PublicKey
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.security.interfaces.ECPublicKey
 
 
 class UtilsTest {
@@ -199,5 +208,34 @@ class UtilsTest {
     fun `test when issuanceDate is empty`() {
         val result = dateUtils.isFutureDateWithTolerance("")
         assertFalse(result)
+    }
+
+    @Test
+    fun `test EC secp256k1 public key extraction`() {
+        val jwkString = """
+    {
+        "kty": "EC",
+        "crv": "secp256k1",
+        "x": "STRMr8BN3ToqGYWQExEm5-mjyiSqq9iGs600-4UMiZY",
+        "y": "wMC2jyYYA1UPz5TjeHRkSAZV6y6_C5oyCPsudWtFQPM"
+    }
+    """.trimIndent()
+        val publicKey: PublicKey = getPublicKeyFromJWK(jwkString)
+
+        assertNotNull(publicKey)
+        assertTrue(publicKey is ECPublicKey)
+        assertEquals("EC", publicKey.algorithm)
+    }
+
+    @Test
+    fun `should correctly generate PublicKey from valid compressed secp256k1 hex`() {
+        // Valid compressed secp256k1 public key (33 bytes)
+        val compressedHexKey = "034ee0f670fc96bb75e8b89c068a1665007a41c98513d6a911b6137e2d16f1d300"
+
+        val publicKey = getPublicKeyFromHex(compressedHexKey)
+
+        assertNotNull(publicKey, "Public key should not be null")
+        assertTrue(publicKey is ECPublicKey, "Returned key should be an instance of ECPublicKey")
+        assertEquals("EC", publicKey.algorithm)
     }
 }

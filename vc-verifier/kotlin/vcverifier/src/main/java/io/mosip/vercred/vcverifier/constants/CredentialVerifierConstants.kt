@@ -5,6 +5,8 @@ object CredentialVerifierConstants {
 
     const val PUBLIC_KEY_PEM = "publicKeyPem"
     const val PUBLIC_KEY_MULTIBASE = "publicKeyMultibase"
+    const val PUBLIC_KEY_JWK = "publicKeyJwk"
+    const val PUBLIC_KEY_HEX = "publicKeyHex"
     const val VERIFICATION_METHOD = "verificationMethod"
     const val KEY_TYPE = "type"
 
@@ -15,12 +17,14 @@ object CredentialVerifierConstants {
 
     const val PS256_ALGORITHM = "SHA256withRSA/PSS"
     const val RS256_ALGORITHM = "SHA256withRSA"
+    const val EC_ALGORITHM = "SHA256withECDSA"
     const val ED25519_ALGORITHM = "Ed25519"
     const val RSA_ALGORITHM = "RSA"
 
     const val JWS_PS256_SIGN_ALGO_CONST = "PS256"
     const val JWS_RS256_SIGN_ALGO_CONST = "RS256"
     const val JWS_EDDSA_SIGN_ALGO_CONST = "EdDSA"
+    const val JWS_ES256K_SIGN_ALGO_CONST = "ES256K"
 
     const val RSA_SIGNATURE = "RsaSignature2018"
     const val ED25519_SIGNATURE_2018 = "Ed25519Signature2018"
@@ -29,8 +33,9 @@ object CredentialVerifierConstants {
     const val RSA_KEY_TYPE = "RsaVerificationKey2018"
     const val ED25519_KEY_TYPE_2018 = "Ed25519VerificationKey2018"
     const val ED25519_KEY_TYPE_2020 = "Ed25519VerificationKey2020"
+    const val ECCK1_KEY_TYPE_2019 = "secp256k1VerificationKey2019"
 
-
+    const val JWK_KEY_TYPE_EC = "EC"
 
     const val EXCEPTION_DURING_VERIFICATION = "Exception during Verification: "
     const val ERROR_MESSAGE_VERIFICATION_FAILED = "Verification Failed"
