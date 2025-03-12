@@ -20,20 +20,17 @@ object CredentialVerifierConstants {
     const val EC_ALGORITHM = "SHA256withECDSA"
     const val ED25519_ALGORITHM = "Ed25519"
     const val RSA_ALGORITHM = "RSA"
+    const val SECP256K1 = "secp256k1"
 
     const val JWS_PS256_SIGN_ALGO_CONST = "PS256"
     const val JWS_RS256_SIGN_ALGO_CONST = "RS256"
     const val JWS_EDDSA_SIGN_ALGO_CONST = "EdDSA"
     const val JWS_ES256K_SIGN_ALGO_CONST = "ES256K"
 
-    const val RSA_SIGNATURE = "RsaSignature2018"
-    const val ED25519_SIGNATURE_2018 = "Ed25519Signature2018"
-    const val ED25519_SIGNATURE_2020 = "Ed25519Signature2020"
-
     const val RSA_KEY_TYPE = "RsaVerificationKey2018"
     const val ED25519_KEY_TYPE_2018 = "Ed25519VerificationKey2018"
     const val ED25519_KEY_TYPE_2020 = "Ed25519VerificationKey2020"
-    const val ECCK1_KEY_TYPE_2019 = "secp256k1VerificationKey2019"
+    const val ES256K_KEY_TYPE_2019 = "EcdsaSecp256k1VerificationKey2019"
 
     const val JWK_KEY_TYPE_EC = "EC"
 
@@ -43,4 +40,6 @@ object CredentialVerifierConstants {
 
     // This is used to turn public key bytes into a buffer in DER format
     const val DER_PUBLIC_KEY_PREFIX = "302a300506032b6570032100"
+
+    const val COMPRESSED_HEX_KEY_LENGTH = 33
 }

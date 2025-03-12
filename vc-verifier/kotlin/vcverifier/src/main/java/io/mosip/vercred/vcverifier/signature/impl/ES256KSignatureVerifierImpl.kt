@@ -1,18 +1,19 @@
 package io.mosip.vercred.vcverifier.signature.impl
 
-import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
+import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.security.PublicKey
-import java.security.Signature
-import java.security.SignatureException
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
+import java.security.PublicKey
+import java.security.Signature
+
+private const val ECDSA_SIGNATURE_LENGTH = 64
 
 class ES256KSignatureVerifierImpl : SignatureVerifier {
     override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray?, provider: BouncyCastleProvider?): Boolean {
-        if (signature == null || signature.size != 64) {
+        if (signature == null || signature.size != ECDSA_SIGNATURE_LENGTH) {
             throw SignatureVerificationException("Invalid signature length: Expected 64 bytes for R || S format")
         }
 
@@ -33,23 +34,16 @@ class ES256KSignatureVerifierImpl : SignatureVerifier {
     /**
      * Converts a raw ECDSA (R || S) signature (64 bytes) into ASN.1 DER format.
      *
-     * Java's `Signature.verify()` expects the signature in ASN.1 DER format, but many cryptographic
-     * libraries return signatures in raw (R || S) format. This function ensures compatibility by
-     * wrapping `R` and `S` into an ASN.1 DER sequence.
-     *
      * ASN.1 DER Format:
      *  - 0x30 (Sequence)
      *  - Total length
      *  - 0x02 (Integer marker) + Length of R + R value
      *  - 0x02 (Integer marker) + Length of S + S value
      *
-     * @param signature Raw ECDSA signature (64 bytes: [R (32 bytes)] [S (32 bytes)])
-     * @return DER-encoded signature for Java `Signature.verify()`
-     * @throws IllegalArgumentException if the signature length is incorrect
      */
     private fun convertRawSignatureToDER(signature: ByteArray): ByteArray {
-        val r = BigInteger(1, signature.copyOfRange(0, 32))
-        val s = BigInteger(1, signature.copyOfRange(32, 64))
+        val r = BigInteger(1, signature.copyOfRange(0, ECDSA_SIGNATURE_LENGTH/2))
+        val s = BigInteger(1, signature.copyOfRange(ECDSA_SIGNATURE_LENGTH/2, ECDSA_SIGNATURE_LENGTH))
 
         val outputStream = ByteArrayOutputStream()
         val derEncoder = java.io.DataOutputStream(outputStream)

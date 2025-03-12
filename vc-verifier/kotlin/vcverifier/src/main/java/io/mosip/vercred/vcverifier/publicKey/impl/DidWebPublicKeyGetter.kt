@@ -6,10 +6,15 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.KEY_TYP
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_HEX
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_JWK
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_MULTIBASE
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_PEM
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_METHOD
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.publicKey.*
+import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPemPublicKey
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPublicKeyMultibase
 import java.net.URI
 import java.security.PublicKey
 import java.util.logging.Logger
@@ -25,18 +30,29 @@ class DidWebPublicKeyGetter : PublicKeyGetter {
             val verificationMethods = didDocument[VERIFICATION_METHOD] as? List<Map<String, Any>>
                 ?: throw PublicKeyNotFoundException("Verification method not found in DID document")
 
-            val method = verificationMethods.firstOrNull()
+            val verificationMethod = verificationMethods.firstOrNull()
                 ?: throw PublicKeyNotFoundException("No verification methods available in DID document")
 
-            val publicKeyStr = getKeyValue(method, arrayOf(PUBLIC_KEY_MULTIBASE, PUBLIC_KEY_JWK,
-                PUBLIC_KEY_HEX
-            ))
-            val keyType = getKeyValue(method, arrayOf(KEY_TYPE))
+            val publicKeyStr = getKeyValue(
+                verificationMethod, arrayOf(
+                   PUBLIC_KEY_PEM, PUBLIC_KEY_MULTIBASE, PUBLIC_KEY_JWK, PUBLIC_KEY_HEX
+                )
+            )
+            val keyType = getKeyValue(verificationMethod, arrayOf(KEY_TYPE))
             return when {
-                isPublicKeyJwk(publicKeyStr) -> getPublicKeyFromJWK(publicKeyStr)
-                isPublicKeyHex(publicKeyStr) -> getPublicKeyFromHex(publicKeyStr)
-                isPemPublicKey(publicKeyStr) -> getPublicKeyObjectFromPemPublicKey(publicKeyStr, keyType)
-                isPublicKeyMultibase(publicKeyStr) -> getPublicKeyObjectFromPublicKeyMultibase(publicKeyStr, keyType)
+                PUBLIC_KEY_JWK in verificationMethod -> getPublicKeyFromJWK(
+                    publicKeyStr, keyType
+                )
+                PUBLIC_KEY_HEX in verificationMethod -> getPublicKeyFromHex(
+                    publicKeyStr, keyType
+                )
+                PUBLIC_KEY_PEM in verificationMethod -> getPublicKeyObjectFromPemPublicKey(
+                    publicKeyStr, keyType
+                )
+                PUBLIC_KEY_MULTIBASE in verificationMethod -> getPublicKeyObjectFromPublicKeyMultibase(
+                    publicKeyStr, keyType
+                )
+
                 else -> throw PublicKeyTypeNotSupportedException("Public Key type is not supported")
             }
         } catch (e: Exception) {
