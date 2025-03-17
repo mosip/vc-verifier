@@ -83,7 +83,7 @@ To integrate **vc-verifier** library into a Maven project ,  include below addit
 To integrate **vc-verifier** library into a Gradle project ,  add below line in module level `build.gradle`.
 
 	dependencies {
-		implementation("io.mosip:vc-verifier:{{version-number}}")
+		implementation("io.mosip:vc-verifier-aar:{{version-number}}")
 	}
 
 To avoid Duplicate classes error while building the application, include the below exclusion strategy in the build.gradle file.
