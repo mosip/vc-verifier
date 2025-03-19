@@ -100,6 +100,8 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
     executionData.setFrom(files("${layout.buildDirectory.get()}/jacoco/testDebugUnitTest.exec"))
 }
 
+tasks.register("prepareKotlinBuildScriptModel"){}
+
 tasks.register<Jar>("jarRelease") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn("assembleRelease")

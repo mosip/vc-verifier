@@ -8,6 +8,7 @@ import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
 import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256K_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
@@ -16,6 +17,7 @@ import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
+import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -32,7 +34,8 @@ class LdpVerifier {
     private val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
         JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
         JWS_RS256_SIGN_ALGO_CONST to RS256SignatureVerifierImpl(),
-        JWS_EDDSA_SIGN_ALGO_CONST to ED25519SignatureVerifierImpl()
+        JWS_EDDSA_SIGN_ALGO_CONST to ED25519SignatureVerifierImpl(),
+        JWS_ES256K_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl()
     )
 
     init {

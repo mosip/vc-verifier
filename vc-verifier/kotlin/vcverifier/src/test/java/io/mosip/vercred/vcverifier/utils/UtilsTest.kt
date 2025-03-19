@@ -1,17 +1,26 @@
 package io.mosip.vercred.vcverifier.utils
 
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
+import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
+import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyGetter
 import io.mosip.vercred.vcverifier.utils.DateUtils.dateFormats
+import org.bouncycastle.jce.ECNamedCurveTable
+import org.bouncycastle.jce.spec.ECParameterSpec
 import org.json.JSONArray
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
+import java.net.URI
+import java.security.PublicKey
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.security.interfaces.ECPublicKey
 
 
 class UtilsTest {
@@ -200,4 +209,6 @@ class UtilsTest {
         val result = dateUtils.isFutureDateWithTolerance("")
         assertFalse(result)
     }
+
+
 }

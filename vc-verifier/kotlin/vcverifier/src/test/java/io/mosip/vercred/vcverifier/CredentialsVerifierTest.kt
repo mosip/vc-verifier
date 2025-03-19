@@ -56,6 +56,18 @@ class CredentialsVerifierTest {
     }
 
     @Test
+    fun `should return true for valid credential verification success using ES256K`() {
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/ES256KSignedMockVC.json")
+        val vc = String(Files.readAllBytes(file.toPath()))
+
+        val verificationResult = CredentialsVerifier().verify(vc, LDP_VC)
+
+        assertEquals("", verificationResult.verificationMessage)
+        assertTrue(verificationResult.verificationStatus)
+        assertEquals("", verificationResult.verificationErrorCode)
+    }
+
+    @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     fun `should return false for invalid credential verification failure`() {
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/tamperedVC.json")
@@ -66,4 +78,5 @@ class CredentialsVerifierTest {
         assertFalse(verify.verificationStatus)
         assertEquals(ERROR_CODE_VERIFICATION_FAILED, verify.verificationErrorCode)
     }
+
 }

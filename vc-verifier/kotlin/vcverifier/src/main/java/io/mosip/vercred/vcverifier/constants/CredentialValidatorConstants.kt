@@ -83,12 +83,14 @@ object CredentialValidatorConstants {
     val ALGORITHMS_SUPPORTED = listOf(
         "PS256",
         "RS256",
-        "EdDSA"
+        "EdDSA",
+        "ES256K"
     )
 
     val PROOF_TYPES_SUPPORTED = listOf(
         "RsaSignature2018",
         "Ed25519Signature2018",
-        "Ed25519Signature2020"
+        "Ed25519Signature2020",
+        "EcdsaSecp256k1Signature2019"
     )
 }
