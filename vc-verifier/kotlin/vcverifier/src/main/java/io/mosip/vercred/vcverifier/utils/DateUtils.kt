@@ -28,6 +28,7 @@ object DateUtils {
     private val logger = Logger.getLogger(DateUtils::class.java.name)
 
     val dateFormats = listOf(
+        ("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"),
         ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
         ("yyyy-MM-dd'T'HH:mm:ss'Z'")
     )
