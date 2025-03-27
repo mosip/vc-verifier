@@ -21,26 +21,32 @@ class DidWebResolver(private val didUrl: String) {
         private const val QUERY = "([?][^#]*)?"
         private const val FRAGMENT = "(#.*)?"
         private val DID_MATCHER = "^did:$METHOD:$METHOD_ID$PARAMS$PATH$QUERY$FRAGMENT$".toRegex()
-        private const val DOC_PATH = "/.well-known/did.json"
+        private const val DOC_PATH = "/did.json"
+        private const val DID_WELL_KNOWN_PREFIX = ".well-known"
     }
 
     fun resolve(): Map<String, Any> {
         val parsedDid = parseDidUrl()
         try {
-            val idParts = parsedDid.id.split(":")
-            val path = if (idParts.size > 1) {
-                idParts.joinToString("/") { URLDecoder.decode(it, StandardCharsets.UTF_8.name()) } + "/did.json"
-            } else {
-                URLDecoder.decode(parsedDid.id, StandardCharsets.UTF_8.name()) + "/.well-known/did.json"
-            }
-
-            // Build the URL
-            val url = "https://$path"
+            val url = constructDIDUrl(parsedDid)
             return sendHTTPRequest(url, HTTP_METHOD.GET)
                 ?: throw DidDocumentNotFound("Did document could not be fetched")
         } catch (e: Exception) {
             throw DidResolutionFailed(e.message)
         }
+    }
+
+    private fun constructDIDUrl(parsedDid: ParsedDID): String {
+        val idComponents = parsedDid.id.split(":").map { it }
+        val baseDomain = idComponents.first()
+        val path = idComponents.drop(1).joinToString("/")
+        val urlPath = if (path.isEmpty()) {
+            DID_WELL_KNOWN_PREFIX+DOC_PATH
+        } else {
+            path + DOC_PATH
+        }
+
+        return "https://$baseDomain/$urlPath"
     }
 
     private fun parseDidUrl(): ParsedDID {

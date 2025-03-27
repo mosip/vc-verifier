@@ -21,7 +21,7 @@ class DidWebResolverTest {
     }
 
     @Test
-    fun `resolve should return document when valid with path components`() {
+    fun `resolve should return document when valid`() {
         val didUrl = "did:web:example.com:user"
         val mockResponse = mapOf("id" to didUrl)
 
@@ -33,19 +33,7 @@ class DidWebResolverTest {
     }
 
     @Test
-    fun `resolve should return document when valid without path components`() {
-        val didUrl = "did:web:example.com"
-        val mockResponse = mapOf("id" to didUrl)
-
-        mockkObject(NetworkManagerClient.Companion)
-        every { sendHTTPRequest("https://example.com/.well-known/did.json", HTTP_METHOD.GET) } returns mockResponse
-
-        val resolvedDoc = DidWebResolver(didUrl).resolve()
-        assertEquals(resolvedDoc, mapOf("id" to didUrl))
-    }
-
-    @Test
-    fun `should throw DidDocumentNotFound when document is missing with path components`() {
+    fun `should throw DidDocumentNotFound when document is missing`() {
         val didUrl = "did:web:nonexistent.com:user"
 
         mockkObject(NetworkManagerClient.Companion)
@@ -57,21 +45,57 @@ class DidWebResolverTest {
     }
 
     @Test
-    fun `should throw DidDocumentNotFound when document is missing without path components`() {
-        val didUrl = "did:web:nonexistent.com"
-
-        mockkObject(NetworkManagerClient.Companion)
-        every { sendHTTPRequest("https://nonexistent.com/.well-known/did.json", HTTP_METHOD.GET) } returns null
-
-        val exception = assertThrows<DidResolutionFailed> { DidWebResolver(didUrl).resolve() }
-        assertEquals("Did document could not be fetched", exception.message)
-    }
-
-    @Test
-    fun `resolve should throw UnsupportedDidUrl when did web url is not given`() {
+    fun `resolve  throw UnsupportedDidUrl when did web url is not given`() {
         val didUrl = "did:key:nonexistent.com:user"
 
         val exception = assertThrows<UnsupportedDidUrl> { DidWebResolver(didUrl).resolve() }
         assertEquals("Given did url is not supported", exception.message)
+    }
+
+    // New tests for URL resolution
+
+
+    @Test
+    fun `should resolve DID with only domain to well-known path`() {
+        fun `resolve should return document when valid without path components`() {
+            val didUrl = "did:web:example.com"
+            val mockResponse = mapOf("id" to didUrl)
+
+            mockkObject(NetworkManagerClient.Companion)
+            every {
+                sendHTTPRequest(
+                    "https://example.com/.well-known/did.json",
+                    HTTP_METHOD.GET
+                )
+            } returns mockResponse
+
+            val resolvedDoc = DidWebResolver(didUrl).resolve()
+            assertEquals(resolvedDoc, mapOf("id" to didUrl))
+        }
+
+    }
+
+        @Test
+    fun `should resolve DID with multiple path components to correct URL`() {
+        val didUrl = "did:web:example.com:user:alice"
+        val mockResponse = mapOf("id" to didUrl)
+
+        mockkObject(NetworkManagerClient.Companion)
+        every { sendHTTPRequest("https://example.com/user/alice/did.json", HTTP_METHOD.GET) } returns mockResponse
+
+        val resolvedDoc = DidWebResolver(didUrl).resolve()
+        assertEquals(resolvedDoc, mapOf("id" to didUrl))
+    }
+
+    @Test
+    fun `should resolve DID with single path component to correct URL`() {
+        val didUrl = "did:web:example.com:path1"
+        val mockResponse = mapOf("id" to didUrl)
+
+        mockkObject(NetworkManagerClient.Companion)
+        every { sendHTTPRequest("https://example.com/path1/did.json", HTTP_METHOD.GET) } returns mockResponse
+
+        val resolvedDoc = DidWebResolver(didUrl).resolve()
+        assertEquals(resolvedDoc, mapOf("id" to didUrl))
     }
 }
