@@ -52,9 +52,6 @@ class DidWebResolverTest {
         assertEquals("Given did url is not supported", exception.message)
     }
 
-    // New tests for URL resolution
-
-
     @Test
     fun `should resolve DID with only domain to well-known path`() {
         fun `resolve should return document when valid without path components`() {
@@ -75,7 +72,7 @@ class DidWebResolverTest {
 
     }
 
-        @Test
+    @Test
     fun `should resolve DID with multiple path components to correct URL`() {
         val didUrl = "did:web:example.com:user:alice"
         val mockResponse = mapOf("id" to didUrl)
