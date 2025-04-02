@@ -54,7 +54,7 @@ class DidWebResolverTest {
 
     @Test
     fun `should resolve DID with only domain to well-known path`() {
-        fun `resolve should return document when valid without path components`() {
+        
             val didUrl = "did:web:example.com"
             val mockResponse = mapOf("id" to didUrl)
 
@@ -67,8 +67,7 @@ class DidWebResolverTest {
             } returns mockResponse
 
             val resolvedDoc = DidWebResolver(didUrl).resolve()
-            assertEquals(resolvedDoc, mapOf("id" to didUrl))
-        }
+            assertEquals(resolvedDoc, mapOf("id" to didUrl))    
 
     }
 

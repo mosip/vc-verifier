@@ -40,13 +40,13 @@ class DidWebResolver(private val didUrl: String) {
         val idComponents = parsedDid.id.split(":").map { it }
         val baseDomain = idComponents.first()
         val path = idComponents.drop(1).joinToString("/")
-        val urlPath = if (path.isEmpty()) {
-            WELL_KNOWN_PATH + DOC_PATH
-        } else {
-            path + DOC_PATH
+        
+        return if (path.isEmpty()){
+            "https://$baseDomain$WELL_KNOWN_PATH$DOC_PATH"
+        } else{
+            "https://$baseDomain/$path$DOC_PATH"
         }
-
-        return "https://$baseDomain/$urlPath"
+        
     }
 
     private fun parseDidUrl(): ParsedDID {
