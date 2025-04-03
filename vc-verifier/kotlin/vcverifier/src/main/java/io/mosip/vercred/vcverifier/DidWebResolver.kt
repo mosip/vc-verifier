@@ -22,7 +22,7 @@ class DidWebResolver(private val didUrl: String) {
         private const val FRAGMENT = "(#.*)?"
         private val DID_MATCHER = "^did:$METHOD:$METHOD_ID$PARAMS$PATH$QUERY$FRAGMENT$".toRegex()
         private const val DOC_PATH = "/did.json"
-        private const val WELL_KNOWN_PATH = "/.well-known"
+        private const val WELL_KNOWN_PATH = ".well-known"
     }
 
     fun resolve(): Map<String, Any> {
@@ -40,13 +40,13 @@ class DidWebResolver(private val didUrl: String) {
         val idComponents = parsedDid.id.split(":").map { it }
         val baseDomain = idComponents.first()
         val path = idComponents.drop(1).joinToString("/")
-        
-        return if (path.isEmpty()){
-            "https://$baseDomain$WELL_KNOWN_PATH$DOC_PATH"
-        } else{
-            "https://$baseDomain/$path$DOC_PATH"
+        val urlPath = if (path.isEmpty()) {
+            WELL_KNOWN_PATH + DOC_PATH
+        } else {
+            path + DOC_PATH
         }
-        
+
+        return "https://$baseDomain/$urlPath"
     }
 
     private fun parseDidUrl(): ParsedDID {
