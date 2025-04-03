@@ -22,15 +22,13 @@ class DidWebResolver(private val didUrl: String) {
         private const val FRAGMENT = "(#.*)?"
         private val DID_MATCHER = "^did:$METHOD:$METHOD_ID$PARAMS$PATH$QUERY$FRAGMENT$".toRegex()
         private const val DOC_PATH = "/did.json"
+        private const val WELL_KNOWN_PATH = ".well-known"
     }
 
     fun resolve(): Map<String, Any> {
         val parsedDid = parseDidUrl()
         try {
-            val path = parsedDid.id.split(":").joinToString("/") {
-                URLDecoder.decode(it, StandardCharsets.UTF_8.name())
-            }
-            val url = "https://$path$DOC_PATH"
+            val url = constructDIDUrl(parsedDid)
             return sendHTTPRequest(url, HTTP_METHOD.GET)
                 ?: throw DidDocumentNotFound("Did document could not be fetched")
         } catch (e: Exception) {
@@ -38,8 +36,20 @@ class DidWebResolver(private val didUrl: String) {
         }
     }
 
-    private fun parseDidUrl(): ParsedDID {
+    private fun constructDIDUrl(parsedDid: ParsedDID): String {
+        val idComponents = parsedDid.id.split(":").map { it }
+        val baseDomain = idComponents.first()
+        val path = idComponents.drop(1).joinToString("/")
+        val urlPath = if (path.isEmpty()) {
+            WELL_KNOWN_PATH + DOC_PATH
+        } else {
+            path + DOC_PATH
+        }
 
+        return "https://$baseDomain/$urlPath"
+    }
+
+    private fun parseDidUrl(): ParsedDID {
         val matchResult = DID_MATCHER.find(didUrl) ?: throw UnsupportedDidUrl()
         val sections = matchResult.groupValues
 

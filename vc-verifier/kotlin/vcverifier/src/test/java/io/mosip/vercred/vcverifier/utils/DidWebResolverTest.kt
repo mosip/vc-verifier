@@ -51,4 +51,47 @@ class DidWebResolverTest {
         val exception = assertThrows<UnsupportedDidUrl> { DidWebResolver(didUrl).resolve() }
         assertEquals("Given did url is not supported", exception.message)
     }
+
+    @Test
+    fun `should resolve DID with only domain to well-known path`() {
+        
+            val didUrl = "did:web:example.com"
+            val mockResponse = mapOf("id" to didUrl)
+
+            mockkObject(NetworkManagerClient.Companion)
+            every {
+                sendHTTPRequest(
+                    "https://example.com/.well-known/did.json",
+                    HTTP_METHOD.GET
+                )
+            } returns mockResponse
+
+            val resolvedDoc = DidWebResolver(didUrl).resolve()
+            assertEquals(resolvedDoc, mapOf("id" to didUrl))    
+
+    }
+
+    @Test
+    fun `should resolve DID with multiple path components to correct URL`() {
+        val didUrl = "did:web:example.com:user:alice"
+        val mockResponse = mapOf("id" to didUrl)
+
+        mockkObject(NetworkManagerClient.Companion)
+        every { sendHTTPRequest("https://example.com/user/alice/did.json", HTTP_METHOD.GET) } returns mockResponse
+
+        val resolvedDoc = DidWebResolver(didUrl).resolve()
+        assertEquals(resolvedDoc, mapOf("id" to didUrl))
+    }
+
+    @Test
+    fun `should resolve DID with single path component to correct URL`() {
+        val didUrl = "did:web:example.com:path1"
+        val mockResponse = mapOf("id" to didUrl)
+
+        mockkObject(NetworkManagerClient.Companion)
+        every { sendHTTPRequest("https://example.com/path1/did.json", HTTP_METHOD.GET) } returns mockResponse
+
+        val resolvedDoc = DidWebResolver(didUrl).resolve()
+        assertEquals(resolvedDoc, mapOf("id" to didUrl))
+    }
 }
