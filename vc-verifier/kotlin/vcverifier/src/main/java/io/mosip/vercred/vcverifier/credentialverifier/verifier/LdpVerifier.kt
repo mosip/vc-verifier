@@ -72,7 +72,15 @@ class LdpVerifier {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
                 val signatureVerifier = ED25519SignatureVerifierImpl()
-                return signatureVerifier.verify(publicKeyObj, canonicalHashBytes, signature, provider)
+                val result = signatureVerifier.verify(publicKeyObj, canonicalHashBytes, signature, provider)
+                val revocationChecker: RevocationChecker = StatusListRevocationChecker()
+                val isRevoked = revocationChecker.isRevoked(vcJsonLdObject)
+                if (isRevoked) {
+                    logger.warning("Credential is revoked.")
+                    return false
+                }
+                logger.info("Credential is valid and not revoked.")
+                return result
             }
             false
         } catch (e: Exception) {

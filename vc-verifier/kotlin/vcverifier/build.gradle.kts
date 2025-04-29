@@ -73,6 +73,10 @@ tasks.withType<Test> {
         isEnabled = true
     }
     finalizedBy(tasks.named("jacocoTestReport"))
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+        showStandardStreams = true
+    }
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
