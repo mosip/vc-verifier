@@ -16,7 +16,8 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
-import foundation.identity.jsonld.JsonLDObject
+import io.mosip.vercred.vcverifier.credentialverifier.revocation.StatusListRevocationChecker
+import io.mosip.vercred.vcverifier.credentialverifier.revocation.RevocationChecker
 
 
 class LdpVerifierTest {
@@ -85,12 +86,11 @@ class LdpVerifierTest {
     fun `should return false for unrevoked credential`() {
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/vcUnrevoked-https.json")
         val vcJson = String(Files.readAllBytes(file.toPath()))
-        val jsonLdObject = JsonLDObject.fromJson(vcJson)
 
         mockkConstructor(StatusListRevocationChecker::class)
-        every { anyConstructed<StatusListRevocationChecker>().isRevoked(jsonLdObject) } returns false
+        every { anyConstructed<StatusListRevocationChecker>().isRevoked(vcJson) } returns false
 
-        val result = StatusListRevocationChecker().isRevoked(jsonLdObject)
+        val result = StatusListRevocationChecker().isRevoked(vcJson)
         assertFalse(result, "Expected credential to be not revoked")
     }
 
@@ -99,12 +99,11 @@ class LdpVerifierTest {
     fun `should return true for revoked credential`() {
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/vcRevoked-https.json")
         val vcJson = String(Files.readAllBytes(file.toPath()))
-        val jsonLdObject = JsonLDObject.fromJson(vcJson)
 
         mockkConstructor(StatusListRevocationChecker::class)
-        every { anyConstructed<StatusListRevocationChecker>().isRevoked(jsonLdObject) } returns true
+        every { anyConstructed<StatusListRevocationChecker>().isRevoked(vcJson) } returns true
 
-        val result = StatusListRevocationChecker().isRevoked(jsonLdObject)
+        val result = StatusListRevocationChecker().isRevoked(vcJson)
         assertTrue(result, "Expected credential to be revoked")
     }
 
