@@ -1,9 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.mockkConstructor
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
@@ -16,8 +12,6 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
-import io.mosip.vercred.vcverifier.credentialverifier.revocation.StatusListRevocationChecker
-import io.mosip.vercred.vcverifier.credentialverifier.revocation.RevocationChecker
 
 
 class LdpVerifierTest {
@@ -80,31 +74,5 @@ class LdpVerifierTest {
         val vc = String(Files.readAllBytes(file.toPath()))
         assertTrue(LdpVerifier().verify(vc))
     }
-
-    @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
-    fun `should return false for unrevoked credential`() {
-        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/vcUnrevoked-https.json")
-        val vcJson = String(Files.readAllBytes(file.toPath()))
-
-        mockkConstructor(StatusListRevocationChecker::class)
-        every { anyConstructed<StatusListRevocationChecker>().isRevoked(vcJson) } returns false
-
-        val result = StatusListRevocationChecker().isRevoked(vcJson)
-        assertFalse(result, "Expected credential to be not revoked")
-    }
-
-    @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
-    fun `should return true for revoked credential`() {
-        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/vcRevoked-https.json")
-        val vcJson = String(Files.readAllBytes(file.toPath()))
-
-        mockkConstructor(StatusListRevocationChecker::class)
-        every { anyConstructed<StatusListRevocationChecker>().isRevoked(vcJson) } returns true
-
-        val result = StatusListRevocationChecker().isRevoked(vcJson)
-        assertTrue(result, "Expected credential to be revoked")
-    }
-
+    
 }
