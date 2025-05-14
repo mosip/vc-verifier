@@ -7,6 +7,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.web.util.UriComponentsBuilder
 
 class StatusListRevocationChecker : RevocationChecker {
+    companion object {
+        private const val TIMEOUT_MS = 3000
+    }
 
     class RevokedCredentialException(message: String) : RuntimeException(message)
 
@@ -41,8 +44,8 @@ class StatusListRevocationChecker : RevocationChecker {
             val conn = url.openConnection() as java.net.HttpURLConnection
             conn.requestMethod = "GET"
             conn.setRequestProperty("Accept", "application/json")
-            conn.connectTimeout = 3000
-            conn.readTimeout = 3000
+            conn.connectTimeout = TIMEOUT_MS
+            conn.readTimeout = TIMEOUT_MS
 
             val responseCode = conn.responseCode
             if (responseCode != 200) {
