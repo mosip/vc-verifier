@@ -66,7 +66,7 @@ dependencies {
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation(libs.mockWebServer)
 }
 
 tasks.withType<Test> {

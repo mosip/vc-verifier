@@ -21,6 +21,7 @@ orgJson = "20240303"
 sonarqube = "5.1.0.4872"
 jacksonAnnotations = "2.14.0"
 jacksonModuleKotlin = "2.14.0"
+mockWebServer = "4.12.0"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
@@ -50,6 +51,7 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jacksonAnnotations" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonAnnotations" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonModuleKotlin" }
+mockWebServer = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "mockWebServer" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
