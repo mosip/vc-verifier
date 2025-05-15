@@ -62,7 +62,6 @@ dependencies {
     implementation(libs.springWeb)
     implementation("co.nstant.in:cbor:0.9")
     implementation ( "com.android.identity:identity-credential:20231002")
-    implementation("org.springframework:spring-web:5.3.30")
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
