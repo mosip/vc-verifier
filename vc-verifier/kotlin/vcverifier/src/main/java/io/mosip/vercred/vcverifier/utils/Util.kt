@@ -2,6 +2,7 @@ package io.mosip.vercred.vcverifier.utils
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import foundation.identity.jsonld.ConfigurableDocumentLoader
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
@@ -16,6 +17,14 @@ class Util {
     companion object{
         fun isAndroid(): Boolean {
             return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
+        }
+
+        fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
+            val confDocumentLoader = ConfigurableDocumentLoader()
+            confDocumentLoader.isEnableHttps = true
+            confDocumentLoader.isEnableHttp = true
+            confDocumentLoader.isEnableFile = false
+            return confDocumentLoader
         }
     }
 
