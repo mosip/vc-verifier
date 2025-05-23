@@ -23,14 +23,14 @@ class DidWebPublicKeyGetter : PublicKeyGetter {
 
     private val logger = Logger.getLogger(DidWebPublicKeyGetter::class.java.name)
 
-    override fun get(verificationMethod: URI): PublicKey {
+    override fun get(verificationMethodUri: URI): PublicKey {
         try {
-            val didDocument = DidWebResolver(verificationMethod.toString()).resolve()
+            val didDocument = DidWebResolver(verificationMethodUri.toString()).resolve()
 
             val verificationMethods = didDocument[VERIFICATION_METHOD] as? List<Map<String, Any>>
                 ?: throw PublicKeyNotFoundException("Verification method not found in DID document")
 
-            val verificationMethod = verificationMethods.firstOrNull()
+            val verificationMethod = verificationMethods.find { it["id"] == verificationMethodUri.toString() }
                 ?: throw PublicKeyNotFoundException("No verification methods available in DID document")
 
             val publicKeyStr = getKeyValue(
