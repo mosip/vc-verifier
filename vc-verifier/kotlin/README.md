@@ -74,8 +74,8 @@ For other unknown  exceptions, error code will be `ERR_GENERIC`
 
 ### Verify the VC Signature
 -  Once Validation is completed, Library verifies the signature with method `verify(credential, format)` which accepts credential and format.
-  - format can `mso_mdoc` or `ldp_vc`
-  - credential will be VC Json String.
+- format can `mso_mdoc` or `ldp_vc`
+- credential will be VC Json String.
 
 ##### Verification Result on Success
 - On Verification success, result will returned as,
@@ -100,6 +100,38 @@ Note: Vc Expiration scenario is considered as Valid.
 ```
 Generally the Error codes are from Validation Failure, when Verification fails Error code will be `ERR_GENERIC`
 
+### supported VP formats
+
+- ldp_vc
+
+### Supported VP Proof Signatures
+
+- Ed25519Signature2018
+- Ed25519Signature2020
+
+### Verify the VP Signature
+-  We can verify the Verifiable Presentation using the method `PresentationVerifier().verify(presentation)` which accepts verifiable presentation.
+- presentation will be VP Json String.
+
+##### Verification Result on Success
+- On Verification success, result will returned as,
+```
+{
+    verificationStatus : true
+    verificaitonMessage : "" 
+    verificationErrorCode: ""
+}
+```
+
+##### Verification Result on Failure
+- On Verification failure, result will returned as,
+```
+{
+    verificationStatus : false
+    verificaitonMessage : <Error Message>
+    verificationErrorCode: <ERROR_CODE>
+}
+```
 
 ### Reference:
 [Data Model 1.1](https://www.w3.org/TR/vc-data-model-1.1/)
