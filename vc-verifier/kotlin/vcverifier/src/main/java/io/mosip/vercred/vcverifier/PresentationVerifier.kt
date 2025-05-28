@@ -8,6 +8,7 @@ import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
+import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.data.VerificationResult
@@ -55,7 +56,16 @@ class PresentationVerifier {
                     signature,
                     provider
                 )
-            } else {
+            } else if (!ldProof.proofValue.isNullOrEmpty()) {
+                val proofValue = ldProof.proofValue
+                val signature = Multibase.decode(proofValue)
+                status = ED25519SignatureVerifierImpl().verify(
+                    publicKeyObj,
+                    canonicalHashBytes,
+                    signature,
+                    provider
+                )
+            }else {
                 status = false
             }
 

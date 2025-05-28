@@ -19,7 +19,7 @@ import java.util.Base64
 
 @RequiresApi(Build.VERSION_CODES.O)
 class DidKeyPublicKeyGetter : PublicKeyGetter {
-
+    private var provider: BouncyCastleProvider = BouncyCastleProvider()
     override fun get(verificationMethod: URI): PublicKey {
 
         verificationMethod.toString().split("#").toString()
@@ -51,7 +51,7 @@ class DidKeyPublicKeyGetter : PublicKeyGetter {
                 val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
                 val encodedKey = subjectPublicKeyInfo.encoded
                 val keySpec = X509EncodedKeySpec(encodedKey)
-                val keyFactory = KeyFactory.getInstance("EdDSA", BouncyCastleProvider())
+                val keyFactory = KeyFactory.getInstance("EdDSA", provider)
                 return keyFactory.generatePublic(keySpec)
             } catch (e: Exception) {
                 when (e) {

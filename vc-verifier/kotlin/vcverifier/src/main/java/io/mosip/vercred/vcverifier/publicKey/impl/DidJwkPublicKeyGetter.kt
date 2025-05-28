@@ -18,21 +18,22 @@ import java.util.Base64
 
 @RequiresApi(Build.VERSION_CODES.O)
 class DidJwkPublicKeyGetter : PublicKeyGetter {
+    private var provider: BouncyCastleProvider = BouncyCastleProvider()
     override fun get(verificationMethod: URI): PublicKey {
 
         try {
-            val edKey: JWK = JWK.parse(
+            val jwk: JWK = JWK.parse(
                 String(
                     Base64.getUrlDecoder()
                         .decode(verificationMethod.toString().split("did:jwk:")[1])
                 )
             )
-            val publicKeyBytes = Base64.getUrlDecoder().decode(edKey.toOctetKeyPair().x.toString())
+            val publicKeyBytes = Base64.getUrlDecoder().decode(jwk.toOctetKeyPair().x.toString())
             val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
             val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
             val encodedKey = subjectPublicKeyInfo.encoded
             val keySpec = X509EncodedKeySpec(encodedKey)
-            val keyFactory = KeyFactory.getInstance("EdDSA", BouncyCastleProvider())
+            val keyFactory = KeyFactory.getInstance("EdDSA", provider)
             return keyFactory.generatePublic(keySpec)
         } catch (e: Exception) {
             when (e) {
