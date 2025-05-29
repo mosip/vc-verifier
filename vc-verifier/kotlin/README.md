@@ -82,7 +82,7 @@ For other unknown  exceptions, error code will be `ERR_GENERIC`
 ```
 {
     verificationStatus : true
-    verificaitonMessage : "" or "VC is Expired"(for Expiration scenario)
+    verificationMessage : "" or "VC is Expired"(for Expiration scenario)
     verificationErrorCode: ""
 }
 ```
@@ -94,7 +94,7 @@ Note: Vc Expiration scenario is considered as Valid.
 ```
 {
     verificationStatus : false
-    verificaitonMessage : <Error Message>
+    verificationMessage : <Error Message>
     verificationErrorCode: <ERROR_CODE>
 }
 ```
@@ -118,7 +118,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 ```
 {
     verificationStatus : true
-    verificaitonMessage : "" 
+    verificationMessage : "" 
     verificationErrorCode: ""
 }
 ```
@@ -128,7 +128,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 ```
 {
     verificationStatus : false
-    verificaitonMessage : <Error Message>
+    verificationMessage : <Error Message>
     verificationErrorCode: <ERROR_CODE>
 }
 ```
