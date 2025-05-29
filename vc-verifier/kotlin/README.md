@@ -109,6 +109,11 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 - Ed25519Signature2018
 - Ed25519Signature2020
 
+### Supported DID Methods
+
+- `did:key`
+- `did:jwk`
+
 ### Verify the VP Signature
 -  We can verify the Verifiable Presentation using the method `PresentationVerifier().verify(presentation)` which accepts verifiable presentation.
 - presentation will be VP Json String.
