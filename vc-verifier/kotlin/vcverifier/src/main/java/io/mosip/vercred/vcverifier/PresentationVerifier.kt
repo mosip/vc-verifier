@@ -17,6 +17,7 @@ import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
+import io.mosip.vercred.vcverifier.exception.PresentationNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
@@ -78,6 +79,7 @@ class PresentationVerifier {
                 is InvalidKeySpecException,
                 is SignatureNotSupportedException,
                 is SignatureVerificationException -> throw e
+                is RuntimeException -> throw PresentationNotSupportedException("Unsupported VP Token type")
 
                 else -> {
                     throw UnknownException("Error while doing verification of verifiable presentation")
