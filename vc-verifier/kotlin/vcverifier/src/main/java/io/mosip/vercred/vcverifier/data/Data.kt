@@ -8,7 +8,7 @@ data class VerificationResult(
 )
 
 data class PresentationVerificationResult(
-    var proofVerificationStatus: Boolean,
+    var proofVerificationStatus: VerificationStatus,
     var vcResults: List<VCResult>
 )
 
