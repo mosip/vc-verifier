@@ -1,7 +1,6 @@
 package io.mosip.vercred.vcverifier.utils
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foundation.identity.jsonld.ConfigurableDocumentLoader
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
@@ -30,7 +29,7 @@ class Util {
 
         fun isJsonLd(jsonString: String): Boolean {
             return try {
-                val root: JsonNode = jacksonObjectMapper().readTree(jsonString)
+                val root = JSONObject(jsonString)
                 root.has("@context")
             } catch (e: Exception) {
                 false

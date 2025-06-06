@@ -9,8 +9,8 @@ import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
 import io.ipfs.multibase.Multibase
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_KEY_TYPE_2018
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_KEY_TYPE_2020
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2018
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.data.VerificationResult
@@ -50,7 +50,7 @@ class PresentationVerifier {
             val verificationMethod = ldProof.verificationMethod
             val publicKeyObj = PublicKeyGetterFactory().get(verificationMethod)
 
-            if (ldProof.type == ED25519_KEY_TYPE_2018 && !ldProof.jws.isNullOrEmpty()) {
+            if (ldProof.type == ED25519_PROOF_TYPE_2018 && !ldProof.jws.isNullOrEmpty()) {
                 val signJWS: String = ldProof.jws
                 val jwsObject = JWSObject.parse(signJWS)
                 val signature = jwsObject.signature.decode()
@@ -61,7 +61,7 @@ class PresentationVerifier {
                     signature,
                     provider
                 )
-            } else if (ldProof.type == ED25519_KEY_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
+            } else if (ldProof.type == ED25519_PROOF_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
                 status = ED25519SignatureVerifierImpl().verify(

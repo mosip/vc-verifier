@@ -29,6 +29,8 @@ object CredentialVerifierConstants {
 
     const val RSA_KEY_TYPE = "RsaVerificationKey2018"
     const val ED25519_KEY_TYPE_2018 = "Ed25519VerificationKey2018"
+    const val ED25519_PROOF_TYPE_2018 = "Ed25519Signature2018"
+    const val ED25519_PROOF_TYPE_2020 = "Ed25519Signature2020"
     const val ED25519_KEY_TYPE_2020 = "Ed25519VerificationKey2020"
     const val ES256K_KEY_TYPE_2019 = "EcdsaSecp256k1VerificationKey2019"
 
