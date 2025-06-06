@@ -1,7 +1,9 @@
 package io.mosip.vercred.vcverifier
 
-import io.mosip.vercred.vcverifier.data.VPVerificationStatus
+import io.mosip.vercred.vcverifier.data.VCResult
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertThrows
@@ -20,7 +22,7 @@ class PresentationVerifierTest {
 
         val verificationResult = PresentationVerifier().verify(vc)
 
-        assertEquals(VPVerificationStatus.VALID,verificationResult.proofVerificationStatus)
+        assertTrue(verificationResult.proofVerificationStatus)
         //check when we have a supported vc
         //assertEquals(verificationResult.vcResults, emptyList<VCResult>())
 
@@ -34,7 +36,7 @@ class PresentationVerifierTest {
         val vc = String(Files.readAllBytes(file.toPath()))
 
         val verificationResult = PresentationVerifier().verify(vc)
-        assertEquals(VPVerificationStatus.INVALID,verificationResult.proofVerificationStatus)
+        assertFalse(verificationResult.proofVerificationStatus)
     }
 
     @Test

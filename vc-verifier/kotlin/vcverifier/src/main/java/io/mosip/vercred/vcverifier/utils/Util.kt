@@ -40,6 +40,16 @@ class Util {
             }
             return VerificationStatus.INVALID
         }
+
+        fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
+            if (verificationResult.verificationStatus) {
+                if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
+                    return VerificationStatus.EXPIRED
+                }
+                return VerificationStatus.SUCCESS
+            }
+            return VerificationStatus.INVALID
+        }
     }
 
     fun getId(obj: Any): String? {

@@ -8,7 +8,7 @@ data class VerificationResult(
 )
 
 data class PresentationVerificationResult(
-    var proofVerificationStatus: VPVerificationStatus,
+    var proofVerificationStatus: Boolean,
     var vcResults: List<VCResult>
 )
 
@@ -20,12 +20,6 @@ data class VCResult(
 
 enum class VerificationStatus {
     SUCCESS,
-    EXPIRED,
-    INVALID
-}
-
-enum class VPVerificationStatus {
-    VALID,
     EXPIRED,
     INVALID
 }
