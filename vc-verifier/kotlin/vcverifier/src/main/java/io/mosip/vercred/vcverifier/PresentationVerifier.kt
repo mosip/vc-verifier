@@ -44,7 +44,7 @@ class PresentationVerifier {
     fun verify(presentation: String): PresentationVerificationResult {
 
         logger.info("Received Presentation For Verification - Start")
-        val proofVerificationStatus: Boolean
+        val proofVerificationStatus: VerificationStatus
         try {
             if (!Util.isJsonLd(presentation)) throw PresentationNotSupportedException("Unsupported VP Token type")
             val confDocumentLoader: ConfigurableDocumentLoader =
@@ -63,23 +63,25 @@ class PresentationVerifier {
                 val jwsObject = JWSObject.parse(signJWS)
                 val signature = jwsObject.signature.decode()
                 val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
-                proofVerificationStatus = ED25519SignatureVerifierImpl().verify(
-                    publicKeyObj,
-                    actualData,
-                    signature,
-                    provider
-                )
+                proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
+                        publicKeyObj,
+                        actualData,
+                        signature,
+                        provider
+                    )
+                ) VerificationStatus.SUCCESS else VerificationStatus.INVALID
             } else if (ldProof.type == ED25519_PROOF_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
-                proofVerificationStatus = ED25519SignatureVerifierImpl().verify(
-                    publicKeyObj,
-                    canonicalHashBytes,
-                    signature,
-                    provider
-                )
+                proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
+                        publicKeyObj,
+                        canonicalHashBytes,
+                        signature,
+                        provider
+                    )
+                ) VerificationStatus.SUCCESS else VerificationStatus.INVALID
             } else {
-                proofVerificationStatus = false
+                proofVerificationStatus = VerificationStatus.INVALID
             }
 
         } catch (e: Exception) {
@@ -100,7 +102,7 @@ class PresentationVerifier {
         val vcVerificationResults: List<VCResult> =
             getVCVerificationResults(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL))
 
-        return PresentationVerificationResult(proofVerificationStatus,vcVerificationResults)
+        return PresentationVerificationResult(proofVerificationStatus, vcVerificationResults)
     }
 
     private fun getVCVerificationResults(verifiableCredentials: JSONArray): List<VCResult> {
