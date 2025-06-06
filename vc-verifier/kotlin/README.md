@@ -119,22 +119,30 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 - presentation will be VP Json String.
 
 ##### Verification Result on Success
-- On Verification success, result will returned as,
+- On VP Proof Verification success, result will returned as,
 ```
 {
-    verificationStatus : true
-    verificationMessage : "" 
-    verificationErrorCode: ""
+    "proofVerificationStatus" : true,
+    "vcResults": [
+      {
+        "vc": "string",
+        "status": "valid|invalid|expired"
+      }
+    ]
 }
 ```
 
 ##### Verification Result on Failure
-- On Verification failure, result will returned as,
+- On VP Proof Verification failure, result will returned as,
 ```
 {
-    verificationStatus : false
-    verificationMessage : <Error Message>
-    verificationErrorCode: <ERROR_CODE>
+    "proofVerificationStatus" : false,
+    "vcResults": [
+      {
+        "vc": "string",
+        "status": "valid|invalid|expired"
+      }
+    ]
 }
 ```
 
