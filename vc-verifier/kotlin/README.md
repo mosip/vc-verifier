@@ -122,7 +122,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 - On VP Proof Verification success, result will returned as,
 ```
 {
-    "proofVerificationStatus" : "VALID",
+    "proofVerificationStatus" : true,
     "vcResults": [
       {
         "vc": "string",
@@ -136,7 +136,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 - On VP Proof Verification failure, result will returned as,
 ```
 {
-    "proofVerificationStatus" : "INVALID",
+    "proofVerificationStatus" : false,
     "vcResults": [
       {
         "vc": "string",
@@ -145,8 +145,6 @@ Generally the Error codes are from Validation Failure, when Verification fails E
     ]
 }
 ```
-
-> **_NOTE:_** In the `PresentationVerifier` we are adding the entire VC as a string in the method response. We know that this is not very efficient. But in newer draft of OpenId4VP specifications the Presentation Exchange is fully removed so we rather not use the submission_requirements for giving the VC reference for response. As of now we could not find anything unique that can be referred in a vp_token VC we will be going with the approach of sending whole VC back in response.
 
 ### Reference:
 [Data Model 1.1](https://www.w3.org/TR/vc-data-model-1.1/)
