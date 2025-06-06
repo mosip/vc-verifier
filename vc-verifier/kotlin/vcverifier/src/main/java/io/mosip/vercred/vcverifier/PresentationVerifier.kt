@@ -36,11 +36,13 @@ class PresentationVerifier {
     fun verify(presentation: String): VerificationResult {
 
         logger.info("Received Presentation For Verification - Start")
-        val confDocumentLoader: ConfigurableDocumentLoader = Util.getConfigurableDocumentLoader()
-        val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(presentation)
-        vcJsonLdObject.documentLoader = confDocumentLoader
         val status: Boolean
         try {
+            if (!Util.isJsonLd(presentation)) throw PresentationNotSupportedException("Unsupported VP Token type")
+            val confDocumentLoader: ConfigurableDocumentLoader =
+                Util.getConfigurableDocumentLoader()
+            val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(presentation)
+            vcJsonLdObject.documentLoader = confDocumentLoader
             val ldProof: LdProof = LdProof.getFromJsonLDObject(vcJsonLdObject)
 
             val canonicalHashBytes = URDNA2015Canonicalizer().canonicalize(ldProof, vcJsonLdObject)
@@ -59,7 +61,7 @@ class PresentationVerifier {
                     signature,
                     provider
                 )
-            } else if (ldProof.type == ED25519_KEY_TYPE_2020  && !ldProof.proofValue.isNullOrEmpty()) {
+            } else if (ldProof.type == ED25519_KEY_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
                 status = ED25519SignatureVerifierImpl().verify(
@@ -68,7 +70,7 @@ class PresentationVerifier {
                     signature,
                     provider
                 )
-            }else {
+            } else {
                 status = false
             }
 
@@ -78,8 +80,8 @@ class PresentationVerifier {
                 is IllegalStateException,
                 is InvalidKeySpecException,
                 is SignatureNotSupportedException,
-                is SignatureVerificationException -> throw e
-                is RuntimeException -> throw PresentationNotSupportedException("Unsupported VP Token type")
+                is SignatureVerificationException,
+                is PresentationNotSupportedException -> throw e
 
                 else -> {
                     throw UnknownException("Error while doing verification of verifiable presentation")
