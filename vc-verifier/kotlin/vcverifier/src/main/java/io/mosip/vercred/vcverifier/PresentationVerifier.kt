@@ -9,20 +9,26 @@ import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
 import io.ipfs.multibase.Multibase
+import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2018
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2020
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
+import io.mosip.vercred.vcverifier.constants.Shared
+import io.mosip.vercred.vcverifier.data.PresentationVerificationResult
+import io.mosip.vercred.vcverifier.data.VCResult
 import io.mosip.vercred.vcverifier.data.VerificationResult
+import io.mosip.vercred.vcverifier.data.VerificationStatus
+import io.mosip.vercred.vcverifier.exception.PresentationNotSupportedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
-import io.mosip.vercred.vcverifier.exception.PresentationNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
+import io.mosip.vercred.vcverifier.utils.asIterable
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.json.JSONArray
+import org.json.JSONObject
 import java.security.spec.InvalidKeySpecException
 import java.util.logging.Logger
 
@@ -32,11 +38,13 @@ class PresentationVerifier {
 
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
+    private val credentialsVerifier: CredentialsVerifier = CredentialsVerifier()
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun verify(presentation: String): VerificationResult {
+    fun verify(presentation: String): PresentationVerificationResult {
 
         logger.info("Received Presentation For Verification - Start")
-        val status: Boolean
+        val proofVerificationStatus: Boolean
         try {
             if (!Util.isJsonLd(presentation)) throw PresentationNotSupportedException("Unsupported VP Token type")
             val confDocumentLoader: ConfigurableDocumentLoader =
@@ -55,7 +63,7 @@ class PresentationVerifier {
                 val jwsObject = JWSObject.parse(signJWS)
                 val signature = jwsObject.signature.decode()
                 val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
-                status = ED25519SignatureVerifierImpl().verify(
+                proofVerificationStatus = ED25519SignatureVerifierImpl().verify(
                     publicKeyObj,
                     actualData,
                     signature,
@@ -64,14 +72,14 @@ class PresentationVerifier {
             } else if (ldProof.type == ED25519_PROOF_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
-                status = ED25519SignatureVerifierImpl().verify(
+                proofVerificationStatus = ED25519SignatureVerifierImpl().verify(
                     publicKeyObj,
                     canonicalHashBytes,
                     signature,
                     provider
                 )
             } else {
-                status = false
+                proofVerificationStatus = false
             }
 
         } catch (e: Exception) {
@@ -88,14 +96,29 @@ class PresentationVerifier {
                 }
             }
         }
-        if (!status) {
-            return VerificationResult(
-                false,
-                ERROR_MESSAGE_VERIFICATION_FAILED,
-                ERROR_CODE_VERIFICATION_FAILED
+
+        val vcVerificationResults: List<VCResult> =
+            getVCVerificationResults(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL))
+
+        return PresentationVerificationResult(proofVerificationStatus,vcVerificationResults)
+    }
+
+    private fun getVCVerificationResults(verifiableCredentials: JSONArray): List<VCResult> {
+        val verificationResults: MutableList<VCResult> = ArrayList()
+        verifiableCredentials.asIterable().forEachIndexed { index, item ->
+            val verificationResult: VerificationResult =
+                credentialsVerifier.verify((item as JSONObject).toString(), CredentialFormat.LDP_VC)
+            val singleVCVerification: VerificationStatus =
+                Util.getVerificationStatus(verificationResult)
+            verificationResults.add(
+                VCResult(
+                    item.toString(),
+                    singleVCVerification
+                )
             )
         }
-        return VerificationResult(true, "", "")
+        return verificationResults
     }
+
 }
 

@@ -7,6 +7,22 @@ data class VerificationResult(
 
 )
 
+data class PresentationVerificationResult(
+    var proofVerificationStatus: Boolean,
+    var vcResults: List<VCResult>
+)
+
+data class VCResult(
+    val vc: String,
+    val status: VerificationStatus
+)
+
+
+enum class VerificationStatus {
+    SUCCESS,
+    EXPIRED,
+    INVALID
+}
 
 enum class DATA_MODEL {
     DATA_MODEL_1_1,

@@ -3,10 +3,14 @@ package io.mosip.vercred.vcverifier.utils
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foundation.identity.jsonld.ConfigurableDocumentLoader
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
+import io.mosip.vercred.vcverifier.data.VerificationResult
+import io.mosip.vercred.vcverifier.data.VerificationStatus
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.net.URI
@@ -34,6 +38,16 @@ class Util {
             } catch (e: Exception) {
                 false
             }
+        }
+
+        fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
+            if (verificationResult.verificationStatus) {
+                if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
+                    return VerificationStatus.EXPIRED
+                }
+                return VerificationStatus.SUCCESS
+            }
+            return VerificationStatus.INVALID
         }
     }
 
@@ -82,5 +96,14 @@ class Util {
         return mapper.readValue(
             jsonString,
             object : TypeReference<MutableMap<String, Any>>() {})
+    }
+}
+
+
+fun JSONArray.asIterable(): Iterable<Any?> = Iterable {
+    object : Iterator<Any?> {
+        private var index = 0
+        override fun hasNext(): Boolean = index < this@asIterable.length()
+        override fun next(): Any? = this@asIterable.get(index++)
     }
 }
