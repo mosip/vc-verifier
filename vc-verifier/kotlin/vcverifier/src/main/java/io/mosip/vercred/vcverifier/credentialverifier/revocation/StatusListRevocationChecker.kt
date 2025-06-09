@@ -2,9 +2,16 @@ package io.mosip.vercred.vcverifier.credentialverifier.revocation
 
 import foundation.identity.jsonld.JsonLDObject
 import java.lang.RuntimeException
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import org.springframework.web.util.UriComponentsBuilder
+import java.net.URL
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.util.zip.GZIPInputStream
+import java.util.Base64
+import java.util.logging.Logger
+
+import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
+import io.mosip.vercred.vcverifier.constants.CredentialFormat
 
 class StatusListRevocationChecker : RevocationChecker {
     companion object {
@@ -14,60 +21,99 @@ class StatusListRevocationChecker : RevocationChecker {
     class RevokedCredentialException(message: String) : RuntimeException(message)
 
     override fun isRevoked(credential: String): Boolean {
-        val credential: JsonLDObject = JsonLDObject.fromJson(credential)
-        val credentialStatus = credential.jsonObject["credentialStatus"]
+        Logger.getLogger("Started revocation check")
+        val jsonLD = JsonLDObject.fromJson(credential)
+        val credentialStatus = jsonLD.jsonObject["credentialStatus"] as? Map<*, *> ?: return false
 
-        if (credentialStatus == null) {
-            return false
-        }
+        val statusListCredentialUrl = credentialStatus["statusListCredential"]?.toString()
+            ?: throw IllegalArgumentException("Missing 'statusListCredential'")
+        val statusListIndex = credentialStatus["statusListIndex"]?.toString()?.toIntOrNull()
+            ?: throw IllegalArgumentException("Invalid or missing 'statusListIndex'")
 
-        if (credentialStatus !is Map<*, *>) {
-            throw IllegalArgumentException("Invalid 'credentialStatus' field: must be a map")
-        }
-
-        val baseUrl = credentialStatus["statusListCredential"]?.toString()
-        val statusListIndex = credentialStatus["statusListIndex"]?.toString()
-        val statusPurpose = credentialStatus["statusPurpose"]?.toString() ?: "revocation"
-
-        if (baseUrl.isNullOrBlank() || statusListIndex.isNullOrBlank()) {
-            throw IllegalArgumentException("Invalid credentialStatus format")
-        }
-
-        val fullUrl = UriComponentsBuilder.fromHttpUrl(baseUrl)
-            .queryParam("statusPurpose", statusPurpose)
-            .queryParam("statusListIndex", statusListIndex)
-            .build()
-            .toUriString()
+        Logger.getLogger("statusListCredential URL: $statusListCredentialUrl")
+        Logger.getLogger("statusListIndex: $statusListIndex")
 
         try {
-            val url = java.net.URL(fullUrl)
-            val conn = url.openConnection() as java.net.HttpURLConnection
-            conn.requestMethod = "GET"
-            conn.setRequestProperty("Accept", "application/json")
-            conn.connectTimeout = TIMEOUT_MS
-            conn.readTimeout = TIMEOUT_MS
+            val statusListVCString = fetchStatusListVC(statusListCredentialUrl)
+            val statusListVC = JsonLDObject.fromJson(statusListVCString)
 
-            val responseCode = conn.responseCode
-            if (responseCode != 200) {
-                throw RuntimeException("Failed to fetch revocation status: HTTP $responseCode")
+            val credentialVerifier = CredentialVerifierFactory().get(CredentialFormat.LDP_VC)
+            if (!credentialVerifier.verify(statusListVCString)) {
+                throw RuntimeException("Invalid signature on status list VC")
             }
 
-            val response = conn.inputStream.bufferedReader().use { it.readText() }
+            val encodedList = (statusListVC.jsonObject["credentialSubject"] as? Map<*, *>)?.get("encodedList") as? String
+                ?: throw RuntimeException("Missing 'encodedList' in status list VC")
 
-            val mapper = jacksonObjectMapper()
-            val jsonMap: Map<String, Any?> = mapper.readValue(response)
-            val status = jsonMap["status"]
+            val decodedBitSet = decodeEncodedList(encodedList)
+            return isIndexRevoked(statusListIndex, decodedBitSet)
 
-            if (status == "revoked") {
-                return true
-            }
-
-        } catch (e: RevokedCredentialException) {
-            throw e
         } catch (e: Exception) {
             throw RuntimeException("Failed to check revocation: ${e.message}", e)
         }
+    }
 
-        return false
+    private fun isIndexRevoked(index: Int, bitSet: ByteArray): Boolean {
+        val byteIndex = index / 8
+        val bitIndex = index % 8
+
+        if (byteIndex >= bitSet.size) {
+            throw IndexOutOfBoundsException("Index $index exceeds decoded bitset length ${bitSet.size * 8}")
+        }
+
+        val targetByte = bitSet[byteIndex].toInt()
+        return ((targetByte shr (7 - bitIndex)) and 1) == 1
+    }
+
+    private fun fetchStatusListVC(urlStr: String): String {
+        val url = URL(urlStr)
+        val conn = url.openConnection() as java.net.HttpURLConnection
+        conn.requestMethod = "GET"
+        conn.setRequestProperty("Accept", "application/json")
+        conn.connectTimeout = TIMEOUT_MS
+        conn.readTimeout = TIMEOUT_MS
+
+        if (conn.responseCode != 200) {
+            throw RuntimeException("Failed to fetch status list VC: HTTP ${conn.responseCode}")
+        }
+
+        return conn.inputStream.bufferedReader().use { it.readText() }
+    }
+
+    private fun decodeEncodedList(encodedList: String): ByteArray {
+        val actualEncoded = if (encodedList.startsWith("u")) encodedList else "u$encodedList"
+        val base64urlPart = actualEncoded.substring(1)
+        val paddedBase64url = fixBase64Padding(base64urlPart)
+
+        val compressedBytes = try {
+            Base64.getUrlDecoder().decode(paddedBase64url)
+        } catch (ex: IllegalArgumentException) {
+            throw RuntimeException("Base64url decoding failed", ex)
+        }
+
+        return decompressGzip(compressedBytes)
+    }
+
+    private fun decompressGzip(compressed: ByteArray): ByteArray {
+        try {
+            ByteArrayInputStream(compressed).use { bais ->
+                GZIPInputStream(bais).use { gzipIS ->
+                    val baos = ByteArrayOutputStream()
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    while (gzipIS.read(buffer).also { bytesRead = it } != -1) {
+                        baos.write(buffer, 0, bytesRead)
+                    }
+                    return baos.toByteArray()
+                }
+            }
+        } catch (ex: IOException) {
+            throw RuntimeException("Failed to decompress GZIP", ex)
+        }
+    }
+
+    private fun fixBase64Padding(base64: String): String {
+        val padding = (4 - base64.length % 4) % 4
+        return base64 + "=".repeat(padding)
     }
 }
