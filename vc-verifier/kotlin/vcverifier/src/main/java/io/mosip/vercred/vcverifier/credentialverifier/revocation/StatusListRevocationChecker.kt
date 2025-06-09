@@ -12,6 +12,7 @@ import java.util.logging.Logger
 
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
+import io.mosip.vercred.vcverifier.exception.*
 
 class StatusListRevocationChecker : RevocationChecker {
     companion object {
@@ -39,17 +40,17 @@ class StatusListRevocationChecker : RevocationChecker {
 
             val credentialVerifier = CredentialVerifierFactory().get(CredentialFormat.LDP_VC)
             if (!credentialVerifier.verify(statusListVCString)) {
-                throw RuntimeException("Invalid signature on status list VC")
+                throw SignatureVerificationException("Invalid signature on status list VC")
             }
 
             val encodedList = (statusListVC.jsonObject["credentialSubject"] as? Map<*, *>)?.get("encodedList") as? String
-                ?: throw RuntimeException("Missing 'encodedList' in status list VC")
+                ?: throw EncodedListMissingException("Missing 'encodedList' in status list VC")
 
             val decodedBitSet = decodeEncodedList(encodedList)
             return isIndexRevoked(statusListIndex, decodedBitSet)
 
         } catch (e: Exception) {
-            throw RuntimeException("Failed to check revocation: ${e.message}", e)
+            throw RevocationCheckException("Failed to check revocation: ${e.message}", e)
         }
     }
 
@@ -66,18 +67,22 @@ class StatusListRevocationChecker : RevocationChecker {
     }
 
     private fun fetchStatusListVC(urlStr: String): String {
-        val url = URL(urlStr)
-        val conn = url.openConnection() as java.net.HttpURLConnection
-        conn.requestMethod = "GET"
-        conn.setRequestProperty("Accept", "application/json")
-        conn.connectTimeout = TIMEOUT_MS
-        conn.readTimeout = TIMEOUT_MS
+        return try {
+            val url = URL(urlStr)
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.setRequestProperty("Accept", "application/json")
+            conn.connectTimeout = TIMEOUT_MS
+            conn.readTimeout = TIMEOUT_MS
 
-        if (conn.responseCode != 200) {
-            throw RuntimeException("Failed to fetch status list VC: HTTP ${conn.responseCode}")
-        }
+            if (conn.responseCode != 200) {
+                throw StatusListFetchException("HTTP ${conn.responseCode} while fetching status list VC", null)
+            }
 
-        return conn.inputStream.bufferedReader().use { it.readText() }
+            conn.inputStream.bufferedReader().use { it.readText() }
+        } catch (e: IOException) {
+            throw StatusListFetchException("Failed to fetch status list VC from $urlStr", e)
+        }    
     }
 
     private fun decodeEncodedList(encodedList: String): ByteArray {
