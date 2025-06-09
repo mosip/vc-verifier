@@ -19,8 +19,6 @@ class StatusListRevocationChecker : RevocationChecker {
         private const val TIMEOUT_MS = 3000
     }
 
-    class RevokedCredentialException(message: String) : RuntimeException(message)
-
     override fun isRevoked(credential: String): Boolean {
         Logger.getLogger("Started revocation check")
         val jsonLD = JsonLDObject.fromJson(credential)
