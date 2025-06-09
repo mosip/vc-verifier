@@ -14,6 +14,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519
 import io.mosip.vercred.vcverifier.constants.Shared
 import io.mosip.vercred.vcverifier.data.PresentationVerificationResult
 import io.mosip.vercred.vcverifier.data.VCResult
+import io.mosip.vercred.vcverifier.data.VPVerificationStatus
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
 import io.mosip.vercred.vcverifier.exception.PresentationNotSupportedException
@@ -43,7 +44,7 @@ class PresentationVerifier {
     fun verify(presentation: String): PresentationVerificationResult {
 
         logger.info("Received Presentation For Verification - Start")
-        val proofVerificationStatus: VerificationStatus
+        val proofVerificationStatus: VPVerificationStatus
         val vcJsonLdObject: JsonLDObject
 
         try {
@@ -73,7 +74,7 @@ class PresentationVerifier {
                         signature,
                         provider
                     )
-                ) VerificationStatus.SUCCESS else VerificationStatus.INVALID
+                ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
             } else if (ldProof.type == ED25519_PROOF_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
@@ -83,9 +84,9 @@ class PresentationVerifier {
                         signature,
                         provider
                     )
-                ) VerificationStatus.SUCCESS else VerificationStatus.INVALID
+                ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
             } else {
-                proofVerificationStatus = VerificationStatus.INVALID
+                proofVerificationStatus = VPVerificationStatus.INVALID
             }
 
         } catch (e: Exception) {
