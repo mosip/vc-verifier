@@ -3,7 +3,6 @@ package io.mosip.vercred.vcverifier
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.nimbusds.jose.JWSObject
-import foundation.identity.jsonld.ConfigurableDocumentLoader
 import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
@@ -45,12 +44,17 @@ class PresentationVerifier {
 
         logger.info("Received Presentation For Verification - Start")
         val proofVerificationStatus: VerificationStatus
+        val vcJsonLdObject: JsonLDObject
+
         try {
-            if (!Util.isJsonLd(presentation)) throw PresentationNotSupportedException("Unsupported VP Token type")
-            val confDocumentLoader: ConfigurableDocumentLoader =
-                Util.getConfigurableDocumentLoader()
-            val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(presentation)
-            vcJsonLdObject.documentLoader = confDocumentLoader
+
+            vcJsonLdObject = JsonLDObject.fromJson(presentation)
+        } catch (e: RuntimeException) {
+            throw PresentationNotSupportedException("Unsupported VP Token type")
+        }
+
+        try {
+            vcJsonLdObject.documentLoader = Util.getConfigurableDocumentLoader()
             val ldProof: LdProof = LdProof.getFromJsonLDObject(vcJsonLdObject)
 
             val canonicalHashBytes = URDNA2015Canonicalizer().canonicalize(ldProof, vcJsonLdObject)
@@ -90,8 +94,7 @@ class PresentationVerifier {
                 is IllegalStateException,
                 is InvalidKeySpecException,
                 is SignatureNotSupportedException,
-                is SignatureVerificationException,
-                is PresentationNotSupportedException -> throw e
+                is SignatureVerificationException -> throw e
 
                 else -> {
                     throw UnknownException("Error while doing verification of verifiable presentation")

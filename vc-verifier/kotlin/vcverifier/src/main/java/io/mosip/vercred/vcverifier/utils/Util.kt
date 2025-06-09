@@ -31,15 +31,6 @@ class Util {
             return confDocumentLoader
         }
 
-        fun isJsonLd(jsonString: String): Boolean {
-            return try {
-                val root = JSONObject(jsonString)
-                root.has("@context")
-            } catch (e: Exception) {
-                false
-            }
-        }
-
         fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
             if (verificationResult.verificationStatus) {
                 if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
