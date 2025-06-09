@@ -122,7 +122,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 - On VP Proof Verification success, result will returned as,
 ```
 {
-    "proofVerificationStatus" : "SUCCESS",
+    "proofVerificationStatus" : "VALID",
     "vcResults": [
       {
         "vc": "string",
