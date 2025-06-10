@@ -13,14 +13,16 @@ import java.util.logging.Logger
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.exception.*
+import io.mosip.vercred.vcverifier.credentialverifier.RevocationChecker
+import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD.GET
+import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
+import com.fasterxml.jackson.databind.ObjectMapper
 
-class StatusListRevocationChecker : RevocationChecker {
-    companion object {
-        private const val TIMEOUT_MS = 3000
-    }
+class LdpRevokeChecker : RevocationChecker {
+    private val logger = Logger.getLogger(LdpRevokeChecker::class.java.name)
 
     override fun isRevoked(credential: String): Boolean {
-        Logger.getLogger("Started revocation check")
+        logger.info("Started revocation check")
         val jsonLD = JsonLDObject.fromJson(credential)
         val credentialStatus = jsonLD.jsonObject["credentialStatus"] as? Map<*, *> ?: return false
 
@@ -29,11 +31,14 @@ class StatusListRevocationChecker : RevocationChecker {
         val statusListIndex = credentialStatus["statusListIndex"]?.toString()?.toIntOrNull()
             ?: throw IllegalArgumentException("Invalid or missing 'statusListIndex'")
 
-        Logger.getLogger("statusListCredential URL: $statusListCredentialUrl")
-        Logger.getLogger("statusListIndex: $statusListIndex")
+        logger.info("statusListCredential URL: $statusListCredentialUrl")
+        logger.info("statusListIndex: $statusListIndex")
 
         try {
-            val statusListVCString = fetchStatusListVC(statusListCredentialUrl)
+            val statusListVCMap = sendHTTPRequest(statusListCredentialUrl, GET)
+                ?: throw StatusListFetchException("Failed to fetch status list VC from $statusListCredentialUrl")
+
+            val statusListVCString = ObjectMapper().writeValueAsString(statusListVCMap)
             val statusListVC = JsonLDObject.fromJson(statusListVCString)
 
             val credentialVerifier = CredentialVerifierFactory().get(CredentialFormat.LDP_VC)
@@ -48,7 +53,7 @@ class StatusListRevocationChecker : RevocationChecker {
             return isIndexRevoked(statusListIndex, decodedBitSet)
 
         } catch (e: Exception) {
-            throw RevocationCheckException("Failed to check revocation: ${e.message}", e)
+            throw RevocationCheckException("Failed to check revocation: ${e.message}")
         }
     }
 
@@ -62,25 +67,6 @@ class StatusListRevocationChecker : RevocationChecker {
 
         val targetByte = bitSet[byteIndex].toInt()
         return ((targetByte shr (7 - bitIndex)) and 1) == 1
-    }
-
-    private fun fetchStatusListVC(urlStr: String): String {
-        return try {
-            val url = URL(urlStr)
-            val conn = url.openConnection() as java.net.HttpURLConnection
-            conn.requestMethod = "GET"
-            conn.setRequestProperty("Accept", "application/json")
-            conn.connectTimeout = TIMEOUT_MS
-            conn.readTimeout = TIMEOUT_MS
-
-            if (conn.responseCode != 200) {
-                throw StatusListFetchException("HTTP ${conn.responseCode} while fetching status list VC", null)
-            }
-
-            conn.inputStream.bufferedReader().use { it.readText() }
-        } catch (e: IOException) {
-            throw StatusListFetchException("Failed to fetch status list VC from $urlStr", e)
-        }    
     }
 
     private fun decodeEncodedList(encodedList: String): ByteArray {

@@ -9,6 +9,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import io.mosip.vercred.vcverifier.credentialverifier.RevocationChecker
 
 class StatusListRevocationCheckerTest {
     @Test
@@ -31,7 +32,7 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "$mockBaseUrl""""
         )
 
-        val revocationChecker: RevocationChecker = StatusListRevocationChecker()
+        val revocationChecker: RevocationChecker = LdpRevokeChecker()
         val isRevoked = revocationChecker.isRevoked(vcJson)
         assertFalse(isRevoked)
         server.shutdown()
@@ -57,7 +58,7 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "$mockBaseUrl""""
         )
 
-        val revocationChecker: RevocationChecker = StatusListRevocationChecker()
+        val revocationChecker: RevocationChecker = LdpRevokeChecker()
         val isRevoked = revocationChecker.isRevoked(vcJson)
         assertTrue(isRevoked)
         server.shutdown()
@@ -68,7 +69,7 @@ class StatusListRevocationCheckerTest {
         val file = ResourceUtils.getFile("classpath:ldp_vc/PS256SignedMosipVC.json") 
         val vc = String(Files.readAllBytes(file.toPath()))
 
-        val checker = StatusListRevocationChecker()
+        val checker = LdpRevokeChecker()
         val isRevoked = checker.isRevoked(vc)
         assertFalse(isRevoked)
     }
@@ -84,7 +85,7 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "http://localhost:9999/invalid-url""""
         )
 
-        val checker = StatusListRevocationChecker()
+        val checker = LdpRevokeChecker()
 
         val exception = assertThrows<RuntimeException> {
             checker.isRevoked(vc)
