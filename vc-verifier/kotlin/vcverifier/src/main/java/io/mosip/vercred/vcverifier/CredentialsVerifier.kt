@@ -30,8 +30,6 @@ class CredentialsVerifier {
             throw RuntimeException("Input credential is null")
         }
         val credentialVerifier = CredentialVerifierFactory().get(LDP_VC)
-        return credentialVerifier.verify(credentials)
-        val credentialRevokeChecker = RevocationCheckerFactory().get(LDP_VC)
         val isVerified = credentialVerifier.verify(credentials)
 
         if (!isVerified) {
