@@ -3,7 +3,7 @@ package io.mosip.vercred.vcverifier.publicKey.impl
 import com.nimbusds.jose.jwk.JWK
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
-import io.mosip.vercred.vcverifier.utils.Encoder
+import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
@@ -17,7 +17,7 @@ import java.security.spec.X509EncodedKeySpec
 
 class DidJwkPublicKeyGetter : PublicKeyGetter {
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
-    private var b64Decoder: Encoder = Encoder()
+    private var b64Decoder: Base64Decoder = Base64Decoder()
     override fun get(verificationMethod: URI): PublicKey {
 
         try {
