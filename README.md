@@ -47,6 +47,7 @@
 - **signature** - Interface and Implementations for multiple Signature Verification are available in this package.
 - **utils** - It helper classes and methods that provide reusable and general-purpose functionalities across the project.
 - **CredentialVerifier.kt** - The `CredentialVerifier.kt` file serves as the main entry point to the VC Verifier Library. This class provides the primary interface for interacting with the library and encapsulates all the core functionalities related to validating and verifying Verifiable Credentials (VCs).
+- **Revocation** - The `CredentialVerifier.kt` do validating and verifying Verifiable Credentials (VCs) along with these performs a revocation check by calling the method isRevoked(credential).
 
 #### Integrating jar to Maven Project
 
