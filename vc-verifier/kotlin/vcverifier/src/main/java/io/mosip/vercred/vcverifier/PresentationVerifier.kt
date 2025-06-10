@@ -1,5 +1,6 @@
 package io.mosip.vercred.vcverifier
 
+import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
@@ -9,6 +10,7 @@ import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2018
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2020
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JSON_WEB_KEY_PROOF_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.Shared
 import io.mosip.vercred.vcverifier.data.PresentationVerificationResult
 import io.mosip.vercred.vcverifier.data.VCResult
@@ -45,7 +47,6 @@ class PresentationVerifier {
         val vcJsonLdObject: JsonLDObject
 
         try {
-
             vcJsonLdObject = JsonLDObject.fromJson(presentation)
         } catch (e: RuntimeException) {
             throw PresentationNotSupportedException("Unsupported VP Token type")
@@ -60,30 +61,56 @@ class PresentationVerifier {
             val verificationMethod = ldProof.verificationMethod
             val publicKeyObj = PublicKeyGetterFactory().get(verificationMethod)
 
-            if (ldProof.type == ED25519_PROOF_TYPE_2018 && !ldProof.jws.isNullOrEmpty()) {
-                val signJWS: String = ldProof.jws
-                val jwsObject = JWSObject.parse(signJWS)
-                val signature = jwsObject.signature.decode()
-                val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
-                proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
-                        publicKeyObj,
-                        actualData,
-                        signature,
-                        provider
+            when {
+                ldProof.type == ED25519_PROOF_TYPE_2018 && !ldProof.jws.isNullOrEmpty() -> {
+                    val signJWS: String = ldProof.jws
+                    val jwsObject = JWSObject.parse(signJWS)
+                    val signature = jwsObject.signature.decode()
+                    val actualData =
+                        JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
+                    proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
+                            publicKeyObj,
+                            actualData,
+                            signature,
+                            provider
+                        )
+                    ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
+                }
+
+                ldProof.type == ED25519_PROOF_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty() -> {
+                    val proofValue = ldProof.proofValue
+                    val signature = Multibase.decode(proofValue)
+                    proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
+                            publicKeyObj,
+                            canonicalHashBytes,
+                            signature,
+                            provider
+                        )
+                    ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
+                }
+
+                ldProof.type == JSON_WEB_KEY_PROOF_TYPE_2020 && !ldProof.jws.isNullOrEmpty() -> {
+                    val signJWS: String = ldProof.jws
+                    val jwsObject = JWSObject.parse(signJWS)
+                    if (jwsObject.header.algorithm != JWSAlgorithm.EdDSA) throw SignatureNotSupportedException(
+                        "Unsupported jws signature algorithm"
                     )
-                ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
-            } else if (ldProof.type == ED25519_PROOF_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
-                val proofValue = ldProof.proofValue
-                val signature = Multibase.decode(proofValue)
-                proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
-                        publicKeyObj,
-                        canonicalHashBytes,
-                        signature,
-                        provider
-                    )
-                ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
-            } else {
-                proofVerificationStatus = VPVerificationStatus.INVALID
+                    val signature = jwsObject.signature.decode()
+                    val actualData =
+                        JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
+
+                    proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
+                            publicKeyObj,
+                            actualData,
+                            signature,
+                            provider
+                        )
+                    ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
+                }
+
+                else -> {
+                    proofVerificationStatus = VPVerificationStatus.INVALID
+                }
             }
 
         } catch (e: Exception) {

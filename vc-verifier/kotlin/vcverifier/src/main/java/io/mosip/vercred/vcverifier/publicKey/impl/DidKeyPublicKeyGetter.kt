@@ -1,9 +1,11 @@
 import com.nimbusds.jose.jwk.JWK
 import io.ipfs.multibase.Multibase
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
+import io.mosip.vercred.vcverifier.utils.Base64Encoder
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
@@ -19,9 +21,10 @@ import java.util.Base64
 
 class DidKeyPublicKeyGetter : PublicKeyGetter {
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
+    private var b64Decoder: Base64Decoder = Base64Decoder()
+    private var b64Encoder: Base64Encoder = Base64Encoder()
     override fun get(verificationMethod: URI): PublicKey {
 
-        verificationMethod.toString().split("#").toString()
         val decodedKey =
             Multibase.decode(
                 verificationMethod.toString()
@@ -39,17 +42,15 @@ class DidKeyPublicKeyGetter : PublicKeyGetter {
                     mapOf(
                         "kty" to "OKP",
                         "crv" to "Ed25519",
-                        "x" to
-                        Base64.getUrlEncoder().withoutPadding()
-                            .encodeToString(Arrays.copyOfRange(decodedKey, 2, 34))
+                        "x" to b64Encoder.encodeToBase64UrlFormatEncoded(Arrays.copyOfRange(decodedKey, 2, 34))
                     )
                 )
-                val publicKeyBytes = Base64Decoder().decodeFromBase64UrlFormatEncoded(edKey.toOctetKeyPair().x.toString())
+                val publicKeyBytes = b64Decoder.decodeFromBase64UrlFormatEncoded(edKey.toOctetKeyPair().x.toString())
                 val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
                 val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
                 val encodedKey = subjectPublicKeyInfo.encoded
                 val keySpec = X509EncodedKeySpec(encodedKey)
-                val keyFactory = KeyFactory.getInstance("EdDSA", provider)
+                val keyFactory = KeyFactory.getInstance(JWS_EDDSA_SIGN_ALGO_CONST, provider)
                 return keyFactory.generatePublic(keySpec)
             } catch (e: Exception) {
                 when (e) {
