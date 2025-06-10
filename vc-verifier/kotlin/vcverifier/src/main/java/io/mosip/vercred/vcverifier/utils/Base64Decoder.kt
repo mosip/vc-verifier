@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import java.util.Base64
 
-class Encoder {
+class Base64Decoder {
     fun decodeFromBase64UrlFormatEncoded(content: String): ByteArray {
         return if (Util.isAndroid()) {
             if( BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O){

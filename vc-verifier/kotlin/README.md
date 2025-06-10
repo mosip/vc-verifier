@@ -74,15 +74,15 @@ For other unknown  exceptions, error code will be `ERR_GENERIC`
 
 ### Verify the VC Signature
 -  Once Validation is completed, Library verifies the signature with method `verify(credential, format)` which accepts credential and format.
-  - format can `mso_mdoc` or `ldp_vc`
-  - credential will be VC Json String.
+- format can `mso_mdoc` or `ldp_vc`
+- credential will be VC Json String.
 
 ##### Verification Result on Success
 - On Verification success, result will returned as,
 ```
 {
     verificationStatus : true
-    verificaitonMessage : "" or "VC is Expired"(for Expiration scenario)
+    verificationMessage : "" or "VC is Expired"(for Expiration scenario)
     verificationErrorCode: ""
 }
 ```
@@ -94,12 +94,59 @@ Note: Vc Expiration scenario is considered as Valid.
 ```
 {
     verificationStatus : false
-    verificaitonMessage : <Error Message>
+    verificationMessage : <Error Message>
     verificationErrorCode: <ERROR_CODE>
 }
 ```
 Generally the Error codes are from Validation Failure, when Verification fails Error code will be `ERR_GENERIC`
 
+### supported VP formats
+
+- ldp_vc
+
+### Supported VP Proof Signatures
+
+- Ed25519Signature2018
+- Ed25519Signature2020
+
+### Supported DID Methods
+
+- `did:key`
+- `did:jwk`
+
+### Verify the VP Signature
+-  We can verify the Verifiable Presentation using the method `PresentationVerifier().verify(presentation)` which accepts verifiable presentation.
+- presentation will be VP Json String.
+
+##### Verification Result on Success
+- On VP Proof Verification success, result will returned as,
+```
+{
+    "proofVerificationStatus" : "VALID",
+    "vcResults": [
+      {
+        "vc": "string",
+        "status": "valid|invalid|expired"
+      }
+    ]
+}
+```
+
+##### Verification Result on Failure
+- On VP Proof Verification failure, result will returned as,
+```
+{
+    "proofVerificationStatus" : "INVALID",
+    "vcResults": [
+      {
+        "vc": "string",
+        "status": "valid|invalid|expired"
+      }
+    ]
+}
+```
+
+> **_NOTE:_** In the `PresentationVerifier` we are adding the entire VC as a string in the method response. We know that this is not very efficient. But in newer draft of OpenId4VP specifications the Presentation Exchange is fully removed so we rather not use the submission_requirements for giving the VC reference for response. As of now we could not find anything unique that can be referred in a vp_token VC we will be going with the approach of sending whole VC back in response.
 
 ### Reference:
 [Data Model 1.1](https://www.w3.org/TR/vc-data-model-1.1/)

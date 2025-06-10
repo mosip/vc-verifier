@@ -21,6 +21,9 @@ orgJson = "20240303"
 sonarqube = "5.1.0.4872"
 jacksonAnnotations = "2.14.0"
 jacksonModuleKotlin = "2.14.0"
+annotationJvm = "1.9.1"
+cbor = "0.9"
+identity = "20231002"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
@@ -50,6 +53,9 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jacksonAnnotations" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonAnnotations" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonModuleKotlin" }
+annotation-jvm = { group = "androidx.annotation", name = "annotation-jvm", version.ref = "annotationJvm" }
+cbor = { group = "co.nstant.in", name = "cbor", version.ref = "cbor" }
+identity = { group = "com.android.identity", name = "identity-credential", version.ref = "identity" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
