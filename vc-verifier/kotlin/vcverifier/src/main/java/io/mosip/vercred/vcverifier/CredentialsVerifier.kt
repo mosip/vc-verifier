@@ -31,6 +31,23 @@ class CredentialsVerifier {
         }
         val credentialVerifier = CredentialVerifierFactory().get(LDP_VC)
         return credentialVerifier.verify(credentials)
+        val credentialRevokeChecker = RevocationCheckerFactory().get(LDP_VC)
+        val isVerified = credentialVerifier.verify(credentials)
+
+        if (!isVerified) {
+            logger.warning("Credential verification failed")
+            return false
+        }
+
+        val credentialRevokeChecker = RevocationCheckerFactory().get(LDP_VC)
+        val isRevoked = credentialRevokeChecker.isRevoked(credentials)
+
+        if (isRevoked) {
+            logger.warning("Credential has been revoked")
+            return false
+        }
+
+        return true
     }
 
     fun verify(credential: String, credentialFormat: CredentialFormat): VerificationResult {

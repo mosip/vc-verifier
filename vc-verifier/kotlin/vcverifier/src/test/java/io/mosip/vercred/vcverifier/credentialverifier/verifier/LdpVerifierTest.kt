@@ -74,5 +74,5 @@ class LdpVerifierTest {
         val vc = String(Files.readAllBytes(file.toPath()))
         assertTrue(LdpVerifier().verify(vc))
     }
-    
+
 }
