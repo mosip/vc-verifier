@@ -1,5 +1,7 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.ConfigurableDocumentLoader
 import foundation.identity.jsonld.JsonLDObject
@@ -12,6 +14,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES2
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
@@ -20,6 +23,7 @@ import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
+import io.mosip.vercred.vcverifier.utils.Util
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
 import java.util.logging.Logger
@@ -42,10 +46,11 @@ class LdpVerifier {
         Security.addProvider(provider);
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun verify(credential: String): Boolean {
 
         logger.info("Received Credentials Verification - Start")
-        val confDocumentLoader: ConfigurableDocumentLoader = getConfigurableDocumentLoader()
+        val confDocumentLoader: ConfigurableDocumentLoader = Util.getConfigurableDocumentLoader()
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credential)
         vcJsonLdObject.documentLoader = confDocumentLoader
 
@@ -63,7 +68,7 @@ class LdpVerifier {
                 val jwsObject = JWSObject.parse(signJWS)
                 val signature = jwsObject.signature.decode()
                 val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
-                val signatureVerifier = SIGNATURE_VERIFIER[jwsObject.header.algorithm.name]!!
+                val signatureVerifier = SIGNATURE_VERIFIER[jwsObject.header.algorithm.name] ?: throw SignatureNotSupportedException("Unsupported jws signature algorithm")
                 return signatureVerifier.verify(publicKeyObj, actualData, signature, provider)
             }
 
@@ -84,13 +89,5 @@ class LdpVerifier {
                 }
             }
         }
-    }
-
-    private fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
-        val confDocumentLoader = ConfigurableDocumentLoader()
-        confDocumentLoader.isEnableHttps = true
-        confDocumentLoader.isEnableHttp = true
-        confDocumentLoader.isEnableFile = false
-        return confDocumentLoader
     }
 }

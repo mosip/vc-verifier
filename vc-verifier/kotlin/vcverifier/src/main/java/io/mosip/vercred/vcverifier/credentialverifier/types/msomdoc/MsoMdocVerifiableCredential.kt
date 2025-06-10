@@ -13,7 +13,7 @@ import io.mosip.vercred.vcverifier.credentialverifier.validator.MsoMdocValidator
 import io.mosip.vercred.vcverifier.credentialverifier.verifier.MsoMdocVerifier
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
-import io.mosip.vercred.vcverifier.utils.Encoder
+import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import java.io.ByteArrayInputStream
 import java.util.logging.Logger
 
@@ -45,7 +45,7 @@ class MsoMdocVerifiableCredential : VerifiableCredential {
 
     fun parse(credential: String): MsoMdocCredentialData {
         val decodedData: ByteArray = try {
-            Encoder().decodeFromBase64UrlFormatEncoded(credential)
+            Base64Decoder().decodeFromBase64UrlFormatEncoded(credential)
         } catch (exception: Exception) {
             logger.severe("Error occurred while base64Url decoding the credential " + exception.message)
             throw RuntimeException("Error on decoding base64Url encoded data " + exception.message)

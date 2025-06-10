@@ -60,8 +60,9 @@ dependencies {
     implementation(libs.jackson.annotations)
     implementation(libs.nimbusJoseJwt)
     implementation(libs.springWeb)
-    implementation("co.nstant.in:cbor:0.9")
-    implementation ( "com.android.identity:identity-credential:20231002")
+    implementation(libs.cbor)
+    implementation (libs.identity)
+    implementation(libs.annotation.jvm)
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
