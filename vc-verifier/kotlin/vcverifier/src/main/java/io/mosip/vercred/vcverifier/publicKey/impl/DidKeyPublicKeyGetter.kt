@@ -3,7 +3,7 @@ import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
-import io.mosip.vercred.vcverifier.utils.Base64Decoder
+import io.mosip.vercred.vcverifier.utils.Encoder
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
@@ -44,7 +44,7 @@ class DidKeyPublicKeyGetter : PublicKeyGetter {
                             .encodeToString(Arrays.copyOfRange(decodedKey, 2, 34))
                     )
                 )
-                val publicKeyBytes = Base64Decoder().decodeFromBase64UrlFormatEncoded(edKey.toOctetKeyPair().x.toString())
+                val publicKeyBytes = Encoder().decodeFromBase64UrlFormatEncoded(edKey.toOctetKeyPair().x.toString())
                 val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
                 val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
                 val encodedKey = subjectPublicKeyInfo.encoded

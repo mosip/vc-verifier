@@ -1,7 +1,5 @@
 package io.mosip.vercred.vcverifier
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
@@ -40,7 +38,6 @@ class PresentationVerifier {
 
     private val credentialsVerifier: CredentialsVerifier = CredentialsVerifier()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun verify(presentation: String): PresentationVerificationResult {
 
         logger.info("Received Presentation For Verification - Start")
