@@ -116,6 +116,13 @@ class PresentationVerifier {
                 credentialsVerifier.verify((item as JSONObject).toString(), CredentialFormat.LDP_VC)
             val singleVCVerification: VerificationStatus =
                 Util.getVerificationStatus(verificationResult)
+            /*
+            Here we are adding the entire VC as a string in the method response. We know that this
+            is poorly performing. But in newer draft of OpenId4VP specifications the Presentation Exchange
+            is fully removed so we rather not use the submission_requirements for giving the VC reference
+            for response. As of now we could not find anything unique that can be referred in a vp_token
+            VC we will be going with the approach of sending whole VC back in response.
+            */
             verificationResults.add(
                 VCResult(
                     item.toString(),
