@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 
-class EncoderTest {
+class Base64DecoderTest {
     @BeforeEach
     fun setUp() {
         mockkObject(Util.Companion)
@@ -35,19 +35,19 @@ class EncoderTest {
 
         @Test
         fun `should decode the base64 url encoded content successfully`() {
-            val encoder = Encoder()
+            val base64Decoder = Base64Decoder()
 
-            val decodedContent = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ=")
+            val decodedContent = base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ=")
 
             assertEquals("hello world", decodedContent.toString(Charsets.UTF_8))
         }
 
         @Test
         fun `should throw error when given base64 url encoded data contains non base64 character`() {
-            val encoder = Encoder()
+            val base64Decoder = Base64Decoder()
 
             val exception = assertThrows(IllegalArgumentException::class.java) {
-                encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8%d29ybGQ=")
+                base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8%d29ybGQ=")
             }
 
             assertEquals(
@@ -58,10 +58,10 @@ class EncoderTest {
 
         @Test
         fun `should throw error when given base64 url encoded data has truncated bytes`() {
-            val encoder = Encoder()
+            val base64Decoder = Base64Decoder()
 
             val exception = assertThrows(IllegalArgumentException::class.java) {
-                encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybG=")
+                base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybG=")
             }
 
             assertEquals(
@@ -93,9 +93,9 @@ class EncoderTest {
         @Test
         fun `should decode the base64 url encoded content successfully with API greater than or equal to Version O`() {
             every { BuildConfig.getVersionSDKInt() } returns Build.VERSION_CODES.O
-            val encoder = Encoder()
+            val base64Decoder = Base64Decoder()
 
-            val decodedData: ByteArray = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
+            val decodedData: ByteArray = base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
 
             assertTrue("hello world".toByteArray().contentEquals(decodedData))
         }
@@ -109,9 +109,9 @@ class EncoderTest {
                     android.util.Base64.DEFAULT
                 )
             } returns "hello world".toByteArray()
-            val encoder = Encoder()
+            val base64Decoder = Base64Decoder()
 
-            val decodedData: ByteArray = encoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
+            val decodedData: ByteArray = base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
 
             assertEquals("hello world", decodedData.toString(Charsets.UTF_8))
         }

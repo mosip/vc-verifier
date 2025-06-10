@@ -14,7 +14,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_KEY
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.SECP256K1
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.utils.Encoder
+import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
@@ -69,8 +69,8 @@ fun getPublicKeyFromJWK(jwkStr: String, keyType: String): PublicKey {
 
 private fun getECPublicKey(jwk: Map<String, String>): PublicKey {
     val curve = jwk["crv"] ?: throw IllegalArgumentException("Missing 'crv' field for EC key")
-    val xBytes = Encoder().decodeFromBase64UrlFormatEncoded(jwk["x"]!!)
-    val yBytes = Encoder().decodeFromBase64UrlFormatEncoded(jwk["y"]!!)
+    val xBytes = Base64Decoder().decodeFromBase64UrlFormatEncoded(jwk["x"]!!)
+    val yBytes = Base64Decoder().decodeFromBase64UrlFormatEncoded(jwk["y"]!!)
 
     val x = BigInteger(1, xBytes)
     val y = BigInteger(1, yBytes)
