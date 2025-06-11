@@ -115,7 +115,7 @@ tasks.register<Jar>("jarRelease") {
     }
     manifest {
         attributes["Implementation-Title"] = project.name
-        attributes["Implementation-Version"] = "1.1.0-SNAPSHOT"
+        attributes["Implementation-Version"] = "1.3.0-SNAPSHOT"
     }
     archiveBaseName.set("${project.name}-release")
     archiveVersion.set("1.1.0-SNAPSHOT")

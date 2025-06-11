@@ -108,6 +108,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 
 - Ed25519Signature2018
 - Ed25519Signature2020
+- JsonWebSignature2020 with Ed25519
 
 ### Supported DID Methods
 
