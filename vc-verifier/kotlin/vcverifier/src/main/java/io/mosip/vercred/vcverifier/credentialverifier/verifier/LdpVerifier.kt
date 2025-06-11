@@ -1,7 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.ConfigurableDocumentLoader
 import foundation.identity.jsonld.JsonLDObject
@@ -46,7 +44,6 @@ class LdpVerifier {
         Security.addProvider(provider);
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun verify(credential: String): Boolean {
 
         logger.info("Received Credentials Verification - Start")
