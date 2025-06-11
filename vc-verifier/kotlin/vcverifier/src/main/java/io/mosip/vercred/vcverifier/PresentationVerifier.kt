@@ -10,7 +10,7 @@ import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2018
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2020
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JSON_WEB_KEY_PROOF_TYPE_2020
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JSON_WEB_PROOF_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.Shared
 import io.mosip.vercred.vcverifier.data.PresentationVerificationResult
 import io.mosip.vercred.vcverifier.data.VCResult
@@ -53,6 +53,7 @@ class PresentationVerifier {
         }
 
         try {
+            logger.info("Proof verification - Start")
             vcJsonLdObject.documentLoader = Util.getConfigurableDocumentLoader()
             val ldProof: LdProof = LdProof.getFromJsonLDObject(vcJsonLdObject)
 
@@ -89,7 +90,7 @@ class PresentationVerifier {
                     ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
                 }
 
-                ldProof.type == JSON_WEB_KEY_PROOF_TYPE_2020 && !ldProof.jws.isNullOrEmpty() -> {
+                ldProof.type == JSON_WEB_PROOF_TYPE_2020 && !ldProof.jws.isNullOrEmpty() -> {
                     val signJWS: String = ldProof.jws
                     val jwsObject = JWSObject.parse(signJWS)
                     if (jwsObject.header.algorithm != JWSAlgorithm.EdDSA) throw SignatureNotSupportedException(
