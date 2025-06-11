@@ -135,7 +135,7 @@ class PresentationVerifier {
 
     private fun getVCVerificationResults(verifiableCredentials: JSONArray): List<VCResult> {
         val verificationResults: MutableList<VCResult> = ArrayList()
-        verifiableCredentials.asIterable().forEachIndexed { index, item ->
+        verifiableCredentials.asIterable().forEach { item ->
             val verificationResult: VerificationResult =
                 credentialsVerifier.verify((item as JSONObject).toString(), CredentialFormat.LDP_VC)
             val singleVCVerification: VerificationStatus =
