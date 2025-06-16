@@ -112,6 +112,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
 
 ### Supported DID Methods
 
+- `did:web`
 - `did:key`
 - `did:jwk`
 
