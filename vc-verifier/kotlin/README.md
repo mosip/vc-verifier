@@ -73,9 +73,9 @@ Error codes mapped to fields in VC are listed below:
 For other unknown  exceptions, error code will be `ERR_GENERIC`
 
 ### Verify the VC Signature
--  Once Validation is completed, Library verifies the signature with method `verify(credential, format)` which accepts credential and format.
-- format can `mso_mdoc` or `ldp_vc`
-- credential will be VC Json String.
+- Once Validation is completed, Library verifies the signature with method `verify(credential, format)` which accepts credential and format.
+- format is either `mso_mdoc` or `ldp_vc`
+- credential is VC Json String.
 
 ##### Verification Result on Success
 - On Verification success, result will returned as,
