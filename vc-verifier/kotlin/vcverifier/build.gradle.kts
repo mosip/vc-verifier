@@ -118,7 +118,7 @@ tasks.register<Jar>("jarRelease") {
         attributes["Implementation-Version"] = "1.3.0-SNAPSHOT"
     }
     archiveBaseName.set("${project.name}-release")
-    archiveVersion.set("1.1.0-SNAPSHOT")
+    archiveVersion.set("1.3.0-SNAPSHOT")
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
 }
 
