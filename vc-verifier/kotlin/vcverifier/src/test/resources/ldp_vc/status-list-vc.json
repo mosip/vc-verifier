@@ -1,0 +1,25 @@
+{
+    "credentialSubject": {
+      "statusPurpose": "revocation",
+      "id": "https://1a0e-106-51-16-63.ngrok-free.app/status-list/03dbeb9f-9120-49c7-a508-5f097953da5d",
+      "type": "BitstringStatusList",
+      "encodedList": "H4sIAAAAAAAA_-3OQREAAAgDoJ39Q9ti-oAEJAAAAAAAAAAAAAA0zHUAAAAAAIDXFhTng-cAQAAA"
+    },
+    "id": "https://1a0e-106-51-16-63.ngrok-free.app/status-list/03dbeb9f-9120-49c7-a508-5f097953da5d",
+    "validFrom": "2025-06-06T10:16:22.726Z",
+    "proof": {
+      "proofValue": "z3q8u6mGG95K5zP7KmMizMsbxMhhHNXtmEDfcL3pViqejBGpxZrAkPq1mnPvnq2VciPjwGJku9miBcrgh6kSE3vC",
+      "created": "2025-06-06T10:16:22Z",
+      "proofPurpose": "assertionMethod",
+      "type": "Ed25519Signature2020",
+      "verificationMethod": "did:web:Nandeesh778.github.io:ooru-mosip:certify_did#key-0"
+    },
+    "type": [
+      "VerifiableCredential",
+      "BitstringStatusListCredential"
+    ],
+    "@context": [
+      "https://www.w3.org/ns/credentials/v2"
+    ],
+    "issuer": "did:web:Nandeesh778.github.io:ooru-mosip:certify_did"
+  }

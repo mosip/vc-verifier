@@ -6,9 +6,13 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_VC_REVOKED
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VC_REVOKED
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
+import io.mosip.vercred.vcverifier.credentialverifier.RevocationCheckerFactory
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import java.util.logging.Logger
+import io.mosip.vercred.vcverifier.credentialverifier.RevocationChecker
 
 
 class CredentialsVerifier {
@@ -26,7 +30,22 @@ class CredentialsVerifier {
             throw RuntimeException("Input credential is null")
         }
         val credentialVerifier = CredentialVerifierFactory().get(LDP_VC)
-        return credentialVerifier.verify(credentials)
+        val isVerified = credentialVerifier.verify(credentials)
+
+        if (!isVerified) {
+            logger.warning("Credential verification failed")
+            return false
+        }
+
+        val credentialRevokeChecker = RevocationCheckerFactory().get(LDP_VC)
+        val isRevoked = credentialRevokeChecker.isRevoked(credentials)
+
+        if (isRevoked) {
+            logger.warning("Credential has been revoked")
+            return false
+        }
+
+        return true
     }
 
     fun verify(credential: String, credentialFormat: CredentialFormat): VerificationResult {
@@ -39,6 +58,12 @@ class CredentialsVerifier {
             val verifySignatureStatus = credentialVerifier.verify(credential)
             if (!verifySignatureStatus) {
                 return  VerificationResult(false, ERROR_MESSAGE_VERIFICATION_FAILED, ERROR_CODE_VERIFICATION_FAILED)
+            }
+
+            val credentialRevokeChecker = RevocationCheckerFactory().get(credentialFormat)
+            val isRevoked = credentialRevokeChecker.isRevoked(credential)
+            if (isRevoked){
+                return VerificationResult(false, ERROR_VC_REVOKED, ERROR_CODE_VC_REVOKED)
             }
             VerificationResult(true, validationStatus.validationMessage, validationStatus.validationErrorCode)
         } catch (e: Exception) {
