@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.zip.GZIPInputStream
-import java.util.Base64
 import java.util.logging.Logger
 
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
@@ -16,6 +15,7 @@ import io.mosip.vercred.vcverifier.exception.*
 import io.mosip.vercred.vcverifier.credentialverifier.RevocationChecker
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD.GET
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
+import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import com.fasterxml.jackson.databind.ObjectMapper
 
 class LdpRevokeChecker : RevocationChecker {
@@ -72,10 +72,9 @@ class LdpRevokeChecker : RevocationChecker {
     private fun decodeEncodedList(encodedList: String): ByteArray {
         val actualEncoded = if (encodedList.startsWith("u")) encodedList else "u$encodedList"
         val base64urlPart = actualEncoded.substring(1)
-        val paddedBase64url = fixBase64Padding(base64urlPart)
 
         val compressedBytes = try {
-            Base64.getUrlDecoder().decode(paddedBase64url)
+            Base64Decoder().decodeFromBase64UrlFormatEncoded(base64urlPart)
         } catch (ex: IllegalArgumentException) {
             throw RuntimeException("Base64url decoding failed", ex)
         }
@@ -101,8 +100,4 @@ class LdpRevokeChecker : RevocationChecker {
         }
     }
 
-    private fun fixBase64Padding(base64: String): String {
-        val padding = (4 - base64.length % 4) % 4
-        return base64 + "=".repeat(padding)
-    }
 }
