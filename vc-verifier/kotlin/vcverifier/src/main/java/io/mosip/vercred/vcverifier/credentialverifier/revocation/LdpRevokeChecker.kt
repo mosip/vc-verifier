@@ -2,7 +2,6 @@ package io.mosip.vercred.vcverifier.credentialverifier.revocation
 
 import foundation.identity.jsonld.JsonLDObject
 import java.lang.RuntimeException
-import java.net.URL
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -12,16 +11,15 @@ import java.util.logging.Logger
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.exception.*
-import io.mosip.vercred.vcverifier.credentialverifier.RevocationChecker
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD.GET
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import com.fasterxml.jackson.databind.ObjectMapper
 
-class LdpRevokeChecker : RevocationChecker {
+class LdpRevokeChecker  {
     private val logger = Logger.getLogger(LdpRevokeChecker::class.java.name)
 
-    override fun isRevoked(credential: String): Boolean {
+     fun isRevoked(credential: String): Boolean {
         logger.info("Started revocation check")
         val jsonLD = JsonLDObject.fromJson(credential)
         val credentialStatus = jsonLD.jsonObject["credentialStatus"] as? Map<*, *> ?: return false

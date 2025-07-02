@@ -9,10 +9,8 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTI
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_VC_REVOKED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VC_REVOKED
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
-import io.mosip.vercred.vcverifier.credentialverifier.RevocationCheckerFactory
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import java.util.logging.Logger
-import io.mosip.vercred.vcverifier.credentialverifier.RevocationChecker
 
 
 class CredentialsVerifier {
@@ -37,8 +35,7 @@ class CredentialsVerifier {
             return false
         }
 
-        val credentialRevokeChecker = RevocationCheckerFactory().get(LDP_VC)
-        val isRevoked = credentialRevokeChecker.isRevoked(credentials)
+        val isRevoked = credentialVerifier.isRevoked(credentials)
 
         if (isRevoked) {
             logger.warning("Credential has been revoked")
@@ -60,8 +57,7 @@ class CredentialsVerifier {
                 return  VerificationResult(false, ERROR_MESSAGE_VERIFICATION_FAILED, ERROR_CODE_VERIFICATION_FAILED)
             }
 
-            val credentialRevokeChecker = RevocationCheckerFactory().get(credentialFormat)
-            val isRevoked = credentialRevokeChecker.isRevoked(credential)
+            val isRevoked = credentialVerifier.isRevoked(credential)
             if (isRevoked){
                 return VerificationResult(false, ERROR_VC_REVOKED, ERROR_CODE_VC_REVOKED)
             }
