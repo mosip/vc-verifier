@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.revocation
 
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.util.ResourceUtils
@@ -9,7 +8,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import io.mosip.vercred.vcverifier.credentialverifier.RevocationChecker
 
 class StatusListRevocationCheckerTest {
     @Test
@@ -32,7 +30,7 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "$mockBaseUrl""""
         )
 
-        val revocationChecker: RevocationChecker = LdpRevokeChecker()
+        val revocationChecker = LdpRevokeChecker()
         val isRevoked = revocationChecker.isRevoked(vcJson)
         assertFalse(isRevoked)
         server.shutdown()
@@ -58,7 +56,7 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "$mockBaseUrl""""
         )
 
-        val revocationChecker: RevocationChecker = LdpRevokeChecker()
+        val revocationChecker = LdpRevokeChecker()
         val isRevoked = revocationChecker.isRevoked(vcJson)
         assertTrue(isRevoked)
         server.shutdown()
