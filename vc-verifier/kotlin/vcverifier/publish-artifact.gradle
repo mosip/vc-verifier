@@ -37,7 +37,6 @@ publishing {
                     }
 
                     asNode().appendNode('developers').appendNode('developer').with {
-                        appendNode('id', 'Your developer ID')
                         appendNode('name', 'Mosip')
                         appendNode('email', 'mosip.emailnotifier@gmail.com')
                         appendNode('organization', 'io.mosip')
@@ -132,7 +131,6 @@ publishing {
                     }
 
                     asNode().appendNode('developers').appendNode('developer').with {
-                        appendNode('id', 'Your developer ID')
                         appendNode('name', 'Mosip')
                         appendNode('email', 'mosip.emailnotifier@gmail.com')
                         appendNode('organization', 'io.mosip')
