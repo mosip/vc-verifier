@@ -134,7 +134,7 @@ tasks.register<Jar>("sourcesJar") {
 
 apply(from = "publish-artifact.gradle")
 tasks.register("generatePom") {
-    dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
+    dependsOn( "generatePomFileForJarReleasePublication")
 }
 
 sonarqube {
