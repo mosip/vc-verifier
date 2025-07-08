@@ -94,14 +94,9 @@ publishing {
             groupId = "io.mosip"
             artifactId = "vcverifier-aar"
             version = "1.3.0-rc1"
-            if (project.gradle.startParameter.taskNames.any { it.contains('assembleRelease') }) {
-                artifacts {
-                    aar {
-                        archivesBaseName = "${artifactId}-${version}"
-                    }
-                }
+            afterEvaluate {
+                artifact(tasks.named("bundleReleaseAar").get().archiveFile)
             }
-            artifact("build/outputs/aar/${artifactId}-${version}-release.aar")
         }
         jarRelease(MavenPublication) {
             artifact(tasks.named("jarRelease").get())
