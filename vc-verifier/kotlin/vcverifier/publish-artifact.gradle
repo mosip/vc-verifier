@@ -1,8 +1,5 @@
-plugins {
-    id 'java-library'
-    id 'maven-publish'
-    id 'signing'
-}
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 // ======= SUPPORTING TASKS =======
 task sourcesJar(type: Jar) {
@@ -20,12 +17,14 @@ publishing {
     repositories {
         maven {
             name = "sonatype"
+            // Correct URLs with conditional selection
             url = version.endsWith("SNAPSHOT")
                     ? "https://central.sonatype.com/repository/maven-snapshots/"
-                    : "https://central.sonatype.com/api/v1/publish"
+                    : "https://central.sonatype.com/api/v1/publish"  // Fixed URL
 
+            // ADD THIS AUTHENTICATION BLOCK
             authentication {
-                basic(BasicAuthentication) // REQUIRED
+                basic(BasicAuthentication)
             }
 
             credentials {
