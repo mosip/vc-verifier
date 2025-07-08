@@ -1,8 +1,16 @@
 publishing {
     repositories {
         maven {
-            url = System.getenv("OSSRH_URL")
-            name = "vcverifier"
+            name = "sonatypeSnapshots"
+            url = "https://central.sonatype.com/repository/maven-snapshots/"
+            credentials {
+                username = System.getenv("OSSRH_USER")
+                password = System.getenv("OSSRH_SECRET")
+            }
+        }
+        maven {
+            name = "sonatypeReleases"
+            url = "https://central.sonatype.com/api/v1/publisher"
             credentials {
                 username = System.getenv("OSSRH_USER")
                 password = System.getenv("OSSRH_SECRET")
