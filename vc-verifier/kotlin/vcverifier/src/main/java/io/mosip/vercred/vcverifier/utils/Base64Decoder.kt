@@ -5,7 +5,7 @@ import android.os.Build
 import java.util.Base64
 
 class Base64Decoder {
-    fun decodeFromBase64UrlFormatEncoded(content: String): ByteArray {
+    fun decodeFromBase64Url(content: String): ByteArray {
         return if (Util.isAndroid()) {
             if( BuildConfig.getVersionSDKInt() >= Build.VERSION_CODES.O){
                 javaBase64UrlDecode(content)

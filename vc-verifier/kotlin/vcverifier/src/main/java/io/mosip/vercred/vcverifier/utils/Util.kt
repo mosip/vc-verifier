@@ -12,9 +12,12 @@ import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.security.MessageDigest
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 
 
 class Util {
@@ -87,6 +90,11 @@ class Util {
         return mapper.readValue(
             jsonString,
             object : TypeReference<MutableMap<String, Any>>() {})
+    }
+
+     fun toX509Certificate(certificateBytes: ByteArray): X509Certificate {
+        val certFactory: CertificateFactory = CertificateFactory.getInstance("X.509")
+        return certFactory.generateCertificate(ByteArrayInputStream(certificateBytes)) as X509Certificate
     }
 }
 

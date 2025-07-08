@@ -20,6 +20,7 @@ import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.CoseSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.CborDataItemUtils
+import io.mosip.vercred.vcverifier.utils.Util
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.security.cert.CertificateFactory
@@ -126,7 +127,6 @@ class MsoMdocVerifier {
             issuerCertificate.publicKey,
             CborDataItemUtils.toByteArray(issuerAuth),
             null,
-            null
         )
     }
 
@@ -144,13 +144,11 @@ class MsoMdocVerifier {
         } else {
             return null
         }
-        return toX509Certificate(issuerCertificateString)
+        val issuerCertificateBytes = (issuerCertificateString as ByteString).bytes
+        return Util().toX509Certificate(issuerCertificateBytes)
     }
 
-    private fun toX509Certificate(certificateString: DataItem?): X509Certificate {
-        val certFactory: CertificateFactory = CertificateFactory.getInstance("X.509")
-        return certFactory.generateCertificate(ByteArrayInputStream((certificateString as ByteString).bytes)) as X509Certificate
-    }
+
 
     private fun verifyValueDigests(issuerSignedNamespaces: Map, mso: Map): Boolean {
         issuerSignedNamespaces.keys.forEach { namespace ->

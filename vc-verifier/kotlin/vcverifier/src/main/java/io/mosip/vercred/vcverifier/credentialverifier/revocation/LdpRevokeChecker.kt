@@ -72,7 +72,7 @@ class LdpRevokeChecker  {
         val base64urlPart = actualEncoded.substring(1)
 
         val compressedBytes = try {
-            Base64Decoder().decodeFromBase64UrlFormatEncoded(base64urlPart)
+            Base64Decoder().decodeFromBase64Url(base64urlPart)
         } catch (ex: IllegalArgumentException) {
             throw RuntimeException("Base64url decoding failed", ex)
         }

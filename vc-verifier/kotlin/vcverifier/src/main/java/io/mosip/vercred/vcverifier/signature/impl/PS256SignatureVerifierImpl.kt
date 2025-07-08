@@ -15,7 +15,6 @@ class PS256SignatureVerifierImpl : SignatureVerifier {
         publicKey: PublicKey,
         signData: ByteArray,
         signature: ByteArray?,
-        provider: BouncyCastleProvider?
     ): Boolean {
         try {
             val psSignature: Signature =

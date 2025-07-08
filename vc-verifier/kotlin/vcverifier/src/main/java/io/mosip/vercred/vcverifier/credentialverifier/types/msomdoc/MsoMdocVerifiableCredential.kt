@@ -50,7 +50,7 @@ class MsoMdocVerifiableCredential : VerifiableCredential {
 
     fun parse(credential: String): MsoMdocCredentialData {
         val decodedData: ByteArray = try {
-            Base64Decoder().decodeFromBase64UrlFormatEncoded(credential)
+            Base64Decoder().decodeFromBase64Url(credential)
         } catch (exception: Exception) {
             logger.severe("Error occurred while base64Url decoding the credential " + exception.message)
             throw RuntimeException("Error on decoding base64Url encoded data " + exception.message)
