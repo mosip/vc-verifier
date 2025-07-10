@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.sonarqube)
     jacoco
     signing
+    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
 
 configurations.all {
@@ -115,10 +116,10 @@ tasks.register<Jar>("jarRelease") {
     }
     manifest {
         attributes["Implementation-Title"] = project.name
-        attributes["Implementation-Version"] = "1.3.0-SNAPSHOT"
+        attributes["Implementation-Version"] = "1.3.0-rc1"
     }
     archiveBaseName.set("${project.name}-release")
-    archiveVersion.set("1.3.0-SNAPSHOT")
+    archiveVersion.set("1.3.0-rc1")
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
 }
 
