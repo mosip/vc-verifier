@@ -1,14 +1,17 @@
+// publish-artifact.gradle
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 publishing {
-    nexusPublishing {
-        repositories {
-            sonatype {
-                nexusUrl.set(uri('https://central.sonatype.com/staging/deploy/maven2/'))
-                snapshotRepositoryUrl.set(uri('https://central.sonatype.com/repository/maven-snapshots/'))
-                username = System.getenv('OSSRH_USER')
-                password = System.getenv('OSSRH_SECRET')
-            }
-        }
-    }
+//    nexusPublishing {
+//        repositories {
+//            sonatype {
+//                nexusUrl.set(uri('https://central.sonatype.com/staging/deploy/maven2/'))
+//                snapshotRepositoryUrl.set(uri('https://central.sonatype.com/repository/maven-snapshots/'))
+//                username = System.getenv('OSSRH_USER')
+//                password = System.getenv('OSSRH_SECRET')
+//            }
+//        }
+//    }
     publications {
         aar(MavenPublication) {
             pom {

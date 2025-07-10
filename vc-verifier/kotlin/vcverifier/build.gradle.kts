@@ -1,12 +1,11 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    `maven-publish`
+    id("maven-publish")
     alias(libs.plugins.dokka)
     alias(libs.plugins.sonarqube)
-    jacoco
-    signing
-    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+    id("jacoco")
+    id("signing")
 }
 
 configurations.all {
