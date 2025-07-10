@@ -7,15 +7,6 @@ plugins {
     `maven-publish`
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven(url = "https://repo.danubetech.com/repository/maven-public/")
-        maven(url = "https://jitpack.io")
-    }
-}
-
 nexusPublishing {
     repositories {
         sonatype {
