@@ -2,7 +2,7 @@ publishing {
     repositories {
         // SINGLE CONDITIONAL REPOSITORY DEFINITION
         maven {
-            name = "sonatype"
+            name = "vcverifier"
             // Correct URLs with conditional selection
             url = version.endsWith("SNAPSHOT")
                     ? "https://central.sonatype.com/repository/maven-snapshots/"
