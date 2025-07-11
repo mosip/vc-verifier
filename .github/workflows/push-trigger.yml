@@ -19,6 +19,7 @@ on:
       - 'injimob*'
       - 'develop'
       - 'master'
+      - 'MOSIP*'
 
 jobs:
   build-maven-vc-verifier:
