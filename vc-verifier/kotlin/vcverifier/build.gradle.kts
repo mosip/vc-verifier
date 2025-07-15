@@ -137,6 +137,13 @@ tasks.register("generatePom") {
     dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
 }
 
+tasks.named<PublishToMavenRepository>("publishAarPublicationToVcverifierRepository") {
+    dependsOn(tasks.named("signAarReleasePublication"))
+}
+tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToVcverifierRepository") {
+    dependsOn(tasks.named("signJarReleasePublication"))
+}
+
 sonarqube {
     properties {
         property( "sonar.java.binaries", "build/intermediates/javac/debug")
