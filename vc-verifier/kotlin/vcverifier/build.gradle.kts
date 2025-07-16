@@ -138,9 +138,6 @@ tasks.register("generatePom") {
 }
 
 tasks.named<PublishToMavenRepository>("publishAarPublicationToVcverifierRepository") {
-    dependsOn(tasks.named("signAarReleasePublication"))
-}
-tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToVcverifierRepository") {
     dependsOn(tasks.named("signJarReleasePublication"))
 }
 
