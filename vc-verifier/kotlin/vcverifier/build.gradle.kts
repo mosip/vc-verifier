@@ -131,15 +131,21 @@ tasks.register<Jar>("sourcesJar") {
     archiveClassifier.set("sources")
     from(android.sourceSets["main"].java.srcDirs)
 }
+afterEvaluate {
+    tasks.matching { it.name == "publishAarPublicationToInjiVciClientRepository" }.configureEach {
+        dependsOn("signAarPublication")
+        dependsOn("signJarReleasePublication")
+    }
+    tasks.matching { it.name == "publishJarReleasePublicationToInjiVciClientRepository" }.configureEach {
+        dependsOn("signJarReleasePublication")
+    }
+}
 
 apply(from = "publish-artifact.gradle")
 tasks.register("generatePom") {
     dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
 }
 
-tasks.named("publishAarPublicationToSonatypeRepository") {
-    enabled = false
-}
 sonarqube {
     properties {
         property( "sonar.java.binaries", "build/intermediates/javac/debug")
