@@ -91,5 +91,41 @@ class StatusListRevocationCheckerTest {
         val msg = exception.message!!
         assert(msg.contains("Failed to check revocation"))
     }
+    @Test
+    fun `should throw exception when credentialStatus type is missing`() {
+        val file = ResourceUtils.getFile("classpath:ldp_vc/vcUnrevoked-https.json")
+        var vc = String(Files.readAllBytes(file.toPath()))
+
+        // Remove 'type' field from credentialStatus
+        vc = vc.replace(
+            Regex(""""type"\s*:\s*".*?",?\s*"""),
+            ""
+        )
+
+        val checker = LdpRevokeChecker()
+        val exception = assertThrows<IllegalArgumentException> {
+            checker.isRevoked(vc)
+        }
+        assert(exception.message!!.contains("Missing or empty 'type'"))
+    }
+
+    @Test
+    fun `should throw exception when credentialStatus type is empty`() {
+        val file = ResourceUtils.getFile("classpath:ldp_vc/vcUnrevoked-https.json")
+        var vc = String(Files.readAllBytes(file.toPath()))
+
+        // Replace 'type' field with an empty string
+        vc = vc.replace(
+            Regex(""""type"\s*:\s*".*?""""),
+            """"type": """""
+        )
+
+        val checker = LdpRevokeChecker()
+        val exception = assertThrows<IllegalArgumentException> {
+            checker.isRevoked(vc)
+        }
+        assert(exception.message!!.contains("Missing or empty 'type'"))
+    }
+
 
 }
