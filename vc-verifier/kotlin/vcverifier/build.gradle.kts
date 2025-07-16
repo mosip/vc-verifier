@@ -142,7 +142,7 @@ tasks.named<PublishToMavenRepository>("publishAarPublicationToVcverifierReposito
 }
 
 tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToVcverifierRepository") {
-    dependsOn(tasks.named("signAarReleasePublication"))
+    dependsOn(tasks.named("signAarPublication"))
 }
 
 sonarqube {
