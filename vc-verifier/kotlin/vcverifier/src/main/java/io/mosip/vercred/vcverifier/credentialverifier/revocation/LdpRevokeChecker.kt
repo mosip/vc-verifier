@@ -24,6 +24,10 @@ class LdpRevokeChecker  {
         val jsonLD = JsonLDObject.fromJson(credential)
         val credentialStatus = jsonLD.jsonObject["credentialStatus"] as? Map<*, *> ?: return false
 
+        val id = credentialStatus["id"]?.toString()
+             if (id.isNullOrBlank()) {
+                 throw IllegalArgumentException("Missing or empty 'id' in 'credentialStatus'")
+             }
         val type = credentialStatus["type"]?.toString()
             if (type.isNullOrBlank()) {
                 throw IllegalArgumentException("Missing or empty 'type' in 'credentialStatus'")
