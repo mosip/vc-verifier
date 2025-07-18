@@ -13,7 +13,7 @@ configurations.all {
 }
 
 jacoco {
-    toolVersion = "0.8.8" // Ensure compatibility
+    toolVersion = "0.8.11" // Ensure compatibility
 }
 
 android {
