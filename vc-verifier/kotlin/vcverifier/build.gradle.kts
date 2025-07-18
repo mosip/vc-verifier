@@ -145,11 +145,11 @@ tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToVcverifierR
     dependsOn(tasks.named("signAarPublication"))
 }
 
-tasks.named<PublishToMavenRepository>("publishAarPublicationToMavenLocal") {
+tasks.named<PublishToMavenLocal>("publishAarPublicationToMavenLocal") {
     dependsOn(tasks.named("signJarReleasePublication"))
 }
 
-tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToMavenLocal") {
+tasks.named<PublishToMavenLocal>("publishJarReleasePublicationToMavenLocal") {
     dependsOn(tasks.named("signAarPublication"))
 }
 
