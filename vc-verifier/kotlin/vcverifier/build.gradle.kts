@@ -145,7 +145,6 @@ tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToVcverifierR
     dependsOn(tasks.named("signAarPublication"))
 }
 
-}
 sonarqube {
     properties {
         property( "sonar.java.binaries", "build/intermediates/javac/debug")
