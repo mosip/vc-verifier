@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.bundling.Jar
+
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -137,11 +139,11 @@ tasks.register("generatePom") {
     dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
 }
 
-tasks.named<PublishToMavenRepository>("publishAarPublicationToVcverifierRepository") {
+tasks.named<PublishToMavenRepository>("publishAarPublicationToLocalMavenWithChecksumsRepository") {
     dependsOn(tasks.named("signJarReleasePublication"))
 }
 
-tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToVcverifierRepository") {
+tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToLocalMavenWithChecksumsRepository") {
     dependsOn(tasks.named("signAarPublication"))
 }
 
@@ -160,5 +162,20 @@ sonarqube {
         property( "sonar.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
         property( "sonar.scm.disabled", "true")
         property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+    }
+}
+
+tasks.withType<Jar>().configureEach {
+    doLast {
+        ant.withGroovyBuilder {
+            "checksum"(
+                "algorithm" to "md5",
+                "file" to archiveFile.get().asFile
+            )
+            "checksum"(
+                "algorithm" to "sha1",
+                "file" to archiveFile.get().asFile
+            )
+        }
     }
 }
