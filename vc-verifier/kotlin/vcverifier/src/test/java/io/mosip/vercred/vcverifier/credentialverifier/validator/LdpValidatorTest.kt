@@ -275,6 +275,35 @@ class LdpValidatorTest {
         }
 
         @Test
+        fun `test when credentialStatus object has empty id for v1`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val credentialStatusObject = JSONObject()
+            credentialStatusObject.put(ID, "")
+            credentialStatusObject.put(TYPE, "Type")
+            sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
+        }
+
+        @Test
+        fun `test when credentialStatus object has empty type for v1`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val credentialStatusObject = JSONObject()
+            credentialStatusObject.put(ID, "https://google.com/")
+            credentialStatusObject.put(TYPE, "")
+            sampleVcObject.put(CREDENTIAL_STATUS, credentialStatusObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+        }
+
+
+        @Test
         fun `test when credentialStatus is of type 'array' and valid for v1`(){
             val sampleVcObject = JSONObject(sampleVcDataModel1)
             val credentialStatusObject = JSONObject()
@@ -304,6 +333,21 @@ class LdpValidatorTest {
             assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.validationMessage)
             assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
+        @Test
+        fun `test when credentialStatus array has object with empty id for v1`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val credentialStatusObject = JSONObject()
+            credentialStatusObject.put(ID, "")
+            credentialStatusObject.put(TYPE, "Type")
+            sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+            sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(credentialStatusObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$ID", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
+        }
+
 
         @Test
         fun `test when credentialStatus is of type 'array' and type is missing for v1`(){
@@ -316,6 +360,21 @@ class LdpValidatorTest {
 
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+        }
+
+        @Test
+        fun `test when credentialStatus array has object with empty type for v1`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val credentialStatusObject = JSONObject()
+            credentialStatusObject.put(ID, "https://google.com/")
+            credentialStatusObject.put(TYPE, "")
+            sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+            sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(credentialStatusObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
             assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
             assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
@@ -345,6 +404,23 @@ class LdpValidatorTest {
             assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
             assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
+
+        @Test
+        fun `test when credentialStatus array has object with empty type for v2`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel2) // <-- v2 data
+            val credentialStatusObject = JSONObject()
+            credentialStatusObject.put(ID, "https://google.com/")
+            credentialStatusObject.put(TYPE, "")
+
+            sampleVcObject.put(CREDENTIAL_STATUS, JSONArray())
+            sampleVcObject.getJSONArray(CREDENTIAL_STATUS).put(credentialStatusObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$ERROR_MISSING_REQUIRED_FIELDS$CREDENTIAL_STATUS.$TYPE", result.validationMessage)
+            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+        }
+
 
         @Test
         fun `test when credentialStatus is of type 'array' and 'id' is missing for v2`(){

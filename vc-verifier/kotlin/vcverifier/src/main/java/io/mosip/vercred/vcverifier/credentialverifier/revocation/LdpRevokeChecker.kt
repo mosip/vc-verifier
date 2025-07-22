@@ -19,19 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 class LdpRevokeChecker  {
     private val logger = Logger.getLogger(LdpRevokeChecker::class.java.name)
 
-     fun isRevoked(credential: String): Boolean {
+    fun isRevoked(credential: String): Boolean {
         logger.info("Started revocation check")
         val jsonLD = JsonLDObject.fromJson(credential)
         val credentialStatus = jsonLD.jsonObject["credentialStatus"] as? Map<*, *> ?: return false
 
-        val id = credentialStatus["id"]?.toString()
-             if (id.isNullOrBlank()) {
-                 throw IllegalArgumentException("Missing or empty 'id' in 'credentialStatus'")
-             }
-        val type = credentialStatus["type"]?.toString()
-            if (type.isNullOrBlank()) {
-                throw IllegalArgumentException("Missing or empty 'type' in 'credentialStatus'")
-            }
         val statusListCredentialUrl = credentialStatus["statusListCredential"]?.toString()
             ?: throw IllegalArgumentException("Missing 'statusListCredential'")
         val statusListIndex = credentialStatus["statusListIndex"]?.toString()?.toIntOrNull()
