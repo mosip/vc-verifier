@@ -9,7 +9,7 @@ publishing {
         aar(MavenPublication) {
             groupId = "io.mosip"
             artifactId = "vcverifier-aar"
-            version = "1.3.0-rc2"
+            version = "1.3.0"
             artifact(tasks.named("javadocJar").get())
             artifact(tasks.named("sourcesJar").get())
             
@@ -101,7 +101,7 @@ publishing {
             artifact(tasks.named("jarRelease").get())
             groupId = "io.mosip"
             artifactId = "vcverifier-jar"
-            version = "1.3.0-rc2"
+            version = "1.3.0"
             artifact(tasks.named("javadocJar").get())
             artifact(tasks.named("sourcesJar").get())
             
