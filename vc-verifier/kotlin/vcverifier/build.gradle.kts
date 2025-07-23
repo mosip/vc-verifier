@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.bundling.Jar
+
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -13,7 +15,7 @@ configurations.all {
 }
 
 jacoco {
-    toolVersion = "0.8.8" // Ensure compatibility
+    toolVersion = "0.8.11" // Ensure compatibility
 }
 
 android {
@@ -137,6 +139,22 @@ tasks.register("generatePom") {
     dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
 }
 
+tasks.named<PublishToMavenRepository>("publishAarPublicationToLocalMavenWithChecksumsRepository") {
+    dependsOn(tasks.named("signJarReleasePublication"))
+}
+
+tasks.named<PublishToMavenRepository>("publishJarReleasePublicationToLocalMavenWithChecksumsRepository") {
+    dependsOn(tasks.named("signAarPublication"))
+}
+
+tasks.named<PublishToMavenLocal>("publishAarPublicationToMavenLocal") {
+    dependsOn(tasks.named("signJarReleasePublication"))
+}
+
+tasks.named<PublishToMavenLocal>("publishJarReleasePublicationToMavenLocal") {
+    dependsOn(tasks.named("signAarPublication"))
+}
+
 sonarqube {
     properties {
         property( "sonar.java.binaries", "build/intermediates/javac/debug")
@@ -144,5 +162,20 @@ sonarqube {
         property( "sonar.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
         property( "sonar.scm.disabled", "true")
         property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+    }
+}
+
+tasks.withType<Jar>().configureEach {
+    doLast {
+        ant.withGroovyBuilder {
+            "checksum"(
+                "algorithm" to "md5",
+                "file" to archiveFile.get().asFile
+            )
+            "checksum"(
+                "algorithm" to "sha1",
+                "file" to archiveFile.get().asFile
+            )
+        }
     }
 }
