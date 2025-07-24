@@ -1,0 +1,114 @@
+## Support of credential format vc+sd-jwt
+
+This document provides a comprehensive overview of verifying `vc+sd-jwt` Verifiable Credentials (VCs).
+
+### Public key resolution support
+X.509 Certificates - Retrieves Issuer's public key using `x5c header parameter` in SD-JWT header.
+
+### Steps Involved
+1. Add enum value `SD_JWT_VC("vc+sd-jwt")` in `CredentialFormat`
+2. Create a new class `SdJwtVerifiableCredential` that implements `VerifiableCredential` interface. This class will be used to validate and verify the `vc+sd-jwt` format credentials.
+   - `validate` method will be used to validate the credential format and its claims.
+   - `verify` method will be used to verify the credential signature and disclosures.
+   - `isRevoked` method will return false as `vc+sd-jwt` does not support revocation.
+3. Create a class `SdJwtValidator` to validate the credential format and claims.
+   -  method `validate` to validate the credential format, claims
+4. Create a class `SdJwtVerifier` to verify the credential format and claims.
+   - method `verify` to verify credential Cryptographic Signature
+   - It will verify the disclosures using Cryptographic Hash Verification. (SHA-256 if `_sd_alg` is not specified, otherwise use the algorithm specified in `_sd_alg` claim)
+5. Implement the `validate` method in `SdJwtVerifiableCredential` class to perform the following checks:
+   - Validate the credential format is `vc+sd-jwt`.
+   - Validate the credential claims against the issuer metadata.
+   - Ensure that the credential contains required claims as per the issuer's configuration.
+   - Check if the credential is expired or not.
+   - Ensure that the credential is not revoked (though `vc+sd-jwt` does not support revocation, this check can be a placeholder for future use).
+6. Implement the `verify` method in `SdJwtVerifiableCredential` class to perform the following checks:
+   - Confirm the credential is not tampered (Cryptographic Signature Verification).
+   - Disclosure Verification to confirm sd claims are not tampered (Cryptographic Hash Verification).
+7. Implement the `CredentialVerifierFactory` to create an instance of `SdJwtVerifiableCredential` when the credential format is `vc+sd-jwt`.
+
+
+###  Sequence diagram - validate and verify `vc+sd-jwt` credential format VC
+
+```mermaid
+sequenceDiagram
+   Wallet->>VcVerifier: Verify sd-jwt Credential
+   VcVerifier->>CredentialsVerifier: verify credential<br/>verify(credential: "jwt-string", credentialFormat: "vc+sd-jwt")
+   CredentialsVerifier->>CredentialVerifierFactory: Create instance of VerifiableCredential based on format vc+sd-jwt
+   CredentialVerifierFactory->>SdJwtVerifiableCredential: Create SdJwtVerifiableCredential instance
+   CredentialsVerifier->>SdJwtVerifiableCredential: Validate sd-jwt Credential
+   SdJwtVerifiableCredential->>SdJwtValidator: Validate sd-jwt Credential
+   SdJwtValidator-->>SdJwtVerifiableCredential: Return validation result
+   SdJwtVerifiableCredential-->>CredentialsVerifier: Return validation result
+   
+   alt Credential is Invalid
+      CredentialsVerifier-->>Wallet: Return Verification Result as False with validation error
+   else Credential is Valid
+      CredentialsVerifier->>SdJwtVerifiableCredential: Verify sd-jwt Credential
+      SdJwtVerifiableCredential->>SdJwtVerifier: Verify sd-jwt Credential
+      SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result
+      SdJwtVerifiableCredential-->>CredentialsVerifier: Return verification result
+      
+      alt Verification Failed
+         CredentialsVerifier-->>Wallet: Return Verification Result as False with error
+      else Verification Success
+         CredentialsVerifier->>SdJwtVerifiableCredential: Check revocation status
+         SdJwtVerifiableCredential-->>CredentialsVerifier: Return false as it's not supported
+         CredentialsVerifier-->>Wallet: Return Verification Result as True
+      end
+   end
+```
+
+###  Sequence diagram - validation process for `vc+sd-jwt` credential format VC
+
+```mermaid
+sequenceDiagram
+
+    SdJwtVerifiableCredential->>SdJwtValidator: Validate sd-jwt Credential
+    SdJwtValidator->>SdJwtValidator: Parse JWT
+    SdJwtValidator->>SdJwtValidator: Validate Header
+    Note over SdJwtValidator: typ header must be present and<br/>it's value must be `vc+sd-jwt`
+    Note over SdJwtValidator: alg header must be present
+    SdJwtValidator->>SdJwtValidator: Validate Payload/Claims
+    Note over SdJwtValidator: vct must be present and<br/>value MUST be a case-sensitive StringOrURI
+    Note over SdJwtValidator: iss is optional. If present, must be an issuer
+    Note over SdJwtValidator: nbf is optional. If present, not before time cannot be in future
+    Note over SdJwtValidator: exp is optional. If present, expired time cannot be in past
+    Note over SdJwtValidator: cnf is optional. Must if cryptographic Key Binding is to be supported
+    Note over SdJwtValidator: status is optional
+    Note over SdJwtValidator: iat is optional. If present, issued at time cannot be in future
+```
+
+###  Sequence diagram - verification process for `vc+sd-jwt` credential format VC
+
+```mermaid
+sequenceDiagram
+   
+    SdJwtVerifiableCredential->>SdJwtVerifier: Verify sd-jwt Credential
+    SdJwtVerifier->>SdJwtVerifier: Separate JWT and disclosures
+    alt Invalid JWT
+       SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
+    else Valid JWT
+       SdJwtVerifier->>SdJwtVerifier: Parse JWT
+       SdJwtVerifier->>SdJwtVerifier: Extract JWT Header
+       SdJwtVerifier->>SdJwtVerifier: Extract x5c Certificate
+       SdJwtVerifier->>SdJwtVerifier: Extract Algorithm
+       SdJwtVerifier->>SdJwtVerifier: Extract Public Key
+       SdJwtVerifier->>SdJwtVerifier: Verify Signature
+       alt Signature Invalid
+          SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
+       else Signature Valid
+          SdJwtVerifier->>SdJwtVerifier: Verify Disclosures
+          loop For each disclosure
+             SdJwtVerifier->>SdJwtVerifier: Create digest with SHA-256 if `_sd_alg` is not specified
+             SdJwtVerifier->>SdJwtVerifier: Base64URL Encode
+             SdJwtVerifier->>SdJwtVerifier: Match with _sd array
+          end
+          alt Hash mismatch
+             SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
+          else All hashes match
+             SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as True
+          end
+       end
+    end
+```
