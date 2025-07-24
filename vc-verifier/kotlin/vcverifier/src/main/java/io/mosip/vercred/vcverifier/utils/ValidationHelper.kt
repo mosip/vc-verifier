@@ -178,14 +178,18 @@ class ValidationHelper {
     }
 
     private fun validateSingleObject(fieldName: String, fieldValueObject: JSONObject, idMandatoryFields: List<String>): String {
-        if (!fieldValueObject.has(TYPE) || fieldValueObject.optString(TYPE).isNullOrBlank()) {
-            throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$TYPE", "$ERROR_CODE_MISSING${fieldName.uppercase()}_${TYPE.uppercase()}")
+        if (!fieldValueObject.has(TYPE)) {
+            throw ValidationException( "$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$TYPE", "$ERROR_CODE_MISSING${fieldName.uppercase()}_${TYPE.uppercase()}")
+        } else if (fieldValueObject.optString(TYPE).isNullOrBlank()) {
+            throw ValidationException("$fieldName.$TYPE cannot be null or empty.", "$ERROR_CODE_MISSING${fieldName.uppercase()}_${TYPE.uppercase()}")
         }
 
         val isIDMandatoryField = idMandatoryFields.contains(fieldName)
         if (isIDMandatoryField) {
-            if (!fieldValueObject.has(ID) || fieldValueObject.optString(ID).isNullOrBlank()) {
+            if (!fieldValueObject.has(ID)) {
                 throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$fieldName.$ID", "$ERROR_CODE_MISSING${fieldName.uppercase()}_${ID.uppercase()}")
+            } else if (fieldValueObject.optString(ID).isNullOrBlank()) {
+                throw ValidationException("$fieldName.$ID cannot be null or empty.", "$ERROR_CODE_MISSING${fieldName.uppercase()}_${ID.uppercase()}")
             }
         }
         fieldValueObject.optString(ID).takeIf { it.isNotEmpty() }?.let { id ->
