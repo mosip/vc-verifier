@@ -35,7 +35,6 @@ import java.util.logging.Logger
 
 class PresentationVerifier {
     private val logger = Logger.getLogger(PresentationVerifier::class.java.name)
-
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
     private val credentialsVerifier: CredentialsVerifier = CredentialsVerifier()
@@ -72,8 +71,7 @@ class PresentationVerifier {
                     proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
                             publicKeyObj,
                             actualData,
-                            signature,
-                            provider
+                            signature
                         )
                     ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
                 }
@@ -84,8 +82,7 @@ class PresentationVerifier {
                     proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
                             publicKeyObj,
                             canonicalHashBytes,
-                            signature,
-                            provider
+                            signature
                         )
                     ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
                 }
@@ -103,8 +100,7 @@ class PresentationVerifier {
                     proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
                             publicKeyObj,
                             actualData,
-                            signature,
-                            provider
+                            signature
                         )
                     ) VPVerificationStatus.VALID else VPVerificationStatus.INVALID
                 }

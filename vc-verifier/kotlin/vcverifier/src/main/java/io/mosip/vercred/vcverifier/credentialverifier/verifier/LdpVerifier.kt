@@ -41,7 +41,7 @@ class LdpVerifier {
     )
 
     init {
-        Security.addProvider(provider);
+        Security.addProvider(provider)
     }
 
     fun verify(credential: String): Boolean {
@@ -66,7 +66,7 @@ class LdpVerifier {
                 val signature = jwsObject.signature.decode()
                 val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
                 val signatureVerifier = SIGNATURE_VERIFIER[jwsObject.header.algorithm.name] ?: throw SignatureNotSupportedException("Unsupported jws signature algorithm")
-                return signatureVerifier.verify(publicKeyObj, actualData, signature, provider)
+                return signatureVerifier.verify(publicKeyObj, actualData, signature)
             }
 
             //Currently we are getting proofValue only in ED25519Signature2020 sunbird VC
@@ -74,15 +74,15 @@ class LdpVerifier {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
                 val signatureVerifier = ED25519SignatureVerifierImpl()
-                return signatureVerifier.verify(publicKeyObj, canonicalHashBytes, signature, provider)
+                return signatureVerifier.verify(publicKeyObj, canonicalHashBytes, signature)
             }
             false
-        } catch (e: Exception) {
-            when (e) {
+        } catch (exception: Exception) {
+            when (exception) {
                 is PublicKeyNotFoundException,
-                is SignatureVerificationException -> throw e
+                is SignatureVerificationException -> throw exception
                 else -> {
-                    throw UnknownException("Error while doing verification of verifiable credential")
+                    throw UnknownException("Error while doing verification of verifiable credential: $exception")
                 }
             }
         }

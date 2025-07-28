@@ -11,8 +11,7 @@ class CoseSignatureVerifierImpl: SignatureVerifier {
     override fun verify(
         publicKey: PublicKey,
         signData: ByteArray,
-        signature: ByteArray?,
-        provider: BouncyCastleProvider?,
+        signature: ByteArray?
     ): Boolean {
         val coseSign1 = CborDataItemUtils.fromByteArray(signData)
         val coseSign1CheckSignature =

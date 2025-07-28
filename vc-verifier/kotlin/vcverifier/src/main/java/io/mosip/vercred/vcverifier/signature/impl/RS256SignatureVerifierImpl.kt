@@ -7,8 +7,14 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey
 import java.security.Signature
 
+private var provider: BouncyCastleProvider = BouncyCastleProvider()
+
 class RS256SignatureVerifierImpl : SignatureVerifier {
-    override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray?, provider: BouncyCastleProvider?): Boolean {
+    override fun verify(
+        publicKey: PublicKey,
+        signData: ByteArray,
+        signature: ByteArray?,
+    ): Boolean {
         try {
             Signature.getInstance(CredentialVerifierConstants.RS256_ALGORITHM, provider)
                 .apply {

@@ -24,7 +24,7 @@ class DidJwkPublicKeyGetter : PublicKeyGetter {
         try {
             val jwk: JWK = JWK.parse(
                 String(
-                    b64Decoder.decodeFromBase64UrlFormatEncoded(
+                    b64Decoder.decodeFromBase64Url(
                         verificationMethod.toString()
                             .split("#".toRegex())
                             .first()
@@ -33,7 +33,7 @@ class DidJwkPublicKeyGetter : PublicKeyGetter {
                 )
             )
             val publicKeyBytes =
-                b64Decoder.decodeFromBase64UrlFormatEncoded(jwk.toOctetKeyPair().x.toString())
+                b64Decoder.decodeFromBase64Url(jwk.toOctetKeyPair().x.toString())
             val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
             val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
             val encodedKey = subjectPublicKeyInfo.encoded

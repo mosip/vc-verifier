@@ -69,8 +69,8 @@ fun getPublicKeyFromJWK(jwkStr: String, keyType: String): PublicKey {
 
 private fun getECPublicKey(jwk: Map<String, String>): PublicKey {
     val curve = jwk["crv"] ?: throw IllegalArgumentException("Missing 'crv' field for EC key")
-    val xBytes = Base64Decoder().decodeFromBase64UrlFormatEncoded(jwk["x"]!!)
-    val yBytes = Base64Decoder().decodeFromBase64UrlFormatEncoded(jwk["y"]!!)
+    val xBytes = Base64Decoder().decodeFromBase64Url(jwk["x"]!!)
+    val yBytes = Base64Decoder().decodeFromBase64Url(jwk["y"]!!)
 
     val x = BigInteger(1, xBytes)
     val y = BigInteger(1, yBytes)

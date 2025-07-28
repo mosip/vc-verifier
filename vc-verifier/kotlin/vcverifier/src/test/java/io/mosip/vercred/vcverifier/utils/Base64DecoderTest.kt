@@ -37,7 +37,7 @@ class Base64DecoderTest {
         fun `should decode the base64 url encoded content successfully`() {
             val base64Decoder = Base64Decoder()
 
-            val decodedContent = base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ=")
+            val decodedContent = base64Decoder.decodeFromBase64Url("aGVsbG8gd29ybGQ=")
 
             assertEquals("hello world", decodedContent.toString(Charsets.UTF_8))
         }
@@ -47,7 +47,7 @@ class Base64DecoderTest {
             val base64Decoder = Base64Decoder()
 
             val exception = assertThrows(IllegalArgumentException::class.java) {
-                base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8%d29ybGQ=")
+                base64Decoder.decodeFromBase64Url("aGVsbG8%d29ybGQ=")
             }
 
             assertEquals(
@@ -61,7 +61,7 @@ class Base64DecoderTest {
             val base64Decoder = Base64Decoder()
 
             val exception = assertThrows(IllegalArgumentException::class.java) {
-                base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybG=")
+                base64Decoder.decodeFromBase64Url("aGVsbG8gd29ybG=")
             }
 
             assertEquals(
@@ -95,7 +95,7 @@ class Base64DecoderTest {
             every { BuildConfig.getVersionSDKInt() } returns Build.VERSION_CODES.O
             val base64Decoder = Base64Decoder()
 
-            val decodedData: ByteArray = base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
+            val decodedData: ByteArray = base64Decoder.decodeFromBase64Url("aGVsbG8gd29ybGQ")
 
             assertTrue("hello world".toByteArray().contentEquals(decodedData))
         }
@@ -111,7 +111,7 @@ class Base64DecoderTest {
             } returns "hello world".toByteArray()
             val base64Decoder = Base64Decoder()
 
-            val decodedData: ByteArray = base64Decoder.decodeFromBase64UrlFormatEncoded("aGVsbG8gd29ybGQ")
+            val decodedData: ByteArray = base64Decoder.decodeFromBase64Url("aGVsbG8gd29ybGQ")
 
             assertEquals("hello world", decodedData.toString(Charsets.UTF_8))
         }

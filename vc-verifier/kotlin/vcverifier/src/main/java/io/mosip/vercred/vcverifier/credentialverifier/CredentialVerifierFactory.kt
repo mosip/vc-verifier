@@ -2,6 +2,7 @@ package io.mosip.vercred.vcverifier.credentialverifier
 
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.credentialverifier.types.LdpVerifiableCredential
+import io.mosip.vercred.vcverifier.credentialverifier.types.SdJwtVerifiableCredential
 import io.mosip.vercred.vcverifier.credentialverifier.types.msomdoc.MsoMdocVerifiableCredential
 
 class CredentialVerifierFactory {
@@ -9,6 +10,7 @@ class CredentialVerifierFactory {
         return when (credentialFormat) {
             CredentialFormat.LDP_VC -> LdpVerifiableCredential()
             CredentialFormat.MSO_MDOC -> MsoMdocVerifiableCredential()
+            CredentialFormat.SD_JWT -> SdJwtVerifiableCredential()
         }
     }
 }

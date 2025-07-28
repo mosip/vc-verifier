@@ -10,9 +10,14 @@ import java.security.PublicKey
 import java.security.Signature
 
 private const val ECDSA_SIGNATURE_LENGTH = 64
+private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
 class ES256KSignatureVerifierImpl : SignatureVerifier {
-    override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray?, provider: BouncyCastleProvider?): Boolean {
+    override fun verify(
+        publicKey: PublicKey,
+        signData: ByteArray,
+        signature: ByteArray?
+    ): Boolean {
         if (signature == null || signature.size != ECDSA_SIGNATURE_LENGTH) {
             throw SignatureVerificationException("Invalid signature length: Expected 64 bytes for R || S format")
         }

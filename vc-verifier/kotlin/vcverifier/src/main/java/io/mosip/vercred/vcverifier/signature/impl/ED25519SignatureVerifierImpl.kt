@@ -5,12 +5,18 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey
+import java.security.Security
 import java.security.Signature
+
+private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
 class ED25519SignatureVerifierImpl : SignatureVerifier {
 
-
-    override fun verify(publicKey: PublicKey, signData: ByteArray, signature: ByteArray?, provider: BouncyCastleProvider?): Boolean {
+    override fun verify(
+        publicKey: PublicKey,
+        signData: ByteArray,
+        signature: ByteArray?,
+    ): Boolean {
         try {
                 Signature.getInstance(CredentialVerifierConstants.ED25519_ALGORITHM, provider)
                     .apply {
