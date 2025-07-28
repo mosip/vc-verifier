@@ -8,6 +8,11 @@ on:
         required: false
         default: 'Triggered for Updates'
         type: string
+      publication_type:
+        description: 'Select artifact type to publish: aar, jar, or both'
+        required: true
+        default: both
+        type: string
 
 jobs:
   maven-publish:
@@ -18,6 +23,7 @@ jobs:
       ANDROID_SERVICE_LOCATION: 'vcverifier'
       JAVA_VERSION: 21
       LICENSE_NAME: 'MPL-2.0'
+      PUBLICATION_TYPE: ${{ inputs.publication_type }}
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_URL: ${{secrets.OSSRH_GRADLE_URL }}
