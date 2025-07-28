@@ -10,9 +10,6 @@ class SdJwtVerifiableCredential: VerifiableCredential {
         return ValidationStatus(
             validationMessage = "",
             validationErrorCode = ""
-
-
-
         )
     }
 
