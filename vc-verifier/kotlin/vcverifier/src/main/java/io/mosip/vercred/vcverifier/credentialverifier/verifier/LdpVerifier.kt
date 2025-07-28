@@ -41,7 +41,7 @@ class LdpVerifier {
     )
 
     init {
-        Security.addProvider(provider);
+        Security.addProvider(provider)
     }
 
     fun verify(credential: String): Boolean {

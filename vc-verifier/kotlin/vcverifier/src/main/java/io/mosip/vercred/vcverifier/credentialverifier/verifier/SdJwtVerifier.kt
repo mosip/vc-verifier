@@ -37,12 +37,11 @@ class SdJwtVerifier {
         val signatureBytes = Base64Decoder().decodeFromBase64Url(jwtParts[2])
 
         return try {
-            val isValid = ES256KSignatureVerifierImpl().verify(
+            ES256KSignatureVerifierImpl().verify(
                 publicKey,
                 signedData.toByteArray(UTF_8),
                 signatureBytes
             )
-            isValid
         } catch (e: Exception) {
             throw SignatureVerificationException("Error while verifying signature: ${e.message}")
         }
