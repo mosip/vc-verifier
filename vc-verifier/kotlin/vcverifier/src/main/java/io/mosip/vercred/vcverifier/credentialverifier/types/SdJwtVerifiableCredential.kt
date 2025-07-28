@@ -6,7 +6,14 @@ import io.mosip.vercred.vcverifier.data.ValidationStatus
 
 class SdJwtVerifiableCredential: VerifiableCredential {
     override fun validate(credential: String): ValidationStatus {
-        TODO("Not yet implemented")
+        //TODO("Not yet implemented")
+        return ValidationStatus(
+            validationMessage = "",
+            validationErrorCode = ""
+
+
+
+        )
     }
 
     override fun verify(credential: String): Boolean {

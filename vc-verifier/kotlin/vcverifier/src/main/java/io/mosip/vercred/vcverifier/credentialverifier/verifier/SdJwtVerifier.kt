@@ -5,7 +5,6 @@ import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import io.mosip.vercred.vcverifier.utils.Util
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey
 import kotlin.text.Charsets.UTF_8
 
