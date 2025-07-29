@@ -51,7 +51,7 @@ class SdJwtVerifier {
             .replace('+', '-')
             .replace('/', '_')
         val certificateBytes = Base64Decoder().decodeFromBase64Url(urlSafeBase64Certificate)
-        val x509Certificate = Util().toX509Certificate(certificateBytes)
+        val x509Certificate = Util.toX509Certificate(certificateBytes)
         val publicKey = x509Certificate.publicKey
         return publicKey
     }

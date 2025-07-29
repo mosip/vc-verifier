@@ -77,7 +77,7 @@ class ValidationHelper {
 
     fun validateId(vcJsonObject: JSONObject){
         if(vcJsonObject.has(ID)){
-            if(!Util().isValidUri(vcJsonObject.getString(ID))){
+            if(!Util.isValidUri(vcJsonObject.getString(ID))){
                 throw ValidationException("$ERROR_INVALID_URI$ID", "${ERROR_CODE_INVALID}${ID}")
             }
         }
@@ -88,7 +88,7 @@ class ValidationHelper {
 
         if(vcJsonObject.has(TYPE)){
             vcJsonObject.optJSONArray(TYPE)?.let { types ->
-                if (!Util().jsonArrayToList(types).contains(VERIFIABLE_CREDENTIAL)) {
+                if (!Util.jsonArrayToList(types).contains(VERIFIABLE_CREDENTIAL)) {
                     throw ValidationException(ERROR_MESSAGE_TYPE_VERIFIABLE_CREDENTIAL, "${ERROR_CODE_INVALID}${TYPE.uppercase()}")
                 }
             }
@@ -98,8 +98,8 @@ class ValidationHelper {
 
     fun validateIssuer(vcJsonObject: JSONObject){
         if(vcJsonObject.has(ISSUER)){
-            val issuerId = Util().getId(vcJsonObject.get(ISSUER))
-            if(issuerId == null || !Util().isValidUri(issuerId)) {
+            val issuerId = Util.getId(vcJsonObject.get(ISSUER))
+            if(issuerId == null || !Util.isValidUri(issuerId)) {
                 throw ValidationException( "$ERROR_INVALID_URI${ISSUER}", "${ERROR_CODE_INVALID}${ISSUER.uppercase()}")
             }
         }
@@ -171,7 +171,7 @@ class ValidationHelper {
     }
 
     private fun validateSingleCredentialObject(credentialSubjectObject: JSONObject): String {
-        if (credentialSubjectObject.has(ID) && !Util().isValidUri(credentialSubjectObject.optString(ID))) {
+        if (credentialSubjectObject.has(ID) && !Util.isValidUri(credentialSubjectObject.optString(ID))) {
             throw ValidationException("$ERROR_INVALID_URI$CREDENTIAL_SUBJECT.$ID", "$ERROR_CODE_INVALID${CREDENTIAL_SUBJECT}${ID.uppercase()}")
         }
         return ""
@@ -188,7 +188,7 @@ class ValidationHelper {
         }
 
         fieldValueObject.optString(ID).takeIf { it.isNotEmpty() }?.let { id ->
-            if (!Util().isValidUri(id)) {
+            if (!Util.isValidUri(id)) {
                 throw ValidationException( "$ERROR_INVALID_URI$fieldName.$ID", "$ERROR_CODE_INVALID${fieldName.uppercase()}_${ID.uppercase()}")
             }
         }

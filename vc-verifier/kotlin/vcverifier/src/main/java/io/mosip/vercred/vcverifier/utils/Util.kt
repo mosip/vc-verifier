@@ -19,31 +19,30 @@ import java.security.MessageDigest
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 
+object Util {
 
-class Util {
-    companion object{
-        fun isAndroid(): Boolean {
-            return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
-        }
-
-        fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
-            val confDocumentLoader = ConfigurableDocumentLoader()
-            confDocumentLoader.isEnableHttps = true
-            confDocumentLoader.isEnableHttp = true
-            confDocumentLoader.isEnableFile = false
-            return confDocumentLoader
-        }
-
-        fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
-            if (verificationResult.verificationStatus) {
-                if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
-                    return VerificationStatus.EXPIRED
-                }
-                return VerificationStatus.SUCCESS
-            }
-            return VerificationStatus.INVALID
-        }
+    fun isAndroid(): Boolean {
+        return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
     }
+
+    fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
+        val confDocumentLoader = ConfigurableDocumentLoader()
+        confDocumentLoader.isEnableHttps = true
+        confDocumentLoader.isEnableHttp = true
+        confDocumentLoader.isEnableFile = false
+        return confDocumentLoader
+    }
+
+    fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
+        if (verificationResult.verificationStatus) {
+            if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
+                return VerificationStatus.EXPIRED
+            }
+            return VerificationStatus.SUCCESS
+        }
+        return VerificationStatus.INVALID
+    }
+
 
     fun getId(obj: Any): String? {
         return when (obj) {
@@ -92,12 +91,12 @@ class Util {
             object : TypeReference<MutableMap<String, Any>>() {})
     }
 
-     fun toX509Certificate(certificateBytes: ByteArray): X509Certificate {
+    fun toX509Certificate(certificateBytes: ByteArray): X509Certificate {
         val certFactory: CertificateFactory = CertificateFactory.getInstance("X.509")
         return certFactory.generateCertificate(ByteArrayInputStream(certificateBytes)) as X509Certificate
     }
-}
 
+}
 
 fun JSONArray.asIterable(): Iterable<Any?> = Iterable {
     object : Iterator<Any?> {

@@ -25,7 +25,7 @@ import java.security.interfaces.ECPublicKey
 
 class UtilsTest {
 
-    private val utils = Util()
+    private val utils = Util
     private val dateUtils = DateUtils
 
     private fun convertDateToUtcString(date: Date): String? {
@@ -113,7 +113,7 @@ class UtilsTest {
         byteArrayOutputStream.write("hello".toByteArray())
 
 
-        val digest: ByteArray = Util().calculateDigest("SHA-256", byteArrayOutputStream)
+        val digest: ByteArray = Util.calculateDigest("SHA-256", byteArrayOutputStream)
 
         assertArrayEquals(
             byteArrayOf(

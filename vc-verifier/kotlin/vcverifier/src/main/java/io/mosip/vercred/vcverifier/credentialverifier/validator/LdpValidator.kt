@@ -62,7 +62,7 @@ class LdpValidator {
 
             val vcJsonObject = JSONObject(credential)
 
-            val contextVersion = Util().getContextVersion(vcJsonObject)
+            val contextVersion = Util.getContextVersion(vcJsonObject)
                 ?: throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$CONTEXT", "${ERROR_CODE_MISSING}${CONTEXT.uppercase()}")
             when (contextVersion) {
                 DATA_MODEL.DATA_MODEL_1_1 -> {

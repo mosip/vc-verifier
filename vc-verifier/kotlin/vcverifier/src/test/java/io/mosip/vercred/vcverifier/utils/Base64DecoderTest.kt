@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 class Base64DecoderTest {
     @BeforeEach
     fun setUp() {
-        mockkObject(Util.Companion)
+        mockkObject(Util)
     }
 
     @AfterEach

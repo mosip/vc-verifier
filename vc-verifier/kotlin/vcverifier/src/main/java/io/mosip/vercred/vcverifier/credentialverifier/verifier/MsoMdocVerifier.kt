@@ -38,7 +38,7 @@ class MsoMdocVerifier {
 
 
     private val util: io.mosip.vercred.vcverifier.utils.Util =
-        io.mosip.vercred.vcverifier.utils.Util()
+        io.mosip.vercred.vcverifier.utils.Util
 
     fun verify(base64EncodedMdoc: String): Boolean {
         try {
@@ -145,7 +145,7 @@ class MsoMdocVerifier {
             return null
         }
         val issuerCertificateBytes = (issuerCertificateString as ByteString).bytes
-        return Util().toX509Certificate(issuerCertificateBytes)
+        return Util.toX509Certificate(issuerCertificateBytes)
     }
 
 
