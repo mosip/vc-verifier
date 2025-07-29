@@ -2,7 +2,8 @@ package io.mosip.vercred.vcverifier.constants
 
 enum class CredentialFormat(val value: String) {
     LDP_VC("ldp_vc"),
-    SD_JWT("sd_jwt"),
+    VC_SD_JWT("vc+sd-jwt"),
+    DC_SD_JWT("dc+sd-jwt"),
     MSO_MDOC("mso_mdoc");
 
     companion object {

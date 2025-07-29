@@ -10,7 +10,8 @@ class CredentialVerifierFactory {
         return when (credentialFormat) {
             CredentialFormat.LDP_VC -> LdpVerifiableCredential()
             CredentialFormat.MSO_MDOC -> MsoMdocVerifiableCredential()
-            CredentialFormat.SD_JWT -> SdJwtVerifiableCredential()
+            CredentialFormat.VC_SD_JWT -> SdJwtVerifiableCredential()
+            CredentialFormat.DC_SD_JWT -> SdJwtVerifiableCredential()
         }
     }
 }
