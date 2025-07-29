@@ -39,7 +39,7 @@ class NetworkManagerClient {
                 val response: Response = client.newCall(request).execute()
                 if (response.isSuccessful) {
                     return response.body?.let { body ->
-                        Util().convertJsonToMap(
+                        Util.convertJsonToMap(
                             body.byteStream().bufferedReader().use { it.readText() }
                         )
                     }

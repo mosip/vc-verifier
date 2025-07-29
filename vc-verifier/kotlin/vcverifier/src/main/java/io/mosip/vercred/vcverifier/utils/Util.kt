@@ -7,9 +7,19 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256K_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
+import io.mosip.vercred.vcverifier.signature.SignatureVerifier
+import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
+import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
+import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
+import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -19,31 +29,38 @@ import java.security.MessageDigest
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 
+object Util {
 
-class Util {
-    companion object{
-        fun isAndroid(): Boolean {
-            return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
-        }
+     val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
+        JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
+        JWS_RS256_SIGN_ALGO_CONST to RS256SignatureVerifierImpl(),
+        JWS_EDDSA_SIGN_ALGO_CONST to ED25519SignatureVerifierImpl(),
+        JWS_ES256K_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl(),
+        JWS_ES256_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl()
+    )
 
-        fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
-            val confDocumentLoader = ConfigurableDocumentLoader()
-            confDocumentLoader.isEnableHttps = true
-            confDocumentLoader.isEnableHttp = true
-            confDocumentLoader.isEnableFile = false
-            return confDocumentLoader
-        }
-
-        fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
-            if (verificationResult.verificationStatus) {
-                if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
-                    return VerificationStatus.EXPIRED
-                }
-                return VerificationStatus.SUCCESS
-            }
-            return VerificationStatus.INVALID
-        }
+    fun isAndroid(): Boolean {
+        return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
     }
+
+    fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
+        val confDocumentLoader = ConfigurableDocumentLoader()
+        confDocumentLoader.isEnableHttps = true
+        confDocumentLoader.isEnableHttp = true
+        confDocumentLoader.isEnableFile = false
+        return confDocumentLoader
+    }
+
+    fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
+        if (verificationResult.verificationStatus) {
+            if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
+                return VerificationStatus.EXPIRED
+            }
+            return VerificationStatus.SUCCESS
+        }
+        return VerificationStatus.INVALID
+    }
+
 
     fun getId(obj: Any): String? {
         return when (obj) {
@@ -92,12 +109,12 @@ class Util {
             object : TypeReference<MutableMap<String, Any>>() {})
     }
 
-     fun toX509Certificate(certificateBytes: ByteArray): X509Certificate {
+    fun toX509Certificate(certificateBytes: ByteArray): X509Certificate {
         val certFactory: CertificateFactory = CertificateFactory.getInstance("X.509")
         return certFactory.generateCertificate(ByteArrayInputStream(certificateBytes)) as X509Certificate
     }
-}
 
+}
 
 fun JSONArray.asIterable(): Iterable<Any?> = Iterable {
     object : Iterator<Any?> {
