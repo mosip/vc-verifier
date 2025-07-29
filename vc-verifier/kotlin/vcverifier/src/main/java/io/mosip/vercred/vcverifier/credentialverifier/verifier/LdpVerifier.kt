@@ -22,6 +22,7 @@ import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
+import io.mosip.vercred.vcverifier.utils.Util.SIGNATURE_VERIFIER
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
 import java.util.logging.Logger
@@ -30,15 +31,7 @@ import java.util.logging.Logger
 class LdpVerifier {
 
     private val logger = Logger.getLogger(LdpVerifier::class.java.name)
-
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
-
-    private val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
-        JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
-        JWS_RS256_SIGN_ALGO_CONST to RS256SignatureVerifierImpl(),
-        JWS_EDDSA_SIGN_ALGO_CONST to ED25519SignatureVerifierImpl(),
-        JWS_ES256K_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl()
-    )
 
     init {
         Security.addProvider(provider)

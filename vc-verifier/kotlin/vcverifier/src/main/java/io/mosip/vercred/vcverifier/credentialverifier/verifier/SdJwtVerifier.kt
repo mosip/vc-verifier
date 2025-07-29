@@ -1,10 +1,11 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
 import com.nimbusds.jose.JWSObject
+import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
-import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import io.mosip.vercred.vcverifier.utils.Util
+import io.mosip.vercred.vcverifier.utils.Util.SIGNATURE_VERIFIER
 import java.security.PublicKey
 import kotlin.text.Charsets.UTF_8
 
@@ -14,7 +15,6 @@ class SdJwtVerifier {
         val parts = credential.split("~")
         val jwt = parts[0]
         return verifyJWTSignature(jwt)
-
     }
 
     private fun verifyJWTSignature(jwt: String): Boolean {
@@ -35,8 +35,11 @@ class SdJwtVerifier {
         val signedData = "${jwtParts[0]}.${jwtParts[1]}"
         val signatureBytes = Base64Decoder().decodeFromBase64Url(jwtParts[2])
 
+        val signatureVerifier = SIGNATURE_VERIFIER[jwsObject.header.algorithm.name]
+            ?: throw SignatureNotSupportedException("Unsupported jws signature algorithm")
+
         return try {
-            ES256KSignatureVerifierImpl().verify(
+            signatureVerifier.verify(
                 publicKey,
                 signedData.toByteArray(UTF_8),
                 signatureBytes

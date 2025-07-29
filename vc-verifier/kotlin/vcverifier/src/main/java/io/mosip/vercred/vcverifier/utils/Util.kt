@@ -7,9 +7,19 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256K_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.data.DATA_MODEL
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
+import io.mosip.vercred.vcverifier.signature.SignatureVerifier
+import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
+import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
+import io.mosip.vercred.vcverifier.signature.impl.PS256SignatureVerifierImpl
+import io.mosip.vercred.vcverifier.signature.impl.RS256SignatureVerifierImpl
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
@@ -20,6 +30,14 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 
 object Util {
+
+     val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
+        JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
+        JWS_RS256_SIGN_ALGO_CONST to RS256SignatureVerifierImpl(),
+        JWS_EDDSA_SIGN_ALGO_CONST to ED25519SignatureVerifierImpl(),
+        JWS_ES256K_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl(),
+        JWS_ES256_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl()
+    )
 
     fun isAndroid(): Boolean {
         return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false

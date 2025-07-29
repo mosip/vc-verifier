@@ -26,6 +26,7 @@ object CredentialVerifierConstants {
     const val JWS_RS256_SIGN_ALGO_CONST = "RS256"
     const val JWS_EDDSA_SIGN_ALGO_CONST = "EdDSA"
     const val JWS_ES256K_SIGN_ALGO_CONST = "ES256K"
+    const val JWS_ES256_SIGN_ALGO_CONST = "ES256"
 
     const val RSA_KEY_TYPE = "RsaVerificationKey2018"
     const val ED25519_KEY_TYPE_2018 = "Ed25519VerificationKey2018"
