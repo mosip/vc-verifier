@@ -1,7 +1,7 @@
 publishing {
     repositories {
         maven {
-            url = "https://ossrh-staging-api.central.sonatype.com/io/mosip/"
+            url = "https://ossrh-staging-api.central.sonatype.com/"
             name = "vcverifier"
             credentials {
                 username = System.getenv("OSSRH_USER")
