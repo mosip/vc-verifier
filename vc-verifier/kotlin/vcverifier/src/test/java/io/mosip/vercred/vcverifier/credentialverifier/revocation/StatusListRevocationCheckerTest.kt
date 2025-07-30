@@ -64,7 +64,7 @@ class StatusListRevocationCheckerTest {
 
     @Test
     fun `should return false when credentialStatus is missing`() {
-        val file = ResourceUtils.getFile("classpath:ldp_vc/PS256SignedMosipVC.json") 
+        val file = ResourceUtils.getFile("classpath:ldp_vc/PS256SignedMosipVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
         val checker = LdpRevokeChecker()
