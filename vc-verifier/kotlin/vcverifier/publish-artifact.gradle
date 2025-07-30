@@ -1,7 +1,7 @@
 publishing {
     repositories {
         maven {
-            url = System.getenv("OSSRH_URL")
+            url = System.getenv("OSSRH_GRADLE_URL")
             name = "vcverifier"
             credentials {
                 username = System.getenv("OSSRH_USER")
@@ -89,7 +89,7 @@ publishing {
             }
             groupId = "io.mosip"
             artifactId = "vcverifier-aar"
-            version = "1.4.0-SNAPSHOT"
+            version = "1.4.0-rc1"
             if (project.gradle.startParameter.taskNames.any { it.contains('assembleRelease') }) {
                 artifacts {
                     aar {
@@ -103,7 +103,7 @@ publishing {
             artifact(tasks.named("jarRelease").get())
             groupId = "io.mosip"
             artifactId = "vcverifier-jar"
-            version = "1.4.0-SNAPSHOT"
+            version = "1.4.0-rc1"
             artifact(tasks.named("javadocJar").get())
             artifact(tasks.named("sourcesJar").get())
             pom {
