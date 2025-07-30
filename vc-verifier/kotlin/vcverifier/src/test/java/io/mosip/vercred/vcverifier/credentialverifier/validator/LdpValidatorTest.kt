@@ -285,7 +285,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals("$CREDENTIAL_STATUS.$ID cannot be null or empty.", result.validationMessage)
-            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -299,7 +299,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals("$CREDENTIAL_STATUS.$TYPE cannot be null or empty.", result.validationMessage)
-            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
 
@@ -346,7 +346,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals("$CREDENTIAL_STATUS.$ID cannot be null or empty.", result.validationMessage)
-            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_STATUS.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
         }
 
 
@@ -377,7 +377,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals("$CREDENTIAL_STATUS.$TYPE cannot be null or empty.", result.validationMessage)
-            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
         @Test
@@ -419,7 +419,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals("$CREDENTIAL_STATUS.$TYPE cannot be null or empty.", result.validationMessage)
-            assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_STATUS.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
 
@@ -594,6 +594,34 @@ class LdpValidatorTest {
         }
 
         @Test
+        fun `test when credentialSchema object has empty id for v1`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val evidenceObject = JSONObject()
+            evidenceObject.put(ID, "")
+            evidenceObject.put(TYPE, "Type")
+            sampleVcObject.put(CREDENTIAL_SCHEMA, evidenceObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$CREDENTIAL_SCHEMA.$ID cannot be null or empty.", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_SCHEMA.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
+        }
+
+        @Test
+        fun `test when credentialSchema object has empty type for v1`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel1)
+            val evidenceObject = JSONObject()
+            evidenceObject.put(ID, "https://google.com/")
+            evidenceObject.put(TYPE, "")
+            sampleVcObject.put(CREDENTIAL_SCHEMA, evidenceObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$CREDENTIAL_SCHEMA.$TYPE cannot be null or empty.", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_SCHEMA.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+        }
+
+        @Test
         fun `test when credentialSchema is of type 'array' and valid for v2`(){
             val sampleVcObject = JSONObject(sampleVcDataModel2)
             val evidenceObject = JSONObject()
@@ -637,8 +665,37 @@ class LdpValidatorTest {
             assertEquals("$ERROR_CODE_MISSING${CREDENTIAL_SCHEMA.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
         }
 
-    }
+        @Test
+        fun `test when credentialSchema array has object with empty id for v2`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
+            val evidenceObject = JSONObject()
+            evidenceObject.put(ID, "")
+            evidenceObject.put(TYPE, "Type")
+            sampleVcObject.put(CREDENTIAL_SCHEMA, JSONArray())
+            sampleVcObject.getJSONArray(CREDENTIAL_SCHEMA).put(evidenceObject)
 
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$CREDENTIAL_SCHEMA.$ID cannot be null or empty.", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_SCHEMA.uppercase()}_${ID.uppercase()}", result.validationErrorCode)
+        }
+
+        @Test
+        fun `test when credentialSchema array has object with empty type for v2`() {
+            val sampleVcObject = JSONObject(sampleVcDataModel2)
+            val evidenceObject = JSONObject()
+            evidenceObject.put(ID, "https://google.com/")
+            evidenceObject.put(TYPE, "")
+            sampleVcObject.put(CREDENTIAL_SCHEMA, JSONArray())
+            sampleVcObject.getJSONArray(CREDENTIAL_SCHEMA).put(evidenceObject)
+
+            val result = credentialsValidator.validate(sampleVcObject.toString())
+
+            assertEquals("$CREDENTIAL_SCHEMA.$TYPE cannot be null or empty.", result.validationMessage)
+            assertEquals("$ERROR_CODE_INVALID${CREDENTIAL_SCHEMA.uppercase()}_${TYPE.uppercase()}", result.validationErrorCode)
+        }
+
+    }
     @Nested
     inner class RefreshServiceTests{
 
