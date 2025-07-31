@@ -75,8 +75,16 @@ sequenceDiagram
     Note over SdJwtValidator: nbf is optional. If present, not before time cannot be in future
     Note over SdJwtValidator: exp is optional. If present, expired time cannot be in past
     Note over SdJwtValidator: cnf is optional. Must if cryptographic Key Binding is to be supported
-    Note over SdJwtValidator: status is optional
     Note over SdJwtValidator: iat is optional. If present, issued at time cannot be in future
+    Note over SdJwtValidator: _sd_alg is optional. If present, must be a valid algorithm(e.g., sha-256, sha-384, sha-512)
+    SdJwtValidator->>SdJwtValidator: Validate Disclosures if present
+    Note over SdJwtValidator: _sd must be present and<br/>value MUST be an array of digests
+    Note over SdJwtValidator: for each digest, validate<br/>1. base64 url encoded<br/>2. digest length check based on hash algo<br/>3. after base64 decoding, json object should be of size 2(salt and value) or 3(salt, key, value)
+    alt If any validation fails
+       SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as False with error
+    else Validiation Success
+       SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as True
+    end
 ```
 
 ###  Sequence diagram - verification process for `vc+sd-jwt` credential format VC
@@ -99,10 +107,10 @@ sequenceDiagram
           SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
        else Signature Valid
           SdJwtVerifier->>SdJwtVerifier: Verify Disclosures
-          loop For each disclosure
+          loop For each digest
              SdJwtVerifier->>SdJwtVerifier: Create digest with SHA-256 if `_sd_alg` is not specified
              SdJwtVerifier->>SdJwtVerifier: Base64URL Encode
-             SdJwtVerifier->>SdJwtVerifier: Match with _sd array
+             SdJwtVerifier->>SdJwtVerifier: digest must match the hash of the disclosure
           end
           alt Hash mismatch
              SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
