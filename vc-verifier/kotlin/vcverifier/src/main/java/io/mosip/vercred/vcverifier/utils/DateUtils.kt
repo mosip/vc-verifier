@@ -110,4 +110,11 @@ object DateUtils {
         return inputDateTime > upperBound
     }
 
+    fun epochSecondsToISOString(epochSeconds: Long): String {
+        val date = Date(epochSeconds * 1000) // Convert to milliseconds
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        return sdf.format(date)
+    }
+
 }

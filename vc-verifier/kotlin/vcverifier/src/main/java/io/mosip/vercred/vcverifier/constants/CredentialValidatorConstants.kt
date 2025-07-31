@@ -74,6 +74,26 @@ object CredentialValidatorConstants {
     const val ERROR_MESSAGE_INVALID_DATE_MSO = "invalid validUntil / validFrom in the MSO of the credential"
     const val ERROR_CODE_INVALID_DATE_MSO = "${ERROR_CODE_INVALID}DATE_MSO"
 
+    const val ERROR_CODE_INVALID_JWT_FORMAT = "${ERROR_CODE_INVALID}JWT_FORMAT"
+    const val ERROR_MESSAGE_INVALID_JWT_FORMAT = "${VALIDATION_ERROR}Invalid JWT format"
+    const val ERROR_CODE_MISSING_VCT = "${ERROR_CODE_MISSING}VCT"
+    const val ERROR_MESSAGE_MISSING_VCT = "${VALIDATION_ERROR}Missing or empty 'vct' in JWT payload"
+
+    const val ERROR_CODE_INVALID_VCT_URI = "${ERROR_CODE_INVALID}VCT_URI"
+    const val ERROR_MESSAGE_INVALID_VCT_URI = "${VALIDATION_ERROR}'vct' must be a valid URI when it contains ':'"
+
+    const val ERROR_CODE_INVALID_DISCLOSURE_FORMAT = "${ERROR_CODE_INVALID}DISCLOSURE_FORMAT"
+    const val ERROR_MESSAGE_INVALID_DISCLOSURE_FORMAT = "${VALIDATION_ERROR}Disclosure is not a valid base64url-encoded JSON array"
+
+    const val ERROR_CODE_INVALID_DISCLOSURE_STRUCTURE = "${ERROR_CODE_INVALID}DISCLOSURE_STRUCTURE"
+    const val ERROR_MESSAGE_INVALID_DISCLOSURE_STRUCTURE = "${VALIDATION_ERROR}Disclosure must be a 2- or 3-element JSON array"
+
+    const val ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME = "${ERROR_CODE_INVALID}DISCLOSURE_CLAIM_NAME"
+    const val ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME = "${VALIDATION_ERROR}Disclosure has invalid or reserved claim name (starts with underscore)"
+
+    const val ERROR_CODE_INVALID_KB_JWT_FORMAT = "${ERROR_CODE_INVALID}KB_JWT_FORMAT"
+    const val ERROR_MESSAGE_INVALID_KB_JWT_FORMAT = "${VALIDATION_ERROR}Invalid Key Binding JWT format"
+
 
     val DATE_REGEX = Regex(
         """^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)([01][0-9]|2[0-3]):([0-5][0-9]))$""",
