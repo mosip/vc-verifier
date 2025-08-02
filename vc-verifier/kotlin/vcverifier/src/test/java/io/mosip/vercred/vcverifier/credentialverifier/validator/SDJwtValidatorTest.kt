@@ -34,6 +34,15 @@ class SdJwtValidatorTest {
         return listOf(newJwt).plus(parts.drop(1)).joinToString("~")
     }
 
+    private fun getDisclosureTamperedSdJWT(): String{
+        val vc = loadSampleSdJwt("sdJwtAnimo.txt")
+        val parts = vc.split("~").toMutableList()
+        val tamperedDisclosure = "WyI1ODE3OTQ1NTIzMDA0NzQwMDYwNTU3OTQiLCJpc3N1aW5nX2NvdW50cnkiLCJJTiJd"
+        parts[parts.lastIndex - 1] = tamperedDisclosure
+        return parts.joinToString("~")
+    }
+
+
     @Test
     fun `should validate a valid SD-JWT VC successfully`() {
         var vc = loadSampleSdJwt("sdJwtAnimo.txt")
@@ -126,7 +135,6 @@ class SdJwtValidatorTest {
         val modifiedVc = parts.joinToString("~")
         val status = validator.validate(modifiedVc)
 
-        println("Validation message: ${status.validationMessage}")
         assertTrue(status.validationMessage.contains("Disclosure", ignoreCase = true))
     }
 
@@ -223,16 +231,22 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for malformed KB JWT`() {
-        val vc = loadSampleSdJwt("sdJwtAnimo.txt") + "~header.payload"
+        val vc = loadSampleSdJwt("sdJwtAnimo.txt") + "header.payload"
         val status = validator.validate(vc)
         assertTrue(status.validationMessage.contains("Key Binding JWT"))
     }
 
     @Test
     fun `should fail for missing aud in KB JWT`() {
-        val validKbJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImFiYyIsImNuZiI6eyJraWQiOiJrZXkifX0.signature"
-        val vc = loadSampleSdJwt("sdJwtAnimo.txt") + "~" + validKbJwt
+        val validKbJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImFiYyIsImNuZiI6eyJraWQiOiJrZXkifX0.c2lnbmF0dXJl"
+        val vc = loadSampleSdJwt("sdJwtAnimo.txt") + validKbJwt
         val status = validator.validate(vc)
         assertTrue(status.validationMessage.contains("aud"))
+    }
+    @Test
+    fun `should fail for tampered disclosure`() {
+        val vc = getDisclosureTamperedSdJWT()
+        val status = validator.validate(vc)
+        assertTrue(status.validationMessage.contains("Disclosure SHA of claimName"))
     }
 }

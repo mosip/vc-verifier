@@ -1,5 +1,7 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
+import com.authlete.sd.Disclosure
+import com.authlete.sd.SDJWT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME
@@ -53,28 +55,22 @@ class SdJwtValidator {
         }
     }
 
-    private fun validateAndProcess(sdJwt: String) {
-        require(sdJwt.isNotBlank()) {
+    private fun validateAndProcess(credential: String) {
+        require(credential.isNotBlank()) {
             ValidationException(ERROR_MESSAGE_EMPTY_VC_JSON, ERROR_CODE_EMPTY_VC_JSON)
         }
-
-        val parts = sdJwt.split("~")
-        val issuerJwt = parts[0]
-        val hasKeyBinding = !sdJwt.endsWith("~")
-
-        val disclosures = extractDisclosures(parts, hasKeyBinding)
-        val keyBindingJwt = if (hasKeyBinding) parts.lastOrNull() else null
+        val sdJwt = SDJWT.parse(credential)
+        val issuerJwt = sdJwt.credentialJwt
+        val disclosures = sdJwt.disclosures
+        val keyBindingJwt = sdJwt.bindingJwt
 
         validateSDJwtStructure(issuerJwt, disclosures)
-        keyBindingJwt?.let { validateKeyBindingJwt(it) }
+        keyBindingJwt?.let {
+            validateKeyBindingJwt(it)
+        }
     }
 
-    private fun extractDisclosures(parts: List<String>, hasKeyBinding: Boolean): List<String> {
-        val endIndex = if (hasKeyBinding) parts.size - 1 else parts.size
-        return parts.subList(1, endIndex).filter { it.isNotBlank() }
-    }
-
-    private fun validateSDJwtStructure(issuerJwt: String, disclosures: List<String>) {
+    private fun validateSDJwtStructure(issuerJwt: String, disclosures: List<Disclosure>) {
         val jwtParts = issuerJwt.split(".")
         require(jwtParts.size == 3) {
             ValidationException(ERROR_MESSAGE_INVALID_JWT_FORMAT, ERROR_CODE_INVALID_JWT_FORMAT)
@@ -86,6 +82,22 @@ class SdJwtValidator {
         validateHeader(header)
         validatePayload(payload, disclosures)
         validateDisclosures(disclosures)
+        validateDisclosureSha(disclosures, payload)
+    }
+
+    private fun validateDisclosureSha(disclosures: List<Disclosure>, payload: JSONObject) {
+        if (disclosures.isEmpty()) return
+
+        val sdAlg = payload.optString("_sd_alg", "sha-256")
+        val sdClaims = payload.optJSONArray("_sd")!!.let { jsonArray ->
+            List(jsonArray.length()) { jsonArray.getString(it) }
+        }
+        disclosures.forEach { disclosure ->
+            val disclosureSha = disclosure.digest(sdAlg)
+            if (!sdClaims.contains(disclosureSha)) {
+                throw ValidationException("Disclosure SHA of claimName ${disclosure.claimName} not found in '_sd' claims", "${ERROR_CODE_INVALID}DISCLOSURE")
+            }
+        }
     }
 
     private fun decodeBase64Json(encoded: String): JSONObject {
@@ -105,7 +117,7 @@ class SdJwtValidator {
         }
     }
 
-    private fun validatePayload(payload: JSONObject, disclosures: List<String>) {
+    private fun validatePayload(payload: JSONObject, disclosures: List<Disclosure>) {
         validateRequiredClaims(payload)
         validateTimeClaims(payload)
         validateUriClaims(payload)
@@ -172,7 +184,7 @@ class SdJwtValidator {
         }
     }
 
-    private fun validateSelectiveDisclosure(payload: JSONObject, disclosures: List<String>) {
+    private fun validateSelectiveDisclosure(payload: JSONObject, disclosures: List<Disclosure>) {
         if (disclosures.isEmpty()) return
 
         require(payload.has("_sd")) {
@@ -221,10 +233,10 @@ class SdJwtValidator {
         }
     }
 
-    private fun validateDisclosures(disclosures: List<String>) {
+    private fun validateDisclosures(disclosures: List<Disclosure>) {
         disclosures.forEachIndexed { index, encodedDisclosure ->
             val jsonArray = try {
-                val decodedBytes = Base64Decoder().decodeFromBase64Url(encodedDisclosure)
+                val decodedBytes = Base64Decoder().decodeFromBase64Url(encodedDisclosure.disclosure)
                 JSONArray(String(decodedBytes))
             } catch (e: Exception) {
                 throw ValidationException(

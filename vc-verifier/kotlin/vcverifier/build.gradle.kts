@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.cbor)
     implementation (libs.identity)
     implementation(libs.annotation.jvm)
+    implementation(libs.authelete.sd.jwt)
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
