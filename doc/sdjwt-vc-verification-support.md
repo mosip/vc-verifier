@@ -3,7 +3,8 @@
 This document provides a comprehensive overview of verifying `vc+sd-jwt` Verifiable Credentials (VCs).
 
 ### Public key resolution support
-X.509 Certificates - Retrieves Issuer's public key using `x5c header parameter` in SD-JWT header.
+- X.509 Certificates - Retrieves Issuer's public key using `x5c header parameter` in SD-JWT header.
+- DID Document - Retrieves Issuer's public key using `kid` in SD-JWT header.
 
 ### Steps Involved
 1. Add enum value `SD_JWT_VC("vc+sd-jwt")` in `CredentialFormat`
@@ -32,8 +33,7 @@ X.509 Certificates - Retrieves Issuer's public key using `x5c header parameter` 
 
 ```mermaid
 sequenceDiagram
-   Wallet->>VcVerifier: Verify sd-jwt Credential
-   VcVerifier->>CredentialsVerifier: verify credential<br/>verify(credential: "jwt-string", credentialFormat: "vc+sd-jwt")
+   Wallet->>CredentialsVerifier: verify credential<br/>verify(credential: "jwt-string", credentialFormat: "vc+sd-jwt")
    CredentialsVerifier->>CredentialVerifierFactory: Create instance of VerifiableCredential based on format vc+sd-jwt
    CredentialVerifierFactory->>SdJwtVerifiableCredential: Create SdJwtVerifiableCredential instance
    CredentialsVerifier->>SdJwtVerifiableCredential: Validate sd-jwt Credential
@@ -77,15 +77,34 @@ sequenceDiagram
     Note over SdJwtValidator: cnf is optional. Must if cryptographic Key Binding is to be supported
     Note over SdJwtValidator: iat is optional. If present, issued at time cannot be in future
     Note over SdJwtValidator: _sd_alg is optional. If present, must be a valid algorithm(e.g., sha-256, sha-384, sha-512)
-    SdJwtValidator->>SdJwtValidator: Validate Disclosures if present
-    Note over SdJwtValidator: _sd must be present and<br/>value MUST be an array of digests
-    Note over SdJwtValidator: for each digest, validate<br/>1. base64 url encoded<br/>2. digest length check based on hash algo<br/>3. after base64 decoding, json object should be of size 2(salt and value) or 3(salt, key, value)
-    alt If any validation fails
-       SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as False with error
-    else Validiation Success
-       SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as True
+    Note over SdJwtValidator: if `_sd` present, value MUST be an array of digests
+    Note over SdJwtValidator: digest length check based on hash algo  `sha-256` - 32, `sha-384` to 48, `sha-512` to 64
+    alt if Disclosures present
+        SdJwtValidator->>SdJwtValidator: Validate Disclosures
+        loop For each disclosure
+            SdJwtValidator->>SdJwtValidator: Create digest with sha-256 if `_sd_alg` is not specified and<br/>Base64URL Encode
+        end
+       SdJwtValidator->>SdJwtValidator: digest must match the hash available in `_sd` array inside payload <br/>or `_sd` available in claims
+        alt If any digest does not match or missing
+            SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as False with error
+        else All digests match
+            Note over SdJwtValidator: after base64 decoding, json object should be of size 2(salt and value if it's array) or 3(salt, key, value if object)
+            Note over SdJwtValidator: disclosure claim name should exist once
+            Note over SdJwtValidator: disclosure claim name should not conflict with claim name in payload
+           alt If any validation fails
+              SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as False with error
+           else Validiation Success
+              SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as True
+           end
+        end
+    else If Disclosures not present
+        alt If any validation fails
+            SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as False with error
+        else Validiation Success
+           SdJwtValidator-->>SdJwtVerifiableCredential: Return Validation Result as True
+        end
     end
-```
+```   
 
 ###  Sequence diagram - verification process for `vc+sd-jwt` credential format VC
 
@@ -94,6 +113,7 @@ sequenceDiagram
    
     SdJwtVerifiableCredential->>SdJwtVerifier: Verify sd-jwt Credential
     SdJwtVerifier->>SdJwtVerifier: Separate JWT and disclosures
+    SdJwtVerifier->>SdJwtVerifier: Validate JWT by checking if it is well-formed
     alt Invalid JWT
        SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
     else Valid JWT
@@ -106,17 +126,7 @@ sequenceDiagram
        alt Signature Invalid
           SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
        else Signature Valid
-          SdJwtVerifier->>SdJwtVerifier: Verify Disclosures
-          loop For each digest
-             SdJwtVerifier->>SdJwtVerifier: Create digest with SHA-256 if `_sd_alg` is not specified
-             SdJwtVerifier->>SdJwtVerifier: Base64URL Encode
-             SdJwtVerifier->>SdJwtVerifier: digest must match the hash of the disclosure
-          end
-          alt Hash mismatch
-             SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
-          else All hashes match
-             SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as True
-          end
+          SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as True
        end
     end
 ```
