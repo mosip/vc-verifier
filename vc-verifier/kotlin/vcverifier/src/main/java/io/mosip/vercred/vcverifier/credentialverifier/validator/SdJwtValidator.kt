@@ -75,34 +75,13 @@ class SdJwtValidator {
         require(jwtParts.size == 3) {
             ValidationException(ERROR_MESSAGE_INVALID_JWT_FORMAT, ERROR_CODE_INVALID_JWT_FORMAT)
         }
-
         val header = decodeBase64Json(jwtParts[0])
         val payload = decodeBase64Json(jwtParts[1])
+        val payloadMap = mapper.readValue(payload, Map::class.java)
 
-        validateHeader(header)
-        validatePayload(payload, disclosures)
-        validateDisclosures(disclosures)
-        validateDisclosureSha(disclosures, payload)
-    }
-
-    private fun validateDisclosureSha(disclosures: List<Disclosure>, payload: JSONObject) {
-        if (disclosures.isEmpty()) return
-
-        val sdAlg = payload.optString("_sd_alg", "sha-256")
-        val sdClaims = payload.optJSONArray("_sd")!!.let { jsonArray ->
-            List(jsonArray.length()) { jsonArray.getString(it) }
-        }
-        disclosures.forEach { disclosure ->
-            val disclosureSha = disclosure.digest(sdAlg)
-            if (!sdClaims.contains(disclosureSha)) {
-                throw ValidationException("Disclosure SHA of claimName ${disclosure.claimName} not found in '_sd' claims", "${ERROR_CODE_INVALID}DISCLOSURE")
-            }
-        }
-    }
-
-    private fun decodeBase64Json(encoded: String): JSONObject {
-        val decodedBytes = Base64Decoder().decodeFromBase64Url(encoded)
-        return JSONObject(String(decodedBytes))
+        validateHeader(JSONObject(header))
+        validatePayload(JSONObject(payload), disclosures)
+        validateDisclosures(disclosures, payloadMap)
     }
 
     private fun validateHeader(header: JSONObject) {
@@ -123,6 +102,21 @@ class SdJwtValidator {
         validateUriClaims(payload)
         validateConfirmationClaim(payload)
         validateSelectiveDisclosure(payload, disclosures)
+    }
+
+    private fun validateDisclosures(disclosures: List<Disclosure>, payload: Map<*, *>) {
+        validateDisclosureFormat(disclosures)
+        val hashAlg = (payload["_sd_alg"] as? String) ?: "sha-256"
+        val digestToDisclosure = disclosures.associateBy { it.digest(hashAlg) }
+        val allSdDigests = mutableSetOf<String>()
+        validateDisclosureSha(payload, digestToDisclosure, allSdDigests)
+        val isAllDisclosureDigestPresent = digestToDisclosure.keys.all { it in allSdDigests }
+        if (!isAllDisclosureDigestPresent)
+            throw ValidationException(
+                "Digest value of all disclosures must be present in the '_sd' claim of payload",
+                "${ERROR_CODE_INVALID}DISCLOSURE"
+            )
+
     }
 
     private fun validateRequiredClaims(payload: JSONObject) {
@@ -233,7 +227,7 @@ class SdJwtValidator {
         }
     }
 
-    private fun validateDisclosures(disclosures: List<Disclosure>) {
+    private fun validateDisclosureFormat(disclosures: List<Disclosure>) {
         disclosures.forEachIndexed { index, encodedDisclosure ->
             val jsonArray = try {
                 val decodedBytes = Base64Decoder().decodeFromBase64Url(encodedDisclosure.disclosure)
@@ -266,13 +260,45 @@ class SdJwtValidator {
         }
     }
 
+    private fun validateDisclosureSha(node: Any?, digestToDisclosure: Map<String, Disclosure>, allSdDigests: MutableSet<String>): Any? {
+        return when (node) {
+            is Map<*, *> -> {
+                val mutableNode = node.toMutableMap() as MutableMap<String, Any?>
+                (mutableNode["_sd"] as? List<*>)?.forEach { digest ->
+                    val digestStr = digest as? String ?: return@forEach
+                    allSdDigests += digestStr
+                    val disclosure = digestToDisclosure[digestStr] ?: return@forEach
+                    val claimName = disclosure.claimName
+                    val claimValue = disclosure.claimValue
+                    if (!mutableNode.containsKey(claimName)) {
+                        mutableNode[claimName] = claimValue
+                    }
+                }
+                mutableNode.remove("_sd")
+
+                for ((key, value) in mutableNode) {
+                    mutableNode[key] = processSdJwtPayload(value, digestToDisclosure, allSdDigests)
+                }
+                mutableNode
+            }
+            is List<*> -> {
+                node.map { item ->
+                    processSdJwtPayload(item, digestToDisclosure, allSdDigests)
+                }
+            }
+            else -> {
+                node
+            }
+        }
+    }
+
     private fun validateKeyBindingJwt(kbJwt: String) {
         val parts = kbJwt.split(".")
         require(parts.size == 3) {
             ValidationException(ERROR_MESSAGE_INVALID_KB_JWT_FORMAT, ERROR_CODE_INVALID_KB_JWT_FORMAT)
         }
 
-        val payload = decodeBase64Json(parts[1])
+        val payload = JSONObject(decodeBase64Json(parts[1]))
         validateKeyBindingPayload(payload)
     }
 
@@ -305,5 +331,10 @@ class SdJwtValidator {
         require(cnf != null && (cnf.has("jwk") || cnf.has("kid"))) {
             ValidationException("Invalid or missing 'cnf' in Key Binding JWT", ERROR_CODE_INVALID)
         }
+    }
+
+    private fun decodeBase64Json(encoded: String): String {
+        val decodedBytes = Base64Decoder().decodeFromBase64Url(encoded)
+        return String(decodedBytes)
     }
 }

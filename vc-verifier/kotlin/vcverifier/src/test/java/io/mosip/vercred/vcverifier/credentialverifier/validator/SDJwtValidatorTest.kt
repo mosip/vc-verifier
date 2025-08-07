@@ -37,11 +37,10 @@ class SdJwtValidatorTest {
     private fun getDisclosureTamperedSdJWT(): String{
         val vc = loadSampleSdJwt("sdJwtAnimo.txt")
         val parts = vc.split("~").toMutableList()
-        val tamperedDisclosure = "WyI1ODE3OTQ1NTIzMDA0NzQwMDYwNTU3OTQiLCJpc3N1aW5nX2NvdW50cnkiLCJJTiJd"
+        val tamperedDisclosure = "WyIzeGN5R1RuS1lsYV9VOUtGVEtEVWtRIiwiZmFybWVySUQiLCIxMjM0NTY3ODkiXQ~"
         parts[parts.lastIndex - 1] = tamperedDisclosure
         return parts.joinToString("~")
     }
-
 
     @Test
     fun `should validate a valid SD-JWT VC successfully`() {
@@ -247,6 +246,6 @@ class SdJwtValidatorTest {
     fun `should fail for tampered disclosure`() {
         val vc = getDisclosureTamperedSdJWT()
         val status = validator.validate(vc)
-        assertTrue(status.validationMessage.contains("Disclosure SHA of claimName"))
+        assertTrue(status.validationMessage.contains("Digest value of all disclosures must be present in the '_sd' claim of payload"))
     }
 }
