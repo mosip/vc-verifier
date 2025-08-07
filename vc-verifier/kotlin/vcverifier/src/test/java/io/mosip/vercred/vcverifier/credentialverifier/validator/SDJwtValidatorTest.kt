@@ -35,7 +35,7 @@ class SdJwtValidatorTest {
     }
 
     private fun getDisclosureTamperedSdJWT(): String{
-        val vc = loadSampleSdJwt("sdJwtAnimo.txt")
+        val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         val parts = vc.split("~").toMutableList()
         val tamperedDisclosure = "WyIzeGN5R1RuS1lsYV9VOUtGVEtEVWtRIiwiZmFybWVySUQiLCIxMjM0NTY3ODkiXQ~"
         parts[parts.lastIndex - 1] = tamperedDisclosure
@@ -44,15 +44,15 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should validate a valid SD-JWT VC successfully`() {
-        var vc = loadSampleSdJwt("sdJwtAnimo.txt")
+        var vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         var status = validator.validate(vc)
         assertEquals("", status.validationMessage)
         assertEquals("", status.validationErrorCode)
-        vc = loadSampleSdJwt("sdJwtAnimoCOR.txt")
+        vc = loadSampleSdJwt("sdJwtWithRootLevelSd2.txt")
         status = validator.validate(vc)
         assertEquals("", status.validationMessage)
         assertEquals("", status.validationErrorCode)
-        vc = loadSampleSdJwt("sdJwtAnimoMSISDN.txt")
+        vc = loadSampleSdJwt("sdJwtWithRootLevelSd.txt")
         status = validator.validate(vc)
         assertEquals("", status.validationMessage)
         assertEquals("", status.validationErrorCode)
@@ -74,7 +74,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail if vct is missing`() {
-        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtAnimo.txt")) {
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
             it.remove("vct")
         }
         val status = validator.validate(vc)
@@ -97,7 +97,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for future iat`() {
-        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtAnimo.txt")) {
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
             it.put("iat", 9999999999)
         }
         val status = validator.validate(vc)
@@ -106,7 +106,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for future nbf`() {
-        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtAnimo.txt")) {
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
             it.put("nbf", 9999999999)
         }
         val status = validator.validate(vc)
@@ -115,7 +115,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for expired exp`() {
-        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtAnimo.txt")) {
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
             it.put("exp", 1234567890)
         }
         System.out.println("VC: " + vc)
@@ -126,7 +126,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for malformed disclosure`() {
-        val base = loadSampleSdJwt("sdJwtAnimo.txt")
+        val base = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         val parts = base.split("~").toMutableList()
 
         parts[parts.lastIndex - 1] = "!!!not_base64"
@@ -139,7 +139,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail if number of disclosures does not match _sd array`() {
-        val base = loadSampleSdJwt("sdJwtAnimo.txt")
+        val base = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         val parts = base.split("~").toMutableList()
 
         parts.add(parts.lastIndex, Base64.getUrlEncoder().withoutPadding()
@@ -153,7 +153,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail if _sd digest is not correct length for sha-256`() {
-        val base = loadSampleSdJwt("sdJwtAnimo.txt")
+        val base = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         val parts = base.split("~").toMutableList()
 
         val jwtParts = parts[0].split(".").toMutableList()
@@ -189,7 +189,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should not fail if optional parameter iss is missing`() {
-        val base = loadSampleSdJwt("sdJwtAnimo.txt")
+        val base = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         val parts = base.split("~").toMutableList()
 
         val jwtParts = parts[0].split(".").toMutableList()
@@ -212,7 +212,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for disclosure with reserved claim name`() {
-        val base = loadSampleSdJwt("sdJwtAnimo.txt")
+        val base = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         val parts = base.split("~").toMutableList()
 
         val badDisclosure = Base64.getUrlEncoder().withoutPadding()
@@ -230,7 +230,7 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for malformed KB JWT`() {
-        val vc = loadSampleSdJwt("sdJwtAnimo.txt") + "header.payload"
+        val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt") + "header.payload"
         val status = validator.validate(vc)
         assertTrue(status.validationMessage.contains("Key Binding JWT"))
     }
@@ -238,7 +238,7 @@ class SdJwtValidatorTest {
     @Test
     fun `should fail for missing aud in KB JWT`() {
         val validKbJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImFiYyIsImNuZiI6eyJraWQiOiJrZXkifX0.c2lnbmF0dXJl"
-        val vc = loadSampleSdJwt("sdJwtAnimo.txt") + validKbJwt
+        val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt") + validKbJwt
         val status = validator.validate(vc)
         assertTrue(status.validationMessage.contains("aud"))
     }
