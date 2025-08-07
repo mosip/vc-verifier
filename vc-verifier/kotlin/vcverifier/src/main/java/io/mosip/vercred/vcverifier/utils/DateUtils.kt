@@ -98,9 +98,17 @@ object DateUtils {
     }
 
     fun isFutureDateWithTolerance(inputDateString: String, toleranceInMilliSeconds: Long = 3000): Boolean {
-        val inputDate: Date? = parseDate(inputDateString)
-        if (inputDate == null) {
+        val inputDate: Date? = try {
+            parseDate(inputDateString) ?: run {
+                val localFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
+                localFormat.parse(inputDateString)
+            }
+        } catch (e: Exception) {
             logger.severe("Given date is not available in supported date formats")
+            return false
+        }
+        if (inputDate == null) {
+            logger.severe("Failed to parse the input date")
             return false
         }
         val currentTime = System.currentTimeMillis()
@@ -108,13 +116,6 @@ object DateUtils {
 
         val upperBound = currentTime + toleranceInMilliSeconds
         return inputDateTime > upperBound
-    }
-
-    fun epochSecondsToISOString(epochSeconds: Long): String {
-        val date = Date(epochSeconds * 1000) // Convert to milliseconds
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-        sdf.timeZone = TimeZone.getTimeZone("UTC")
-        return sdf.format(date)
     }
 
 }

@@ -2,6 +2,9 @@ package io.mosip.vercred.vcverifier.credentialverifier.validator
 
 import com.authlete.sd.Disclosure
 import com.authlete.sd.SDJWT
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_PROCESSING_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME
@@ -13,7 +16,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_MISSING_VCT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_VALID_FROM
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_PROCESSING_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_INVALID_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_EMPTY_VC_JSON
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME
@@ -32,6 +35,7 @@ import io.mosip.vercred.vcverifier.utils.DateUtils
 import io.mosip.vercred.vcverifier.utils.Util.isValidUri
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Date
 
 class SdJwtValidator {
     companion object {
@@ -49,15 +53,17 @@ class SdJwtValidator {
             validateAndProcess(sdJwt)
             ValidationStatus("", "")
         } catch (e: ValidationException) {
+            println("Validation Exception: $e")
             ValidationStatus(e.errorMessage, e.errorCode)
         } catch (e: Exception) {
-            ValidationStatus("$EXCEPTION_DURING_VALIDATION${e.message}", ERROR_CODE_INVALID)
+            println("Exception: $e")
+            ValidationStatus("$EXCEPTION_DURING_VALIDATION${e.message}", "${ERROR_CODE_INVALID}UNKNOWN")
         }
     }
 
     private fun validateAndProcess(credential: String) {
-        require(credential.isNotBlank()) {
-            ValidationException(ERROR_MESSAGE_EMPTY_VC_JSON, ERROR_CODE_EMPTY_VC_JSON)
+        if(credential.isBlank()) {
+            throw ValidationException(ERROR_MESSAGE_EMPTY_VC_JSON, ERROR_CODE_EMPTY_VC_JSON)
         }
         val sdJwt = SDJWT.parse(credential)
         val issuerJwt = sdJwt.credentialJwt
@@ -72,12 +78,12 @@ class SdJwtValidator {
 
     private fun validateSDJwtStructure(issuerJwt: String, disclosures: List<Disclosure>) {
         val jwtParts = issuerJwt.split(".")
-        require(jwtParts.size == 3) {
-            ValidationException(ERROR_MESSAGE_INVALID_JWT_FORMAT, ERROR_CODE_INVALID_JWT_FORMAT)
+        if(jwtParts.size != 3) {
+            throw ValidationException(ERROR_MESSAGE_INVALID_JWT_FORMAT, ERROR_CODE_INVALID_JWT_FORMAT)
         }
         val header = decodeBase64Json(jwtParts[0])
         val payload = decodeBase64Json(jwtParts[1])
-        val payloadMap = mapper.readValue(payload, Map::class.java)
+        val payloadMap = jacksonObjectMapper().readValue(payload, Map::class.java)
 
         validateHeader(JSONObject(header))
         validatePayload(JSONObject(payload), disclosures)
@@ -86,13 +92,13 @@ class SdJwtValidator {
 
     private fun validateHeader(header: JSONObject) {
         val alg = header.optString("alg", "")
-        require(alg.isNotBlank() && !alg.equals("none", ignoreCase = true)) {
-            ValidationException("Missing or invalid 'alg' in JWT header", ERROR_CODE_INVALID)
+        if(alg.isBlank() && alg.equals("none", ignoreCase = true)) {
+            throw ValidationException("Missing or invalid 'alg' in JWT header", "${ERROR_CODE_INVALID}ALG")
         }
 
         val typ = header.optString("typ", "")
-        require(typ in VALID_JWT_TYPES) {
-            ValidationException("Unsupported or missing 'typ' in JWT header", ERROR_CODE_INVALID)
+        if (typ !in VALID_JWT_TYPES) {
+            throw ValidationException("Unsupported or missing 'typ' in JWT header", "${ERROR_CODE_INVALID}TYP")
         }
     }
 
@@ -121,40 +127,38 @@ class SdJwtValidator {
 
     private fun validateRequiredClaims(payload: JSONObject) {
         val vct = payload.optString("vct", "")
-        require(vct.isNotBlank()) {
-            ValidationException(ERROR_MESSAGE_MISSING_VCT, ERROR_CODE_MISSING_VCT)
+        if(vct.isBlank()) {
+            throw ValidationException(ERROR_MESSAGE_MISSING_VCT, ERROR_CODE_MISSING_VCT)
         }
 
-        if (":" in vct) {
-            require(isValidUri(vct)) {
-                ValidationException(ERROR_MESSAGE_INVALID_VCT_URI, ERROR_CODE_INVALID_VCT_URI)
-            }
+        if (":" in vct && !isValidUri(vct)) {
+            throw ValidationException(ERROR_MESSAGE_INVALID_VCT_URI, ERROR_CODE_INVALID_VCT_URI)
         }
 
         payload.optString("iss", "").takeIf { it.isNotBlank() }
             ?.let { iss ->
-                require(isValidUri(iss)) {
-                    ValidationException("Invalid 'iss' claim: $iss", ERROR_CODE_INVALID)
+                if(!isValidUri(iss)) {
+                    throw ValidationException("Invalid 'iss' claim: $iss", ERROR_CODE_INVALID)
                 }
             }
     }
 
     private fun validateTimeClaims(payload: JSONObject) {
         payload.optLong("iat", -1).takeIf { it > 0 }?.let { iat ->
-            require(!DateUtils.isFutureDateWithTolerance(DateUtils.epochSecondsToISOString(iat))) {
-                ValidationException("Invalid or future 'iat'", ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE)
+            if(DateUtils.isFutureDateWithTolerance(Date(iat * 1000).toString())) {
+                throw ValidationException(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE, ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE)
             }
         }
 
         payload.optLong("nbf", -1).takeIf { it > 0 }?.let { nbf ->
-            require(!DateUtils.isFutureDateWithTolerance(DateUtils.epochSecondsToISOString(nbf))) {
-                ValidationException("Invalid or future 'nbf'", ERROR_CURRENT_DATE_BEFORE_VALID_FROM)
+            if(DateUtils.isFutureDateWithTolerance(Date(nbf*1000).toString() )) {
+                throw ValidationException(ERROR_CURRENT_DATE_BEFORE_PROCESSING_DATE, ERROR_CODE_CURRENT_DATE_BEFORE_PROCESSING_DATE)
             }
         }
 
         payload.optLong("exp", -1).takeIf { it > 0 }?.let { exp ->
-            require(!DateUtils.isVCExpired(DateUtils.epochSecondsToISOString(exp))) {
-                ValidationException(ERROR_MESSAGE_VC_EXPIRED, ERROR_CODE_VC_EXPIRED)
+            if(DateUtils.isVCExpired(Date(exp*1000).toString() )) {
+                throw ValidationException(ERROR_MESSAGE_VC_EXPIRED, ERROR_CODE_VC_EXPIRED)
             }
         }
     }
@@ -164,7 +168,7 @@ class SdJwtValidator {
             payload.optString(field, "").takeIf { it.isNotBlank() }
                 ?.let { value ->
                     if (":" in value && !isValidUri(value)) {
-                        throw ValidationException(ERROR_INVALID_URI + value, ERROR_CODE_INVALID)
+                        throw ValidationException(ERROR_INVALID_URI + value, "${ERROR_CODE_INVALID}${field.uppercase()}")
                     }
                 }
         }
@@ -172,8 +176,8 @@ class SdJwtValidator {
 
     private fun validateConfirmationClaim(payload: JSONObject) {
         payload.optJSONObject("cnf")?.let { cnf ->
-            require(cnf.has("jwk") || cnf.has("kid")) {
-                ValidationException("Invalid 'cnf' object: must contain either 'jwk' or 'kid'", ERROR_CODE_INVALID)
+            if(cnf.has("jwk") && cnf.has("kid")) {
+                throw ValidationException("Invalid 'cnf' object: must contain either 'jwk' or 'kid'", "${ERROR_CODE_INVALID}CNF")
             }
         }
     }
@@ -181,23 +185,22 @@ class SdJwtValidator {
     private fun validateSelectiveDisclosure(payload: JSONObject, disclosures: List<Disclosure>) {
         if (disclosures.isEmpty()) return
 
-        require(payload.has("_sd")) {
-            ValidationException("Missing required '_sd' claim when disclosures are present", ERROR_CODE_INVALID)
+        if(!payload.has("_sd")) {
+            throw ValidationException("Missing required '_sd' claim when disclosures are present", "${ERROR_CODE_INVALID}SD_CLAIMS")
         }
 
         val sdAlg = payload.optString("_sd_alg", "sha-256")
-        require(sdAlg in SUPPORTED_SD_HASH_ALGORITHMS) {
-            ValidationException("Unsupported _sd_alg: $sdAlg. Allowed: $SUPPORTED_SD_HASH_ALGORITHMS", ERROR_CODE_INVALID)
+        if(sdAlg !in SUPPORTED_SD_HASH_ALGORITHMS) {
+            throw ValidationException("Unsupported _sd_alg: $sdAlg. Allowed: $SUPPORTED_SD_HASH_ALGORITHMS", "${ERROR_CODE_INVALID}SD_ALG")
         }
 
         val sdArray = payload.optJSONArray("_sd")
-        require(sdArray != null && sdArray.length() == disclosures.size) {
-            ValidationException(
-                "Mismatch between number of disclosures (${disclosures.size}) and _sd entries (${sdArray?.length() ?: 0})",
-                ERROR_CODE_INVALID
+        if (sdArray == null || sdArray.length() == 0) {
+            throw ValidationException(
+                "'_sd' claim must be a non-empty array",
+                "${ERROR_CODE_INVALID}DIGEST"
             )
         }
-
         validateDigests(sdArray, sdAlg)
     }
 
@@ -206,22 +209,23 @@ class SdJwtValidator {
 
         repeat(sdArray.length()) { i ->
             val digest = sdArray.optString(i)
-            require(digest.isNotBlank()) {
-                ValidationException("Invalid digest at _sd[$i]: must be a non-empty string", ERROR_CODE_INVALID)
+            if(digest.isBlank()) {
+                throw ValidationException("Invalid digest at _sd[$i]: must be a non-empty string", "${ERROR_CODE_INVALID}DIGEST")
             }
 
+            val decoded: ByteArray
             try {
-                val decoded = Base64Decoder().decodeFromBase64Url(digest)
-                require(decoded.size == expectedLength) {
-                    ValidationException(
-                        "Invalid digest length at _sd[$i]: expected $expectedLength bytes, got ${decoded.size}",
-                        ERROR_CODE_INVALID
-                    )
-                }
+                decoded = Base64Decoder().decodeFromBase64Url(digest)
             } catch (e: Exception) {
                 throw ValidationException(
                     "Invalid base64url encoding in _sd[$i]: $digest ${e.message}",
-                    ERROR_CODE_INVALID
+                    "${ERROR_CODE_INVALID}DIGEST"
+                )
+            }
+            if(decoded.size != expectedLength) {
+                throw ValidationException(
+                    "Invalid digest length at _sd[$i]: expected $expectedLength bytes, got ${decoded.size}",
+                    "${ERROR_CODE_INVALID}DIGEST"
                 )
             }
         }
@@ -252,8 +256,8 @@ class SdJwtValidator {
 
     private fun validateObjectDisclosure(jsonArray: JSONArray, index: Int) {
         val name = jsonArray.optString(1, null)
-        require(name != null && !name.startsWith("_")) {
-            ValidationException(
+        if (name == null || name.startsWith("_")) {
+            throw ValidationException(
                 "$ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME at index $index",
                 ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME
             )
@@ -277,13 +281,13 @@ class SdJwtValidator {
                 mutableNode.remove("_sd")
 
                 for ((key, value) in mutableNode) {
-                    mutableNode[key] = processSdJwtPayload(value, digestToDisclosure, allSdDigests)
+                    mutableNode[key] = validateDisclosureSha(value, digestToDisclosure, allSdDigests)
                 }
                 mutableNode
             }
             is List<*> -> {
                 node.map { item ->
-                    processSdJwtPayload(item, digestToDisclosure, allSdDigests)
+                    validateDisclosureSha(item, digestToDisclosure, allSdDigests)
                 }
             }
             else -> {
@@ -294,8 +298,8 @@ class SdJwtValidator {
 
     private fun validateKeyBindingJwt(kbJwt: String) {
         val parts = kbJwt.split(".")
-        require(parts.size == 3) {
-            ValidationException(ERROR_MESSAGE_INVALID_KB_JWT_FORMAT, ERROR_CODE_INVALID_KB_JWT_FORMAT)
+        if(parts.size != 3) {
+            throw ValidationException(ERROR_MESSAGE_INVALID_KB_JWT_FORMAT, ERROR_CODE_INVALID_KB_JWT_FORMAT)
         }
 
         val payload = JSONObject(decodeBase64Json(parts[1]))
@@ -306,30 +310,28 @@ class SdJwtValidator {
         val requiredFields = listOf("aud", "nonce", "cnf")
 
         requiredFields.forEach { field ->
-            require(payload.has(field)) {
-                ValidationException("Missing '$field' in Key Binding JWT", ERROR_CODE_INVALID)
+            if (!payload.has(field)) {
+                throw ValidationException("Missing '$field' in Key Binding JWT", "${ERROR_CODE_INVALID}${field.uppercase()}")
             }
         }
 
         val aud = payload.optString("aud")
-        require(aud.isNotBlank()) {
-            ValidationException("'aud' in Key Binding JWT must be a non-empty string", ERROR_CODE_INVALID)
+        if (aud.isBlank()) {
+            throw ValidationException("'aud' in Key Binding JWT must be a non-empty string", "${ERROR_CODE_INVALID}AUD")
         }
 
-        if (":" in aud) {
-            require(isValidUri(aud)) {
-                ValidationException("'aud' in Key Binding JWT must be a valid URI when containing ':'", ERROR_CODE_INVALID)
-            }
+        if (":" in aud && !isValidUri(aud)) {
+            throw ValidationException("'aud' in Key Binding JWT must be a valid URI when containing ':'", "${ERROR_CODE_INVALID}AUD")
         }
 
         val nonce = payload.optString("nonce")
-        require(nonce.isNotBlank()) {
-            ValidationException("'nonce' in Key Binding JWT must be a non-empty string", ERROR_CODE_INVALID)
+        if (nonce.isBlank()) {
+            throw ValidationException("'nonce' in Key Binding JWT must be a non-empty string", "${ERROR_CODE_INVALID}NONCE")
         }
 
         val cnf = payload.optJSONObject("cnf")
-        require(cnf != null && (cnf.has("jwk") || cnf.has("kid"))) {
-            ValidationException("Invalid or missing 'cnf' in Key Binding JWT", ERROR_CODE_INVALID)
+        if (cnf == null || (!cnf.has("jwk") && !cnf.has("kid"))) {
+            throw ValidationException("Invalid or missing 'cnf' in Key Binding JWT", "${ERROR_CODE_INVALID}CNF")
         }
     }
 

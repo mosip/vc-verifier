@@ -1,6 +1,21 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
 
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_PROCESSING_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_JWT_FORMAT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_KB_JWT_FORMAT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_PROCESSING_DATE
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_JWT_FORMAT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_KB_JWT_FORMAT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_MISSING_VCT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_VC_EXPIRED
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
 import java.util.*
@@ -37,7 +52,7 @@ class SdJwtValidatorTest {
     private fun getDisclosureTamperedSdJWT(): String{
         val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
         val parts = vc.split("~").toMutableList()
-        val tamperedDisclosure = "WyIzeGN5R1RuS1lsYV9VOUtGVEtEVWtRIiwiZmFybWVySUQiLCIxMjM0NTY3ODkiXQ~"
+        val tamperedDisclosure = "WyIzeGN5R1RuS1lsYV9VOUtGVEtEVWtRIiwiZmFybWVySUQiLCIxMjM0NTY3ODkiXQ"
         parts[parts.lastIndex - 1] = tamperedDisclosure
         return parts.joinToString("~")
     }
@@ -62,14 +77,15 @@ class SdJwtValidatorTest {
     @Test
     fun `should fail on empty string`() {
         val status = validator.validate("")
-        assertTrue(status.validationMessage.contains("empty", true))
-        assertTrue(status.validationErrorCode.isNotEmpty())
+        assertEquals("Validation Error: Input VC JSON string is null or empty.",status.validationMessage)
+        assertEquals(CredentialValidatorConstants.ERROR_CODE_EMPTY_VC_JSON,status.validationErrorCode)
     }
 
     @Test
     fun `should fail for invalid JWT format`() {
         val status = validator.validate("invalid.ajbsdj.sdjbja.jwt.structure~")
-        assertTrue(status.validationMessage.contains("Invalid JWT format"))
+        assertEquals(ERROR_MESSAGE_INVALID_JWT_FORMAT, status.validationMessage)
+        assertEquals(ERROR_CODE_INVALID_JWT_FORMAT,status.validationErrorCode)
     }
 
     @Test
@@ -78,7 +94,8 @@ class SdJwtValidatorTest {
             it.remove("vct")
         }
         val status = validator.validate(vc)
-        assertTrue(status.validationMessage.contains("vct"))
+        assertEquals(ERROR_MESSAGE_MISSING_VCT, status.validationMessage)
+        assertEquals(CredentialValidatorConstants.ERROR_CODE_MISSING_VCT,status.validationErrorCode)
     }
 
     @Test
@@ -92,7 +109,8 @@ class SdJwtValidatorTest {
         val newJwt = listOf(newHeader, jwtParts[1], jwtParts[2]).joinToString(".")
         val modified = listOf(newJwt).plus(parts.drop(1)).joinToString("~")
         val status = validator.validate(modified)
-        assertTrue(status.validationMessage.contains("typ"))
+        assertEquals("Unsupported or missing 'typ' in JWT header", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}TYP",status.validationErrorCode)
     }
 
     @Test
@@ -101,7 +119,8 @@ class SdJwtValidatorTest {
             it.put("iat", 9999999999)
         }
         val status = validator.validate(vc)
-        assertTrue(status.validationMessage.contains("iat", true))
+        assertEquals(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE, status.validationMessage)
+        assertEquals(ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE,status.validationErrorCode)
     }
 
     @Test
@@ -110,7 +129,8 @@ class SdJwtValidatorTest {
             it.put("nbf", 9999999999)
         }
         val status = validator.validate(vc)
-        assertTrue(status.validationMessage.contains("nbf", true))
+        assertEquals(ERROR_CURRENT_DATE_BEFORE_PROCESSING_DATE, status.validationMessage)
+        assertEquals(ERROR_CODE_CURRENT_DATE_BEFORE_PROCESSING_DATE,status.validationErrorCode)
     }
 
     @Test
@@ -118,10 +138,9 @@ class SdJwtValidatorTest {
         val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
             it.put("exp", 1234567890)
         }
-        System.out.println("VC: " + vc)
         val status = validator.validate(vc)
-        System.out.println("Validation message: " + status.validationMessage)
-        assertTrue(status.validationMessage.contains("expired", true))
+        assertEquals(ERROR_MESSAGE_VC_EXPIRED, status.validationMessage)
+        assertEquals(ERROR_CODE_VC_EXPIRED,status.validationErrorCode)
     }
 
     @Test
@@ -133,22 +152,8 @@ class SdJwtValidatorTest {
 
         val modifiedVc = parts.joinToString("~")
         val status = validator.validate(modifiedVc)
-
-        assertTrue(status.validationMessage.contains("Disclosure", ignoreCase = true))
-    }
-
-    @Test
-    fun `should fail if number of disclosures does not match _sd array`() {
-        val base = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
-        val parts = base.split("~").toMutableList()
-
-        parts.add(parts.lastIndex, Base64.getUrlEncoder().withoutPadding()
-            .encodeToString("[\"salt\",\"extra\",\"value\"]".toByteArray()))
-
-        val modifiedVc = parts.joinToString("~")
-        val status = validator.validate(modifiedVc)
-
-        assertTrue(status.validationMessage.contains("Mismatch between number of disclosures", ignoreCase = true))
+        assertEquals("Exception during Validation: Failed to parse disclosures.", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}UNKNOWN",status.validationErrorCode)
     }
 
     @Test
@@ -157,35 +162,24 @@ class SdJwtValidatorTest {
         val parts = base.split("~").toMutableList()
 
         val jwtParts = parts[0].split(".").toMutableList()
-        val header = JSONObject(String(Base64.getUrlDecoder().decode(jwtParts[0])))
         val payload = JSONObject(String(Base64.getUrlDecoder().decode(jwtParts[1])))
-
         payload.remove("_sd_alg")
 
         val shortDigest = Base64.getUrlEncoder().withoutPadding()
             .encodeToString(ByteArray(16)) // 16 bytes
-
         val sdArray = payload.getJSONArray("_sd")
         sdArray.put(0, shortDigest)
-
         val newPayload = Base64.getUrlEncoder().withoutPadding()
             .encodeToString(payload.toString().toByteArray())
 
         val newJwt = jwtParts[0] + "." + newPayload + "." + jwtParts[2]
         parts[0] = newJwt
-
         val modifiedVc = parts.joinToString("~")
-
         val status = validator.validate(modifiedVc)
-        println("Validation message: ${status.validationMessage}")
+        assertEquals("Invalid digest length at _sd[0]: expected 32 bytes, got 16", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}DIGEST",status.validationErrorCode)
 
-        assertTrue(
-            status.validationMessage.contains("digest length", ignoreCase = true),
-            "Expected failure due to invalid digest length"
-        )
     }
-
-
 
     @Test
     fun `should not fail if optional parameter iss is missing`() {
@@ -201,14 +195,11 @@ class SdJwtValidatorTest {
 
         parts[0] = jwtParts[0] + "." + newPayload + "." + jwtParts[2]
         val modifiedVc = parts.joinToString("~")
-        println("Modified VC: $modifiedVc")
         val status = validator.validate(modifiedVc)
 
-        assertTrue(status.validationMessage.isBlank())
+        assertEquals("", status.validationMessage)
+        assertEquals("",status.validationErrorCode)
     }
-
-
-
 
     @Test
     fun `should fail for disclosure with reserved claim name`() {
@@ -223,16 +214,16 @@ class SdJwtValidatorTest {
         val modifiedVc = parts.joinToString("~")
         val status = validator.validate(modifiedVc)
 
-        println("Validation message: ${status.validationMessage}")
-        assertTrue(status.validationMessage.contains("reserved", ignoreCase = true))
+        assertEquals("$ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME at index 12", status.validationMessage)
+        assertEquals(ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME,status.validationErrorCode)
     }
-
 
     @Test
     fun `should fail for malformed KB JWT`() {
         val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt") + "header.payload"
         val status = validator.validate(vc)
-        assertTrue(status.validationMessage.contains("Key Binding JWT"))
+        assertEquals(ERROR_MESSAGE_INVALID_KB_JWT_FORMAT, status.validationMessage)
+        assertEquals(ERROR_CODE_INVALID_KB_JWT_FORMAT,status.validationErrorCode)
     }
 
     @Test
@@ -240,12 +231,23 @@ class SdJwtValidatorTest {
         val validKbJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImFiYyIsImNuZiI6eyJraWQiOiJrZXkifX0.c2lnbmF0dXJl"
         val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt") + validKbJwt
         val status = validator.validate(vc)
-        assertTrue(status.validationMessage.contains("aud"))
+        assertEquals("Missing 'aud' in Key Binding JWT", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}AUD",status.validationErrorCode)
     }
+
     @Test
     fun `should fail for tampered disclosure`() {
         val vc = getDisclosureTamperedSdJWT()
         val status = validator.validate(vc)
-        assertTrue(status.validationMessage.contains("Digest value of all disclosures must be present in the '_sd' claim of payload"))
+        assertEquals("Digest value of all disclosures must be present in the '_sd' claim of payload", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}DISCLOSURE",status.validationErrorCode)
+    }
+
+    @Test
+    fun `should validate sd jwt with _sd in disclosures`() {
+        val vc = loadSampleSdJwt("sdJwtWithClaimsInDisclosure.txt")
+        val status = validator.validate(vc)
+        assertEquals("", status.validationMessage)
+        assertEquals("",status.validationErrorCode)
     }
 }

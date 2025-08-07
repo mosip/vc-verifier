@@ -1,45 +1,19 @@
 package io.mosip.vercred.vcverifier.utils
 
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
-import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyGetter
-import io.mosip.vercred.vcverifier.utils.DateUtils.dateFormats
-import org.bouncycastle.jce.ECNamedCurveTable
-import org.bouncycastle.jce.spec.ECParameterSpec
 import org.json.JSONArray
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
-import java.net.URI
-import java.security.PublicKey
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
-import java.security.interfaces.ECPublicKey
 
 
 class UtilsTest {
 
     private val utils = Util
     private val dateUtils = DateUtils
-
-    private fun convertDateToUtcString(date: Date): String? {
-        dateFormats.forEach {
-            try {
-                val utcFormat = SimpleDateFormat(it, Locale.getDefault()).apply {
-                    timeZone = TimeZone.getTimeZone("UTC")
-                }
-                return utcFormat.format(date)
-            } catch (_: Exception) {
-            }
-        }
-        return null
-    }
 
     @Test
     fun `test validate date invalid`() {
@@ -57,6 +31,11 @@ class UtilsTest {
     fun `test validate uri invalid`() {
         val result = utils.isValidUri("invalid_uri")
         assertFalse(result)
+    }
+    @Test
+    fun `test validate urn`() {
+        val result = utils.isValidUri("urn:eudi:pid:1")
+        assertTrue(result)
     }
 
     @Test
@@ -156,30 +135,27 @@ class UtilsTest {
     @Test
     fun `test when issuanceDate time is not future date and less than currentDate time `() {
         val currentDate = Date()
-        val issuanceDate = Date(currentDate.time - 10000)
-        val issuanceDateString = convertDateToUtcString(issuanceDate)
+        val issuanceDate = Date(currentDate.time - 10000).toString()
 
-        val result = dateUtils.isFutureDateWithTolerance(issuanceDateString.orEmpty())
+        val result = dateUtils.isFutureDateWithTolerance(issuanceDate)
         assertFalse(result)
     }
 
     @Test
     fun `test when issuanceDate time is not future date and 3 seconds less than currentDate time `() {
         val currentDate = Date()
-        val issuanceDate = Date(currentDate.time - 3000)
-        val issuanceDateString = convertDateToUtcString(issuanceDate)
+        val issuanceDate = Date(currentDate.time - 3000).toString()
 
-        val result = dateUtils.isFutureDateWithTolerance(issuanceDateString.orEmpty())
+        val result = dateUtils.isFutureDateWithTolerance(issuanceDate)
         assertFalse(result)
     }
 
     @Test
     fun `test when issuanceDate time equal to future date time`() {
         val currentDate = Date()
-        val issuanceDate = Date(currentDate.time)
-        val issuanceDateString = convertDateToUtcString(issuanceDate)
+        val issuanceDate = Date(currentDate.time).toString()
 
-        val result = dateUtils.isFutureDateWithTolerance(issuanceDateString.orEmpty())
+        val result = dateUtils.isFutureDateWithTolerance(issuanceDate)
         assertFalse(result)
     }
 
@@ -187,20 +163,18 @@ class UtilsTest {
     @Test
     fun `test when issuanceDate time is future date time but within tolerance range`() {
         val currentDate = Date()
-        val issuanceDate = Date(currentDate.time + 3000)
-        val issuanceDateString = convertDateToUtcString(issuanceDate)
+        val issuanceDate = Date(currentDate.time + 3000).toString()
 
-        val result = dateUtils.isFutureDateWithTolerance(issuanceDateString.orEmpty())
+        val result = dateUtils.isFutureDateWithTolerance(issuanceDate)
         assertFalse(result)
     }
 
     @Test
     fun `test when issuanceDate time is future date time but outside tolerance range`() {
         val currentDate = Date()
-        val issuanceDate = Date(currentDate.time + 5000)
-        val issuanceDateString = convertDateToUtcString(issuanceDate)
+        val issuanceDate = Date(currentDate.time + 5000).toString()
 
-        val result = dateUtils.isFutureDateWithTolerance(issuanceDateString.orEmpty())
+        val result = dateUtils.isFutureDateWithTolerance(issuanceDate)
         assertTrue(result)
     }
 
