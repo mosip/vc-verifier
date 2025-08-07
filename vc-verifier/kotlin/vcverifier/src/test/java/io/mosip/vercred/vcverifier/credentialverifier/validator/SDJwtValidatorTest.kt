@@ -176,7 +176,7 @@ class SdJwtValidatorTest {
         parts[0] = newJwt
         val modifiedVc = parts.joinToString("~")
         val status = validator.validate(modifiedVc)
-        assertEquals("Invalid digest length at _sd[0]: expected 32 bytes, got 16", status.validationMessage)
+        assertEquals("Invalid digest length of digest: expected 32 bytes, got 16", status.validationMessage)
         assertEquals("${ERROR_CODE_INVALID}DIGEST",status.validationErrorCode)
 
     }
@@ -246,6 +246,14 @@ class SdJwtValidatorTest {
     @Test
     fun `should validate sd jwt with _sd in disclosures`() {
         val vc = loadSampleSdJwt("sdJwtWithClaimsInDisclosure.txt")
+        val status = validator.validate(vc)
+        assertEquals("", status.validationMessage)
+        assertEquals("",status.validationErrorCode)
+    }
+
+    @Test
+    fun `should validate sd jwt with _sd in child object of payload`() {
+        val vc = loadSampleSdJwt("sdJwtWithSDClaimsinChildObject.txt")
         val status = validator.validate(vc)
         assertEquals("", status.validationMessage)
         assertEquals("",status.validationErrorCode)
