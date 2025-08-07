@@ -885,7 +885,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals(ERROR_CURRENT_DATE_BEFORE_VALID_FROM, result.validationMessage)
-            assertEquals("$ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM", result.validationErrorCode)
+            assertEquals(ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM, result.validationErrorCode)
 
         }
 
@@ -922,7 +922,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
 
             assertEquals(ERROR_MESSAGE_VC_EXPIRED, result.validationMessage)
-            assertEquals("$ERROR_CODE_VC_EXPIRED", result.validationErrorCode)
+            assertEquals(ERROR_CODE_VC_EXPIRED, result.validationErrorCode)
         }
 
         @Test
@@ -971,7 +971,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
             assertEquals(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE, result.validationMessage)
-            assertEquals("$ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE", result.validationErrorCode)
+            assertEquals(ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE, result.validationErrorCode)
         }
 
         @Test
@@ -993,7 +993,7 @@ class LdpValidatorTest {
             val result = credentialsValidator.validate(sampleVcObject.toString())
             
             assertEquals(ERROR_MESSAGE_VC_EXPIRED, result.validationMessage)
-            assertEquals("$ERROR_CODE_VC_EXPIRED", result.validationErrorCode)
+            assertEquals(ERROR_CODE_VC_EXPIRED, result.validationErrorCode)
         }
 
         @Test

@@ -26,7 +26,6 @@ import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
 import io.mosip.vercred.vcverifier.utils.asIterable
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.spec.InvalidKeySpecException
@@ -35,7 +34,6 @@ import java.util.logging.Logger
 
 class PresentationVerifier {
     private val logger = Logger.getLogger(PresentationVerifier::class.java.name)
-    private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
     private val credentialsVerifier: CredentialsVerifier = CredentialsVerifier()
 

@@ -1,3 +1,5 @@
+package io.mosip.vercred.vcverifier.publicKey.impl
+
 import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException

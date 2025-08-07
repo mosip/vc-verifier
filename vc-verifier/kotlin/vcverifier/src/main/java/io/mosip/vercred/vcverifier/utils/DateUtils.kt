@@ -17,7 +17,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -27,7 +26,7 @@ object DateUtils {
 
     private val logger = Logger.getLogger(DateUtils::class.java.name)
 
-    val dateFormats = listOf(
+    private val dateFormats = listOf(
         ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
         ("yyyy-MM-dd'T'HH:mm:ss'Z'")
     )

@@ -83,7 +83,7 @@ object Util {
         }
     }
 
-    fun jsonArrayToList(jsonArray: org.json.JSONArray): List<Any> {
+    fun jsonArrayToList(jsonArray: JSONArray): List<Any> {
         return List(jsonArray.length()) { jsonArray.get(it) }
     }
 

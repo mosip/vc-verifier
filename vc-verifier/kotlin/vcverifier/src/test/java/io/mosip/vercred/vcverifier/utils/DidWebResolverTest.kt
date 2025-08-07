@@ -1,8 +1,8 @@
+package io.mosip.vercred.vcverifier.utils
+
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mosip.vercred.vcverifier.DidWebResolver
-import io.mosip.vercred.vcverifier.exception.DidResolverExceptions
-import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.DidDocumentNotFound
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.DidResolutionFailed
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD

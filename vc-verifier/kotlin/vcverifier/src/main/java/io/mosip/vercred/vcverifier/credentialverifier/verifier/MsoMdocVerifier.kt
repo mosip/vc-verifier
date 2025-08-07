@@ -23,7 +23,6 @@ import io.mosip.vercred.vcverifier.utils.CborDataItemUtils
 import io.mosip.vercred.vcverifier.utils.Util
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.logging.Logger
 import java.util.regex.Matcher
@@ -37,8 +36,7 @@ class MsoMdocVerifier {
 
 
 
-    private val util: io.mosip.vercred.vcverifier.utils.Util =
-        io.mosip.vercred.vcverifier.utils.Util
+    private val util = Util
 
     fun verify(base64EncodedMdoc: String): Boolean {
         try {
