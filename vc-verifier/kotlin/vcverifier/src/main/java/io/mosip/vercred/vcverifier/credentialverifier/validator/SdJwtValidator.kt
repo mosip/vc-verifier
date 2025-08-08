@@ -66,11 +66,11 @@ class SdJwtValidator {
             throw ValidationException(ERROR_MESSAGE_EMPTY_VC_JSON, ERROR_CODE_EMPTY_VC_JSON)
         }
         val sdJwt = SDJWT.parse(credential)
-        val issuerJwt = sdJwt.credentialJwt
+        val credentialJwt = sdJwt.credentialJwt
         val disclosures = sdJwt.disclosures
         val keyBindingJwt = sdJwt.bindingJwt
 
-        validateSDJwtStructure(issuerJwt, disclosures)
+        validateSDJwtStructure(credentialJwt, disclosures)
         keyBindingJwt?.let {
             validateKeyBindingJwt(it)
         }
@@ -78,8 +78,8 @@ class SdJwtValidator {
         return ValidationStatus("", "")
     }
 
-    private fun validateSDJwtStructure(issuerJwt: String, disclosures: List<Disclosure>) {
-        val jwtParts = issuerJwt.split(".")
+    private fun validateSDJwtStructure(credentialJwt: String, disclosures: List<Disclosure>) {
+        val jwtParts = credentialJwt.split(".")
         if (jwtParts.size != 3) {
             throw ValidationException(
                 ERROR_MESSAGE_INVALID_JWT_FORMAT,
@@ -123,14 +123,6 @@ class SdJwtValidator {
     private fun validateDisclosures(disclosures: List<Disclosure>, payload: Map<*, *>) {
         validateDisclosureFormat(disclosures)
         val hashAlg = (payload["_sd_alg"] as? String) ?: "sha-256"
-
-        if (hashAlg !in SUPPORTED_SD_HASH_ALGORITHMS) {
-            throw ValidationException(
-                "Unsupported _sd_alg: $hashAlg. Allowed: $SUPPORTED_SD_HASH_ALGORITHMS",
-                "${ERROR_CODE_INVALID}SD_ALG"
-            )
-        }
-
         val digestToDisclosure = disclosures.associateBy { it.digest(hashAlg) }
         val allSdDigests = mutableSetOf<String>()
         validateDisclosureSha(payload, digestToDisclosure, allSdDigests, hashAlg)
@@ -159,6 +151,14 @@ class SdJwtValidator {
                     throw ValidationException("Invalid 'iss' claim: $iss", ERROR_CODE_INVALID)
                 }
             }
+        val hashAlg = payload.optString("_sd_alg", "sha-256")
+
+        if (hashAlg !in SUPPORTED_SD_HASH_ALGORITHMS) {
+            throw ValidationException(
+                "Unsupported _sd_alg: $hashAlg. Allowed: $SUPPORTED_SD_HASH_ALGORITHMS",
+                "${ERROR_CODE_INVALID}SD_ALG"
+            )
+        }
     }
 
     private fun validateTimeClaims(payload: JSONObject) {
@@ -258,7 +258,7 @@ class SdJwtValidator {
                 val mutableNode = node.toMutableMap() as MutableMap<String, Any?>
                 (mutableNode["_sd"] as? List<*>)?.forEach { digest ->
                     val digestStr = digest as? String ?: return@forEach
-                    validateDigests(digest, hashAlg)
+                    validateDigest(digest, hashAlg)
                     allSdDigests += digestStr
                     val disclosure = digestToDisclosure[digestStr] ?: return@forEach
                     val claimName = disclosure.claimName
@@ -288,7 +288,7 @@ class SdJwtValidator {
         }
     }
 
-    private fun validateDigests(digest: String, sdAlg: String) {
+    private fun validateDigest(digest: String, sdAlg: String) {
         val expectedLength = HASH_LENGTHS[sdAlg.lowercase()]!!
         if (digest.isBlank()) {
             throw ValidationException(
