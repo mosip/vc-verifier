@@ -12,7 +12,7 @@ on:
 jobs:
   maven-publish:
     if: "${{ !contains(github.ref, 'master') }}"
-    uses: mosip/kattu/.github/workflows/maven-publish-android-download.yaml@master
+    uses: Prafulrakhade/kattu/.github/workflows/maven-publish-android-download.yaml@master-test
     with:
       SERVICE_LOCATION: 'vc-verifier/kotlin'
       ANDROID_SERVICE_LOCATION: 'vcverifier'
