@@ -51,12 +51,9 @@ class SdJwtValidator {
     fun validate(sdJwt: String): ValidationStatus {
         return try {
             validateAndProcess(sdJwt)
-            ValidationStatus("", "")
         } catch (e: ValidationException) {
-            println("Validation Exception: $e")
             ValidationStatus(e.errorMessage, e.errorCode)
         } catch (e: Exception) {
-            println("Exception: $e")
             ValidationStatus(
                 "$EXCEPTION_DURING_VALIDATION${e.message}",
                 "${ERROR_CODE_INVALID}UNKNOWN"
@@ -64,7 +61,7 @@ class SdJwtValidator {
         }
     }
 
-    private fun validateAndProcess(credential: String) {
+    private fun validateAndProcess(credential: String): ValidationStatus {
         if (credential.isBlank()) {
             throw ValidationException(ERROR_MESSAGE_EMPTY_VC_JSON, ERROR_CODE_EMPTY_VC_JSON)
         }
@@ -77,6 +74,8 @@ class SdJwtValidator {
         keyBindingJwt?.let {
             validateKeyBindingJwt(it)
         }
+
+        return ValidationStatus("", "")
     }
 
     private fun validateSDJwtStructure(issuerJwt: String, disclosures: List<Disclosure>) {
