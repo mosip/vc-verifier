@@ -3,8 +3,9 @@
 This document provides a comprehensive overview of verifying `vc+sd-jwt` Verifiable Credentials (VCs).
 
 ### Public key resolution support
-X.509 Certificates - Retrieves Issuer's public key using `x5c header parameter` in SD-JWT header.
-DID Document - Retrieves Issuer's public key using `kid` in SD-JWT header.
+- X.509 Certificates - Retrieves Issuer's public key using `x5c header parameter` in SD-JWT header.
+- DID Document - Retrieves Issuer's public key using `kid` in SD-JWT header.
+
 
 ### Steps Involved
 1. Add enum value `SD_JWT_VC("vc+sd-jwt")` in `CredentialFormat`
@@ -113,6 +114,7 @@ sequenceDiagram
    
     SdJwtVerifiableCredential->>SdJwtVerifier: Verify sd-jwt Credential
     SdJwtVerifier->>SdJwtVerifier: Separate JWT and disclosures
+    SdJwtVerifier->>SdJwtVerifier: Validate JWT by checking if it is well-formed
     alt Invalid JWT
        SdJwtVerifier-->>SdJwtVerifiableCredential: Return Verification Result as False with error
     else Valid JWT
