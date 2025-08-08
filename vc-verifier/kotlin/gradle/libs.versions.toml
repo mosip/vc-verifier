@@ -25,9 +25,11 @@ mockWebServer = "4.12.0"
 annotationJvm = "1.9.1"
 cbor = "0.9"
 identity = "20231002"
+authleteSdJwt = "1.5"
 
 [libraries]
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+authelete-sd-jwt = { group = "com.authlete", name = "sd-jwt", version.ref = "authleteSdJwt" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 ldSignaturesJava = { group = "info.weboftrust", name = "ld-signatures-java", version.ref = "ldSignaturesJava" }
 titaniumJsonLd = { group = "com.apicatalog", name = "titanium-json-ld-jre8", version.ref = "titaniumJsonLd" }

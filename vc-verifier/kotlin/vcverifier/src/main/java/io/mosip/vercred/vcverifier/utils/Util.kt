@@ -72,15 +72,18 @@ object Util {
 
     fun isValidUri(value: String): Boolean {
 
-        return try {
+         try {
             val uri = URI(value)
-            (uri.scheme == "did") || (uri.scheme != null && uri.host != null)
+             if((uri.scheme == "http" || uri.scheme == "https") && uri.host == null) {
+                 return false
+             }
+            return (uri.scheme == "did") || (uri.scheme != null)
         } catch (e: Exception) {
-            false
+            return false
         }
     }
 
-    fun jsonArrayToList(jsonArray: org.json.JSONArray): List<Any> {
+    fun jsonArrayToList(jsonArray: JSONArray): List<Any> {
         return List(jsonArray.length()) { jsonArray.get(it) }
     }
 

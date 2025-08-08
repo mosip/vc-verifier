@@ -3,7 +3,6 @@ package io.mosip.vercred.vcverifier.signature.impl
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey
 import java.security.Signature
 import java.security.spec.MGF1ParameterSpec

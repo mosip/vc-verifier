@@ -1,7 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
-import io.mosip.vercred.vcverifier.exception.DidResolverExceptions
-import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

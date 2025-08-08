@@ -26,7 +26,7 @@ class HttpsPublicKeyGetter : PublicKeyGetter {
         try {
             val response = sendHTTPRequest(verificationMethod.toString(), GET)
 
-            response?.let { it ->
+            response?.let {
                 val publicKeyStr = it[PUBLIC_KEY_PEM].toString()
                 val keyType = it[KEY_TYPE].toString()
                 return when {

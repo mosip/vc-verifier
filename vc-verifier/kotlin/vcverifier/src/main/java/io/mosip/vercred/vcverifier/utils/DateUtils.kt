@@ -17,7 +17,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -27,7 +26,7 @@ object DateUtils {
 
     private val logger = Logger.getLogger(DateUtils::class.java.name)
 
-    val dateFormats = listOf(
+    private val dateFormats = listOf(
         ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
         ("yyyy-MM-dd'T'HH:mm:ss'Z'")
     )
@@ -98,9 +97,17 @@ object DateUtils {
     }
 
     fun isFutureDateWithTolerance(inputDateString: String, toleranceInMilliSeconds: Long = 3000): Boolean {
-        val inputDate: Date? = parseDate(inputDateString)
-        if (inputDate == null) {
+        val inputDate: Date? = try {
+            parseDate(inputDateString) ?: run {
+                val localFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
+                localFormat.parse(inputDateString)
+            }
+        } catch (e: Exception) {
             logger.severe("Given date is not available in supported date formats")
+            return false
+        }
+        if (inputDate == null) {
+            logger.severe("Failed to parse the input date")
             return false
         }
         val currentTime = System.currentTimeMillis()

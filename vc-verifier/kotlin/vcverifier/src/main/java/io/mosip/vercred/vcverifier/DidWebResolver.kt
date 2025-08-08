@@ -5,8 +5,6 @@ import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.DidResolution
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 class DidWebResolver(private val didUrl: String) {
     companion object {
