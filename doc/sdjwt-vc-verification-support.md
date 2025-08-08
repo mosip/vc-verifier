@@ -6,6 +6,7 @@ This document provides a comprehensive overview of verifying `vc+sd-jwt` Verifia
 - X.509 Certificates - Retrieves Issuer's public key using `x5c header parameter` in SD-JWT header.
 - DID Document - Retrieves Issuer's public key using `kid` in SD-JWT header.
 
+
 ### Steps Involved
 1. Add enum value `SD_JWT_VC("vc+sd-jwt")` in `CredentialFormat`
 2. Create a new class `SdJwtVerifiableCredential` that implements `VerifiableCredential` interface. This class will be used to validate and verify the `vc+sd-jwt` format credentials.
