@@ -4,7 +4,7 @@ import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
+import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
@@ -17,9 +17,9 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.Arrays
 
 
-class DidKeyPublicKeyGetter : PublicKeyGetter {
+class DidKeyPublicKeyResolver : PublicKeyResolver {
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
-    override fun get(verificationMethod: URI): PublicKey {
+    override fun resolve(verificationMethod: URI): PublicKey {
 
         val decodedKey =
             Multibase.decode(

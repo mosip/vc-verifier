@@ -10,7 +10,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_METHOD
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
+import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPemPublicKey
@@ -19,11 +19,11 @@ import java.net.URI
 import java.security.PublicKey
 import java.util.logging.Logger
 
-class DidWebPublicKeyGetter : PublicKeyGetter {
+class DidWebPublicKeyResolver : PublicKeyResolver {
 
-    private val logger = Logger.getLogger(DidWebPublicKeyGetter::class.java.name)
+    private val logger = Logger.getLogger(DidWebPublicKeyResolver::class.java.name)
 
-    override fun get(verificationMethodUri: URI): PublicKey {
+    override fun resolve(verificationMethodUri: URI): PublicKey {
         try {
             val didDocument = DidWebResolver(verificationMethodUri.toString()).resolve()
 

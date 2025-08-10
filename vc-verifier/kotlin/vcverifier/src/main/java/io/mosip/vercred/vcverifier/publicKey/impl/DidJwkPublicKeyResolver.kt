@@ -3,7 +3,7 @@ package io.mosip.vercred.vcverifier.publicKey.impl
 import com.nimbusds.jose.jwk.JWK
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
+import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
@@ -16,10 +16,10 @@ import java.security.spec.InvalidKeySpecException
 import java.security.spec.X509EncodedKeySpec
 
 
-class DidJwkPublicKeyGetter : PublicKeyGetter {
+class DidJwkPublicKeyResolver : PublicKeyResolver {
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
     private var b64Decoder: Base64Decoder = Base64Decoder()
-    override fun get(verificationMethod: URI): PublicKey {
+    override fun resolve(verificationMethod: URI): PublicKey {
 
         try {
             val jwk: JWK = JWK.parse(

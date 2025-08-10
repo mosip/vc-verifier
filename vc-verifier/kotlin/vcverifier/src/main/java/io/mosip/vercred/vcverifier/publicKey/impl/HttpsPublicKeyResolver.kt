@@ -9,7 +9,7 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD.GET
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
+import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPemPublicKey
@@ -18,11 +18,11 @@ import java.net.URI
 import java.security.PublicKey
 import java.util.logging.Logger
 
-class HttpsPublicKeyGetter : PublicKeyGetter {
+class HttpsPublicKeyResolver : PublicKeyResolver {
 
-    private val logger = Logger.getLogger(HttpsPublicKeyGetter::class.java.name)
+    private val logger = Logger.getLogger(HttpsPublicKeyResolver::class.java.name)
 
-    override fun get(verificationMethod: URI): PublicKey {
+    override fun resolve(verificationMethod: URI): PublicKey {
         try {
             val response = sendHTTPRequest(verificationMethod.toString(), GET)
 
