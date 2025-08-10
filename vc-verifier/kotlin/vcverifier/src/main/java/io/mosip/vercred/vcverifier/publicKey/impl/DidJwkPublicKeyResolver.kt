@@ -1,7 +1,10 @@
 package io.mosip.vercred.vcverifier.publicKey.impl
 
 import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.KeyType
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
+import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
@@ -32,6 +35,11 @@ class DidJwkPublicKeyResolver : PublicKeyResolver {
                     )
                 )
             )
+
+            if (jwk.keyType != KeyType.OKP){
+                throw PublicKeyTypeNotSupportedException(message = "KeyType - ${jwk.keyType} is not supported. Supported: OKP",)
+            }
+
             val publicKeyBytes =
                 b64Decoder.decodeFromBase64Url(jwk.toOctetKeyPair().x.toString())
             val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
@@ -42,9 +50,8 @@ class DidJwkPublicKeyResolver : PublicKeyResolver {
             return keyFactory.generatePublic(keySpec)
         } catch (e: Exception) {
             when (e) {
-                is IllegalArgumentException,
-                is InvalidKeySpecException -> throw e
-
+                is IllegalArgumentException -> throw PublicKeyResolutionFailedException("Invalid base64url encoding for public key data")
+                is InvalidKeySpecException, is PublicKeyTypeNotSupportedException -> throw e
                 else -> {
                     throw UnknownException("Error while getting public key object")
                 }
