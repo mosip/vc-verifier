@@ -2,7 +2,7 @@ package io.mosip.vercred.vcverifier.publicKey.impl
 
 import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
-import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
+import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
@@ -48,12 +48,12 @@ class DidKeyPublicKeyResolver : PublicKeyResolver {
                     is IllegalArgumentException -> throw e
 
                     else -> {
-                        throw UnknownException("Error while getting public key object")
+                        throw UnknownException("Error while getting public key object - "+e.message)
                     }
                 }
             }
         } else {
-            throw SignatureNotSupportedException("Unsupported jws signature algorithm")
+            throw PublicKeyTypeNotSupportedException(message = "KeyType - ${decodedKey[0]} is not supported. Supported: ed25519")
         }
     }
 }
