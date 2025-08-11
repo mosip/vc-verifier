@@ -35,6 +35,10 @@ private val base64Decoder = Base64Decoder()
 
 private val logger = Logger.getLogger("KeyResolverUtils")
 
+private val X509_HEADER_PREFIX_ED_KEY = byteArrayOf(
+    0x30, 0x2A, 0x30, 0x05, 0x06, 0x03,
+    0x2B, 0x65, 0x70, 0x03, 0x21, 0x00
+)
 
 private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
@@ -74,8 +78,6 @@ fun getPublicKeyFromJWK(jwkStr: String, keyType: String): PublicKey {
     }
 }
 
-private const val X509_HEADER_PREFIX = "MCowBQYDK2VwAyEA"
-
 internal fun getEdPublicKey(jwk: Map<String, String>): PublicKey {
     val keyType = jwk["kty"]
     require(keyType == "OKP") { throw  PublicKeyResolutionFailedException("KeyType - $keyType is not supported. Supported: OKP")}
@@ -85,9 +87,7 @@ internal fun getEdPublicKey(jwk: Map<String, String>): PublicKey {
     val xB64Url = jwk["x"] ?: throw PublicKeyResolutionFailedException("Missing the public key data in JWK")
     val xBytes = base64Decoder.decodeFromBase64Url(xB64Url)
 
-    // Wrap in X.509 SubjectPublicKeyInfo for Ed25519
-    val x509HeaderPrefixB64Decoded = base64Decoder.decodeFromBase64Url(X509_HEADER_PREFIX)
-    val spki = x509HeaderPrefixB64Decoded + xBytes
+    val spki = X509_HEADER_PREFIX_ED_KEY + xBytes
 
     val keySpec = X509EncodedKeySpec(spki)
     return KeyFactory.getInstance("Ed25519").generatePublic(keySpec)
@@ -130,8 +130,22 @@ fun getPublicKeyObjectFromPublicKeyMultibase(publicKeyPem: String, keyType: Stri
 fun getPublicKeyFromHex(hexKey: String, keyType: String): PublicKey {
     return when (keyType) {
         ES256K_KEY_TYPE_2019 -> getECPublicKeyFromHex(hexKey)
+        ED25519_KEY_TYPE_2020 -> getEdPublicKeyFromHex(hexKey)
         else -> throw PublicKeyTypeNotSupportedException("Unsupported key type: $keyType")
     }
+}
+
+internal fun getEdPublicKeyFromHex(hexKey: String): PublicKey {
+    val pubKeyBytes = hexKey.chunked(2)
+        .map { it.toInt(16).toByte() }
+        .toByteArray()
+
+    require(pubKeyBytes.size == 32) { "Ed25519 public key must be 32 bytes" }
+
+    val spki = X509_HEADER_PREFIX_ED_KEY + pubKeyBytes
+    val keySpec = X509EncodedKeySpec(spki)
+
+    return KeyFactory.getInstance("Ed25519").generatePublic(keySpec)
 }
 
 fun getECPublicKeyFromHex(hexKey: String): PublicKey {

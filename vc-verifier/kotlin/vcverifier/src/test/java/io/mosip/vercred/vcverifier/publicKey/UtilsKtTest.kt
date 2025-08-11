@@ -66,4 +66,24 @@ class UtilsKtTest {
             exception.message
         )
     }
+
+    @Test
+    fun `should return Ed public key for hex format input`() {
+        val validEdPublicKeyHex = "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4672e691"
+
+        val publicKey =
+            getEdPublicKeyFromHex(validEdPublicKeyHex)
+
+        assertPublicKey(publicKey, "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]")
+    }
+
+    @Test
+    fun `should throw error when public key hex of the Ed key is not 32 bytes`() {
+        val invalidEdPublicKeyHex = "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4"
+
+        val exception =
+            assertThrows<IllegalArgumentException> { getEdPublicKeyFromHex(invalidEdPublicKeyHex) }
+
+        assertEquals("Ed25519 public key must be 32 bytes",exception.message)
+    }
 }

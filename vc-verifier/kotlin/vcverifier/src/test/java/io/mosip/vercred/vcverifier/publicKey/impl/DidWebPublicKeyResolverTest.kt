@@ -7,6 +7,7 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
+import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import org.junit.Ignore
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -56,6 +57,18 @@ class DidWebPublicKeyResolverTest {
                     "use": "sig"
                 }
         """.trimIndent(), "type" to "Ed25519VerificationKey2020")
+        every { sendHTTPRequest("https://example.com/.well-known/did.json", HTTP_METHOD.GET) } returns didDocWithMethod(method)
+
+        val result = resolver.resolve(URI(didUrl("key-2")))
+
+        val expectedEncodedPublicKey =
+            "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]"
+        assertPublicKey(result, expectedEncodedPublicKey)
+    }
+
+    @Test
+    fun `should resolve publicKeyHex of Ed25519 key type`() {
+        val method = mapOf("id" to didUrl("key-2"), "publicKeyHex" to "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4672e691", "type" to "Ed25519VerificationKey2020")
         every { sendHTTPRequest("https://example.com/.well-known/did.json", HTTP_METHOD.GET) } returns didDocWithMethod(method)
 
         val result = resolver.resolve(URI(didUrl("key-2")))

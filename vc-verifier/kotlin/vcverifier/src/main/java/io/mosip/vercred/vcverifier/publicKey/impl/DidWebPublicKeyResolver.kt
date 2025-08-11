@@ -23,6 +23,7 @@ class DidWebPublicKeyResolver : PublicKeyResolver {
 
     private val logger = Logger.getLogger(DidWebPublicKeyResolver::class.java.name)
 
+    //TODO: Add support for getting keyId to extract public key from DID document
     override fun resolve(verificationMethodUri: URI): PublicKey {
         try {
             val didDocument = DidWebResolver(verificationMethodUri.toString()).resolve()
@@ -30,6 +31,7 @@ class DidWebPublicKeyResolver : PublicKeyResolver {
             val verificationMethods = didDocument[VERIFICATION_METHOD] as? List<Map<String, Any>>
                 ?: throw PublicKeyNotFoundException("Verification method not found in DID document")
 
+            // TODO: Accept kid, if not take verificationMethodUri as keyId
             val verificationMethod = verificationMethods.find { it["id"] == verificationMethodUri.toString() }
                 ?: throw PublicKeyNotFoundException("No verification methods available in DID document")
 
