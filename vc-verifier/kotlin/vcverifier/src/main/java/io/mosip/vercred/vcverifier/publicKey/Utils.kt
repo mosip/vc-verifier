@@ -13,6 +13,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_ALG
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.SECP256K1
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import org.bouncycastle.jce.ECNamedCurveTable
@@ -28,6 +29,12 @@ import java.security.interfaces.ECPublicKey
 import java.security.spec.ECParameterSpec
 import java.security.spec.ECPublicKeySpec
 import java.security.spec.X509EncodedKeySpec
+import java.util.logging.Logger
+
+private val base64Decoder = Base64Decoder()
+
+private val logger = Logger.getLogger("KeyResolverUtils")
+
 
 private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
@@ -62,8 +69,28 @@ fun getPublicKeyFromJWK(jwkStr: String, keyType: String): PublicKey {
 
     return when (keyType) {
         ES256K_KEY_TYPE_2019 -> getECPublicKey(jwk)
+        ED25519_KEY_TYPE_2020 -> getEdPublicKey(jwk)
         else -> throw PublicKeyTypeNotSupportedException("Unsupported key type: $keyType")
     }
+}
+
+private const val X509_HEADER_PREFIX = "MCowBQYDK2VwAyEA"
+
+internal fun getEdPublicKey(jwk: Map<String, String>): PublicKey {
+    val keyType = jwk["kty"]
+    require(keyType == "OKP") { throw  PublicKeyResolutionFailedException("KeyType - $keyType is not supported. Supported: OKP")}
+    val curve = jwk["crv"]
+    require(curve == "Ed25519") { throw PublicKeyResolutionFailedException("Curve - $curve is not supported. Supported: Ed25519") }
+
+    val xB64Url = jwk["x"] ?: throw PublicKeyResolutionFailedException("Missing the public key data in JWK")
+    val xBytes = base64Decoder.decodeFromBase64Url(xB64Url)
+
+    // Wrap in X.509 SubjectPublicKeyInfo for Ed25519
+    val x509HeaderPrefixB64Decoded = base64Decoder.decodeFromBase64Url(X509_HEADER_PREFIX)
+    val spki = x509HeaderPrefixB64Decoded + xBytes
+
+    val keySpec = X509EncodedKeySpec(spki)
+    return KeyFactory.getInstance("Ed25519").generatePublic(keySpec)
 }
 
 

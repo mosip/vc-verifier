@@ -45,7 +45,26 @@ class DidWebPublicKeyResolverTest {
         assertNotNull(result)
     }
 
-//    @Test
+    @Test
+    fun `should resolve publicKeyJwk of Ed25519 key type`() {
+        val method = mapOf("id" to didUrl("key-2"), "publicKeyJwk" to """
+            {
+                    "kty": "OKP",
+                    "crv": "Ed25519",
+                    "x": "8g9d_MB0iU2nmgb_9P4Df0TRQm5RJTmaiEk2HkZy5pE",
+                    "alg": "EdDSA",
+                    "use": "sig"
+                }
+        """.trimIndent(), "type" to "Ed25519VerificationKey2020")
+        every { sendHTTPRequest("https://example.com/.well-known/did.json", HTTP_METHOD.GET) } returns didDocWithMethod(method)
+
+        val result = resolver.resolve(URI(didUrl("key-2")))
+
+        assertNotNull(result)
+        //TODO: assertPublicKey
+    }
+
+    //    @Test
 //    @Ignore("Skipping EC publicKeyJwk support test for now")
 //    fun `should resolve public key from JWK`() {
 //        val method = mapOf("id" to didUrl("key-3"), "publicKeyJwk" to """
