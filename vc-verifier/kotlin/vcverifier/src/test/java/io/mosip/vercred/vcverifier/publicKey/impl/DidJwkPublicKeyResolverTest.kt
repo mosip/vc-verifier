@@ -1,6 +1,5 @@
-package io.mosip.vercred.vcverifier.publicKey
+package io.mosip.vercred.vcverifier.publicKey.impl
 
-import io.mosip.vercred.vcverifier.publicKey.impl.DidJwkPublicKeyResolver
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import org.junit.jupiter.api.Test
 import java.net.URI
