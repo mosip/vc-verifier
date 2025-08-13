@@ -30,7 +30,7 @@ class PresentationVerifierTest {
 
     }
 
-    @Ignore("Skipping this test ")
+    @Test
     fun `should return true for valid presentation verification success JsonWebSignature2020`() {
         val file =
             ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/JsonWebSignature2020SignedVP-didJws.json")

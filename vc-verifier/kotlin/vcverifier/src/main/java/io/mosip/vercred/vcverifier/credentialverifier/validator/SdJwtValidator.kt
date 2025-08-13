@@ -97,7 +97,7 @@ class SdJwtValidator {
 
     private fun validateHeader(header: JSONObject) {
         val alg = header.optString("alg", "")
-        if (alg.isBlank() && alg.equals("none", ignoreCase = true)) {
+        if (alg.isBlank() || alg.equals("none", ignoreCase = true)) {
             throw ValidationException(
                 "Missing or invalid 'alg' in JWT header",
                 "${ERROR_CODE_INVALID}ALG"
@@ -148,7 +148,7 @@ class SdJwtValidator {
         payload.optString("iss", "").takeIf { it.isNotBlank() }
             ?.let { iss ->
                 if (!isValidUri(iss)) {
-                    throw ValidationException("Invalid 'iss' claim: $iss", ERROR_CODE_INVALID)
+                    throw ValidationException("Invalid 'iss' claim: $iss", "${ERROR_CODE_INVALID}ISS")
                 }
             }
         val hashAlg = payload.optString("_sd_alg", "sha-256")

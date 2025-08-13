@@ -14,6 +14,7 @@ import org.springframework.util.ResourceUtils
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import io.mosip.vercred.vcverifier.constants.CredentialFormat.MSO_MDOC
+import io.mosip.vercred.vcverifier.constants.CredentialFormat.VC_SD_JWT
 
 
 class CredentialsVerifierTest {
@@ -102,6 +103,32 @@ class CredentialsVerifierTest {
 
         assertFalse(verificationResult.verificationStatus)
         assertEquals(ERROR_CODE_GENERIC, verificationResult.verificationErrorCode)
+    }
+
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    fun `should return true for valid sd-jwt with sha 384 algo credential validation success `() {
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "sd-jwt_vc/sdJwtSha384Alg.txt")
+        val vc = String(Files.readAllBytes(file.toPath()))
+
+        val verificationResult = CredentialsVerifier().verify(vc, VC_SD_JWT)
+
+        assertEquals("", verificationResult.verificationMessage)
+        assertTrue(verificationResult.verificationStatus)
+        assertEquals("", verificationResult.verificationErrorCode)
+    }
+
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    fun `should return true for valid sd-jwt with sha 512 algo credential validation success `() {
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "sd-jwt_vc/sdJwtSha512Alg.txt")
+        val vc = String(Files.readAllBytes(file.toPath()))
+
+        val verificationResult = CredentialsVerifier().verify(vc, VC_SD_JWT)
+
+        assertEquals("", verificationResult.verificationMessage)
+        assertTrue(verificationResult.verificationStatus)
+        assertEquals("", verificationResult.verificationErrorCode)
     }
 
 }
