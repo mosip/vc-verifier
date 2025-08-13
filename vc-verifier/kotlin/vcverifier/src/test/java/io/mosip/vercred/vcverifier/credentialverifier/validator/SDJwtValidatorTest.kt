@@ -14,6 +14,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_JWT_FORMAT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_KB_JWT_FORMAT
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_VCT_URI
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_MISSING_VCT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_VC_EXPIRED
 import org.springframework.util.ResourceUtils
@@ -46,6 +47,23 @@ class SdJwtValidatorTest {
             .encodeToString(payloadJson.toString().toByteArray())
 
         val newJwt = listOf(header, modifiedPayload, signature).joinToString(".")
+        return listOf(newJwt).plus(parts.drop(1)).joinToString("~")
+    }
+
+    private fun modifySdJwtHeader(sdJwt: String, modify: (JSONObject) -> Unit): String {
+        val parts = sdJwt.split("~")
+        val jwtParts = parts[0].split(".")
+        val header = jwtParts[0]
+        val payload = jwtParts[1]
+        val signature = jwtParts[2]
+
+        val headerJson = JSONObject(String(Base64.getUrlDecoder().decode(header)))
+        modify(headerJson)
+
+        val modifiedHeader = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(headerJson.toString().toByteArray())
+
+        val newJwt = listOf(modifiedHeader, payload, signature).joinToString(".")
         return listOf(newJwt).plus(parts.drop(1)).joinToString("~")
     }
 
@@ -82,6 +100,16 @@ class SdJwtValidatorTest {
     }
 
     @Test
+    fun `should fail on empty alg in header`() {
+        val vc = modifySdJwtHeader(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.remove("alg")
+        }
+        val status = validator.validate(vc)
+        assertEquals("Missing or invalid 'alg' in JWT header",status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}ALG",status.validationErrorCode)
+    }
+
+    @Test
     fun `should fail for invalid JWT format`() {
         val status = validator.validate("invalid.ajbsdj.sdjbja.jwt.structure~")
         assertEquals(ERROR_MESSAGE_INVALID_JWT_FORMAT, status.validationMessage)
@@ -96,6 +124,16 @@ class SdJwtValidatorTest {
         val status = validator.validate(vc)
         assertEquals(ERROR_MESSAGE_MISSING_VCT, status.validationMessage)
         assertEquals(CredentialValidatorConstants.ERROR_CODE_MISSING_VCT,status.validationErrorCode)
+    }
+
+    @Test
+    fun `should fail if vct is not valid`() {
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.put("vct", "http:///invalid-vct-url")
+        }
+        val status = validator.validate(vc)
+        assertEquals(ERROR_MESSAGE_INVALID_VCT_URI, status.validationMessage)
+        assertEquals(CredentialValidatorConstants.ERROR_CODE_INVALID_VCT_URI,status.validationErrorCode)
     }
 
     @Test
@@ -182,23 +220,76 @@ class SdJwtValidatorTest {
     }
 
     @Test
+    fun `should fail is _sd_alg is not supported`() {
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.put("_sd_alg", "sha3-384")
+        }
+        val status = validator.validate(vc)
+
+        assertEquals("Unsupported _sd_alg: sha3-384. Allowed: [sha-256, sha-384, sha-512]", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}SD_ALG",status.validationErrorCode)
+    }
+
+    @Test
     fun `should not fail if optional parameter iss is missing`() {
-        val base = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")
-        val parts = base.split("~").toMutableList()
-
-        val jwtParts = parts[0].split(".").toMutableList()
-        val payloadJson = JSONObject(String(Base64.getUrlDecoder().decode(jwtParts[1])))
-        payloadJson.remove("iss")
-
-        val newPayload = Base64.getUrlEncoder().withoutPadding()
-            .encodeToString(payloadJson.toString().toByteArray())
-
-        parts[0] = jwtParts[0] + "." + newPayload + "." + jwtParts[2]
-        val modifiedVc = parts.joinToString("~")
-        val status = validator.validate(modifiedVc)
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.remove("iss")
+        }
+        val status = validator.validate(vc)
 
         assertEquals("", status.validationMessage)
         assertEquals("",status.validationErrorCode)
+    }
+
+    @Test
+    fun `should fail if optional parameter iss is empty`() {
+        val iss = "https:///iss"
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.put("iss", iss)
+        }
+        val status = validator.validate(vc)
+
+        assertEquals("Invalid 'iss' claim: $iss", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}ISS",status.validationErrorCode)
+    }
+
+    @Test
+    fun `should fail if optional parameter aud is empty`() {
+        val aud = "https:///iss"
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.put("aud", aud)
+        }
+        val status = validator.validate(vc)
+
+        assertEquals("Validation Error: Invalid URI: https:///iss", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}AUD",status.validationErrorCode)
+    }
+
+    @Test
+    fun `should fail if optional parameter nonce is empty`() {
+        val nonce = "https:///nonce"
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.put("nonce", nonce)
+        }
+        val status = validator.validate(vc)
+
+        assertEquals("Validation Error: Invalid URI: https:///nonce", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}NONCE",status.validationErrorCode)
+    }
+
+    @Test
+    fun `should fail if cnf has both jwk and kid`() {
+        val cnf = mapOf(
+            "jwk" to mapOf("kty" to "RSA", "n" to "some-n", "e" to "AQAB"),
+            "kid" to "some-kid"
+        )
+        val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
+            it.put("cnf", cnf)
+        }
+        val status = validator.validate(vc)
+
+        assertEquals("Invalid 'cnf' object: must contain either 'jwk' or 'kid'", status.validationMessage)
+        assertEquals("${ERROR_CODE_INVALID}CNF",status.validationErrorCode)
     }
 
     @Test
