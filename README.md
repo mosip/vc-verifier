@@ -12,6 +12,8 @@
 #### Supported VC Formats:
 -   ldp_vc
 -   mso_mdoc
+-   vc+sd-jwt
+-   dc+sd-jwt
 
 #### Supported Algorithms:
 -   PS256
