@@ -1,11 +1,15 @@
 package io.mosip.vercred.vcverifier.publicKey.impl
 
 import io.ipfs.multibase.Base58
+import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
+import io.mosip.vercred.vcverifier.publicKey.ParsedDID
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
-import org.junit.jupiter.api.Assertions.*
+import io.mosip.vercred.vcverifier.testHelpers.validDidKey
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.net.URI
 import java.security.PublicKey
 
 class DidKeyPublicKeyResolverTest {
@@ -14,8 +18,7 @@ class DidKeyPublicKeyResolverTest {
 
     @Test
     fun `should resolve valid Ed25519 did key`() {
-        val validDidKey = URI("did:key:z6MkpiJgQdNWUzyojaFuCzQ1MWvSSaxUfL1tvbcRfqWFoJRK")
-        val publicKey: PublicKey = resolver.resolve(validDidKey)
+        val publicKey: PublicKey = resolver.extractPublicKey(createParsedDid(validDidKey))
 
         val expectedEncodedPublicKey =
             "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -104, 111, -113, -128, 30, 39, -124, -13, 109, 42, -42, -40, -42, 108, 43, 71, -113, 52, 13, 48, -52, 87, 69, -103, 118, 53, 52, 53, 86, 66, -93, 22]"
@@ -28,20 +31,24 @@ class DidKeyPublicKeyResolverTest {
         val pubKey = ByteArray(32) { 0x01 }
         val multicodec = prefix + pubKey
         val multibase = "z" + Base58.encode(multicodec).toString()
-        val unsupportedKeyTypeDidKey = URI("did:key:$multibase")
+        val unsupportedKeyTypeDidKey = ("did:key:$multibase")
 
-        val keyTypeNotSupportedException = assertThrows(PublicKeyTypeNotSupportedException::class.java) {
-            resolver.resolve(unsupportedKeyTypeDidKey)
-        }
-        assertEquals("KeyType - 18 is not supported. Supported: ed25519", keyTypeNotSupportedException.message)
+        val keyTypeNotSupportedException =
+            assertThrows(PublicKeyTypeNotSupportedException::class.java) {
+                resolver.extractPublicKey(createParsedDid(unsupportedKeyTypeDidKey))
+            }
+        assertEquals(
+            "KeyType - 18 is not supported. Supported: ed25519",
+            keyTypeNotSupportedException.message
+        )
     }
 
     @Test
     fun `should throw UnknownException for invalid multibase encoding`() {
-        val invaliBas58DidKey = URI("did:key:zINVALIDBASE58")
+        val invalidBas58DidKey = "did:key:zINVALIDBASE58"
 
         val invalidBase58Exception = assertThrows(IllegalStateException::class.java) {
-            resolver.resolve(invaliBas58DidKey)
+            resolver.extractPublicKey(createParsedDid(invalidBas58DidKey))
         }
         assertEquals("InvalidCharacter in base 58", invalidBase58Exception.message)
     }
@@ -53,11 +60,18 @@ class DidKeyPublicKeyResolverTest {
         val pubKey = ByteArray(10) { 0x01 }
         val multicodec = prefix + pubKey
         val multibase = "z" + Base58.encode(multicodec).toString()
-        val invalidKeySizeDidKey = URI("did:key:$multibase")
+        val invalidKeySizeDidKey = "did:key:$multibase"
 
         val exception = assertThrows(PublicKeyTypeNotSupportedException::class.java) {
-            resolver.resolve(invalidKeySizeDidKey)
+            resolver.extractPublicKey(createParsedDid(invalidKeySizeDidKey))
         }
         assertTrue(exception.message!!.contains("KeyType -"))
     }
+
+    private fun createParsedDid(didKey: String) = ParsedDID(
+        didKey,
+        DidMethod.KEY,
+        didKey.split("did:key:")[1],
+        didKey,
+    )
 }

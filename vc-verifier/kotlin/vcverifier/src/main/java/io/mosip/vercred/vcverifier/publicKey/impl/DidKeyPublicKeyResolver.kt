@@ -4,37 +4,34 @@ import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.ParsedDID
+import io.mosip.vercred.vcverifier.publicKey.types.did.DidPublicKeyResolver
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.net.URI
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.InvalidKeySpecException
 import java.security.spec.X509EncodedKeySpec
 import java.util.Arrays
 
+private const val MULTIBASE_KEY_SIZE = 34
+private const val ED_KEY_PREFIX = 0xed.toByte()
+private const val MULTICODEC_TRAILING_BYTE = 0x01.toByte()
 
-class DidKeyPublicKeyResolver : PublicKeyResolver {
-    private var provider: BouncyCastleProvider = BouncyCastleProvider()
+class DidKeyPublicKeyResolver : DidPublicKeyResolver() {
+    private val provider: BouncyCastleProvider = BouncyCastleProvider()
 
-    override fun resolve(verificationMethod: URI, keyId: String?): PublicKey {
+    override fun extractPublicKey(parsedDID: ParsedDID, keyId: String?): PublicKey {
         val decodedKey =
             Multibase.decode(
-                verificationMethod.toString()
-                    .split("#".toRegex())
-                    .first()
-                    .split("did:key:".toRegex())
-                    .dropLastWhile { it.isEmpty() }
-                    .toTypedArray()[1]
+                parsedDID.id
             )
-        //The below check is for ed25519 keys as ed25519 is only supported for now
-        if ((decodedKey[0] == 0xed.toByte() && decodedKey[1] == 0x01.toByte()) && decodedKey.size == 34) {
+        if (isEd25519KeyType(decodedKey)) {
             try {
 
-                val publicKeyBytes = Arrays.copyOfRange(decodedKey, 2, 34)
+                val publicKeyBytes = Arrays.copyOfRange(decodedKey, 2, MULTIBASE_KEY_SIZE)
                 val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
                 val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
                 val encodedKey = subjectPublicKeyInfo.encoded
@@ -56,4 +53,7 @@ class DidKeyPublicKeyResolver : PublicKeyResolver {
             throw PublicKeyTypeNotSupportedException(message = "KeyType - ${decodedKey[0]} is not supported. Supported: ed25519")
         }
     }
+
+    private fun isEd25519KeyType(decodedKey: ByteArray) =
+        (decodedKey[0] == ED_KEY_PREFIX && decodedKey[1] == MULTICODEC_TRAILING_BYTE) && decodedKey.size == MULTIBASE_KEY_SIZE
 }

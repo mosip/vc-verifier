@@ -4,8 +4,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.verify
+import io.mosip.vercred.vcverifier.constants.DidMethod
+import io.mosip.vercred.vcverifier.publicKey.ParsedDID
+import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
 import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
+import io.mosip.vercred.vcverifier.testHelpers.validDidKey
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URI
@@ -14,18 +18,49 @@ class DidPublicKeyResolverTest {
     @BeforeEach
     fun setUp() {
         mockkConstructor(DidJwkPublicKeyResolver::class)
+        mockkConstructor(DidKeyPublicKeyResolver::class)
     }
 
     @Test
     fun `should call Did Jwk resolver when the input did is of method type jwk`() {
         val didPublicKeyResolver = DidPublicKeyResolver()
-        every { anyConstructed<DidJwkPublicKeyResolver>().extractPublicKey(any(), any()) } returns mockk()
+        every {
+            anyConstructed<DidJwkPublicKeyResolver>().extractPublicKey(
+                any(),
+                any()
+            )
+        } returns mockk()
 
 
         didPublicKeyResolver.resolve(URI(validDidJwk))
 
         verify(exactly = 1) {
             anyConstructed<DidJwkPublicKeyResolver>().extractPublicKey(any(), any())
+        }
+    }
+
+    @Test
+    fun `should call Did Key resolver when the input did is of method type key`() {
+        val didPublicKeyResolver = DidPublicKeyResolver()
+        every {
+            anyConstructed<DidKeyPublicKeyResolver>().extractPublicKey(
+                any(),
+                any()
+            )
+        } returns mockk()
+
+
+        didPublicKeyResolver.resolve(URI(validDidKey))
+
+        verify(exactly = 1) {
+            anyConstructed<DidKeyPublicKeyResolver>().extractPublicKey(
+                ParsedDID(
+                    did = validDidKey,
+                    method = DidMethod.KEY,
+                    id = validDidKey.split("did:key:")[1],
+                    didUrl = validDidKey
+                ), null
+            )
         }
     }
 }
