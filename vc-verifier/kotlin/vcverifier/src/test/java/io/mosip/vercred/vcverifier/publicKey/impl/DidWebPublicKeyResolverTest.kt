@@ -3,24 +3,28 @@ package io.mosip.vercred.vcverifier.publicKey.impl
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
+import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
+import io.mosip.vercred.vcverifier.publicKey.ParsedDID
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
+import io.mosip.vercred.vcverifier.testHelpers.encodedEcdsaPublicKey
+import io.mosip.vercred.vcverifier.testHelpers.encodedEd25519PublicKey
+import io.mosip.vercred.vcverifier.testHelpers.validDidWeb
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URI
+
 
 class DidWebPublicKeyResolverTest {
-
     private val resolver = DidWebPublicKeyResolver()
+    private val didJsonWellKnown = "https://example.com/.well-known/did.json"
 
-    private fun didUrl(keyId: String = "key-1") = "did:web:example.com#$keyId"
+    private val validDid = "$validDidWeb#key-1"
     private fun didDocWithMethod(method: Map<String, Any>) =
         mapOf("verificationMethod" to listOf(method))
 
@@ -35,41 +39,31 @@ class DidWebPublicKeyResolverTest {
     fun `should resolve public key from PEM of Ed25519 key type`() {
         val pem =
             "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA8g9d/MB0iU2nmgb/9P4Df0TRQm5RJTmaiEk2HkZy5pE=\n-----END PUBLIC KEY-----"
-        val method =
-            mapOf("id" to didUrl(), "publicKeyPem" to pem, "type" to "Ed25519VerificationKey2020")
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+        mockDidDocument(mapOf("publicKeyPem" to pem))
 
-        val result = resolver.resolve(URI(didUrl()))
-        assertNotNull(result)
+        val publicKey = resolver.extractPublicKey(createParsedDid())
+
+        assertPublicKey(publicKey, encodedEd25519PublicKey)
     }
 
     @Test
     fun `should resolve public key from multibase of Ed25519 key type`() {
-        val method = mapOf(
-            "id" to didUrl("key-2"),
+        val publicKeyMultibaseInfo = mapOf(
             "publicKeyMultibase" to "z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH",
-            "type" to "Ed25519VerificationKey2020"
         )
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+        mockDidDocument(publicKeyMultibaseInfo)
+        val expectedEncodedPublicKey =
+            "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -108, -106, 107, 124, 8, -28, 5, 119, 95, -115, -26, -52, 28, 69, 8, -10, -21, 34, 116, 3, -31, 2, 91, 44, -118, -46, -41, 71, 115, -104, -59, -78]"
 
-        val result = resolver.resolve(URI(didUrl("key-2")))
-        assertNotNull(result)
+        val publicKey = resolver.extractPublicKey(createParsedDid())
+
+        assertPublicKey(publicKey, expectedEncodedPublicKey)
     }
 
     @Test
     fun `should resolve publicKeyJwk of Ed25519 key type`() {
-        val method = mapOf(
-            "id" to didUrl("key-2"), "publicKeyJwk" to """
+        val publicKeyJwkInfo = mapOf(
+            "publicKeyJwk" to """
             {
                     "kty": "OKP",
                     "crv": "Ed25519",
@@ -77,51 +71,33 @@ class DidWebPublicKeyResolverTest {
                     "alg": "EdDSA",
                     "use": "sig"
                 }
-        """.trimIndent(), "type" to "Ed25519VerificationKey2020"
+        """.trimIndent()
         )
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+        mockDidDocument(publicKeyJwkInfo)
 
-        val result = resolver.resolve(URI(didUrl("key-2")))
+        val publicKey = resolver.extractPublicKey(createParsedDid())
 
-        val expectedEncodedPublicKey =
-            "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]"
-        assertPublicKey(result, expectedEncodedPublicKey)
+        assertPublicKey(publicKey, encodedEd25519PublicKey)
     }
 
     @Test
     fun `should resolve publicKeyHex of Ed25519 key type`() {
-        val method = mapOf(
-            "id" to didUrl("key-2"),
+        val publicKeyHexInfo = mapOf(
             "publicKeyHex" to "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4672e691",
-            "type" to "Ed25519VerificationKey2020"
         )
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+        mockDidDocument(publicKeyHexInfo)
 
-        val resolvedPublicKey = resolver.resolve(URI(didUrl("key-2")))
+        val resolvedPublicKey = resolver.extractPublicKey(createParsedDid())
 
-        assertPublicKey(
-            resolvedPublicKey,
-            "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]"
-        )
+        assertPublicKey(resolvedPublicKey, encodedEd25519PublicKey)
     }
 
     // Key type - EcdsaSecp256k1VerificationKey2019
 
     @Test
     fun `should resolve public key from JWK of ES256K key type`() {
-        val keyId = didUrl("key-3")
-        val method = mapOf(
-            "id" to keyId, "publicKeyJwk" to """
+        val publicKeyJwkInfo = mapOf(
+            "publicKeyJwk" to """
             {
                 "kty": "EC",
                 "use": "sig",
@@ -131,150 +107,73 @@ class DidWebPublicKeyResolverTest {
                 "y": "ZDtDKZNZQxtTo628V5nlaKDG2QiURVPje22p6CmNjdo",
                 "alg": "ES256K"
             }
-        """.trimIndent(), "type" to "EcdsaSecp256k1VerificationKey2019"
+        """.trimIndent()
         )
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+        mockDidDocument(publicKeyJwkInfo, ES256K_KEY_TYPE_2019)
 
-        val result = resolver.resolve(URI(didUrl("key-3")))
-        assertNotNull(result)
+        val resolvedPublicKey = resolver.extractPublicKey(createParsedDid())
+
+        assertPublicKey(resolvedPublicKey, encodedEcdsaPublicKey)
     }
-
-//    @Test
-//    fun `should resolve public key from PEM of ES256K key type`() {
-//        val jwkJson = """
-//{
-//  "kty": "EC",
-//  "crv": "secp256k1",
-//  "x": "2-LgLeBUdAXGKuhGRuXL2OmoOLOOA6gD9TcX0zLwOjY",
-//  "y": "ZDtDKZNZQxtTo628V5nlaKDG2QiURVPje22p6CmNjdo"
-//}
-//"""
-//
-//
-//        val publicKeyPem =
-//            """
-//
-//            """.trimIndent()
-//
-//        val keyId = didUrl("key-3")
-//        val method = mapOf(
-//            "id" to keyId,
-//            "publicKeyPem" to publicKeyPem,
-//            "type" to "EcdsaSecp256k1VerificationKey2019"
-//        )
-//        every {
-//            sendHTTPRequest(
-//                "https://example.com/.well-known/did.json",
-//                HTTP_METHOD.GET
-//            )
-//        } returns didDocWithMethod(method)
-//
-//        val result = resolver.resolve(URI(didUrl("key-3")))
-//        assertNotNull(result)
-//    }
-//
-//    @Test
-//    fun `should resolve public key from multibase of ES256K key type`() {
-//        jWKtoMultibase()
-//        val keyId = didUrl("key-3")
-//        val method = mapOf(
-//            "id" to keyId,
-//            "publicKeyMultibase" to "z7r8osshHmX3ChCLA2D7Hcr1ubWXZtehU3PMztvyaGmrQRgS5fwm4cn1LgqEDjJpCteNszF6E6gL3VZUecVXyYinEtt5X",
-//            "type" to "EcdsaSecp256k1VerificationKey2019"
-//        )
-//        every {
-//            sendHTTPRequest(
-//                "https://example.com/.well-known/did.json",
-//                HTTP_METHOD.GET
-//            )
-//        } returns didDocWithMethod(method)
-//
-//        val result = resolver.resolve(URI(didUrl("key-3")))
-//        assertNotNull(result)
-//    }
 
     @Test
     fun `should resolve public key from HEX of ES256K key type`() {
-        val didInfo = mapOf(
-            "id" to didUrl("key-4"),
+        val publicKeyHexInfo = mapOf(
             "publicKeyHex" to "02dbe2e02de0547405c62ae84646e5cbd8e9a838b38e03a803f53717d332f03a36",
-            "type" to ES256K_KEY_TYPE_2019
         )
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(didInfo)
-        val result = resolver.resolve(URI(didUrl("key-4")))
+        mockDidDocument(publicKeyHexInfo, ES256K_KEY_TYPE_2019)
 
-        assertNotNull(result)
+        val resolvedPublicKey = resolver.extractPublicKey(createParsedDid())
+
+        assertPublicKey(resolvedPublicKey, encodedEcdsaPublicKey)
     }
 
     @Test
     fun `should throw when verification method not found`() {
         every {
             sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
+                didJsonWellKnown,
                 HTTP_METHOD.GET
             )
         } returns emptyMap()
 
         val ex = assertThrows(PublicKeyNotFoundException::class.java) {
-            resolver.resolve(URI(didUrl("key-5")))
+            resolver.extractPublicKey(createParsedDid())
         }
         assertTrue(ex.message!!.contains("Verification method not found"))
     }
 
     @Test
-    fun `should throw when no matching verification method`() {
-        val method = mapOf("id" to "did:web:example.com#other-key")
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+    fun `should throw when no matching verification method when didUrl and id in verification method is not matching`() {
+        val verificationMaterial = mapOf("id" to "did:web:example.com#other-key")
+        mockDidDocument(verificationMaterial)
 
         val ex = assertThrows(PublicKeyNotFoundException::class.java) {
-            resolver.resolve(URI(didUrl("key-6")))
+            resolver.extractPublicKey(createParsedDid())
         }
         assertTrue(ex.message!!.contains("No verification methods available"))
     }
 
     @Test
-    fun `should throw when none of the provided keys found`() {
-        val method = mapOf("id" to didUrl("key-7"))
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+    fun `should throw error when verification method does not have any public key material`() {
+        val didWithNoPublicKeyMaterial = validDid
+        val method = mapOf("id" to didWithNoPublicKeyMaterial)
+        mockDidDocument(method)
 
-        val ex = assertThrows(PublicKeyNotFoundException::class.java) {
-            resolver.resolve(URI(didUrl("key-7")))
+        val publicKeyNotFoundException = assertThrows(PublicKeyNotFoundException::class.java) {
+            resolver.extractPublicKey(createParsedDid())
         }
-        assertTrue(ex.message!!.contains("None of the provided keys"))
+        assertTrue(publicKeyNotFoundException.message!!.contains("None of the provided keys"))
     }
 
     @Test
     fun `should throw when public key type is not supported`() {
-        val method = mapOf("id" to didUrl("key-8"), "unsupportedKey" to "value")
-        every {
-            sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
-            )
-        } returns didDocWithMethod(method)
+        val unsupportedTypeVerificationMaterial =
+            mapOf("id" to validDid, "unsupportedKey" to "value")
+        mockDidDocument(unsupportedTypeVerificationMaterial)
 
         val exception = assertThrows(PublicKeyNotFoundException::class.java) {
-            resolver.resolve(URI(didUrl("key-8")))
+            resolver.extractPublicKey(createParsedDid())
         }
         assertEquals(
             "None of the provided keys were found in verification method",
@@ -286,14 +185,36 @@ class DidWebPublicKeyResolverTest {
     fun `should throw PublicKeyNotFoundException on network call to resolve did document fails`() {
         every {
             sendHTTPRequest(
-                "https://example.com/.well-known/did.json",
+                didJsonWellKnown,
                 HTTP_METHOD.GET
             )
         } throws RuntimeException("network error")
 
         val ex = assertThrows(PublicKeyNotFoundException::class.java) {
-            resolver.resolve(URI(didUrl("key-9")))
+            resolver.extractPublicKey(createParsedDid())
         }
         assertTrue(ex.message!!.contains("network error"))
+    }
+
+    private fun createParsedDid() = ParsedDID(
+        validDid,
+        DidMethod.WEB,
+        "example.com",
+        validDid,
+    )
+
+    private fun mockDidDocument(
+        verificationMaterial: Map<String, String> = emptyMap(),
+        keyType: String = "Ed25519VerificationKey2020"
+    ) {
+        val publicKeyInfo: Map<String, String> =
+            mapOf("id" to validDid, "type" to keyType) + verificationMaterial
+
+        every {
+            sendHTTPRequest(
+                didJsonWellKnown,
+                HTTP_METHOD.GET
+            )
+        } returns didDocWithMethod(publicKeyInfo)
     }
 }

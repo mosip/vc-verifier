@@ -5,6 +5,7 @@ import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDi
 import io.mosip.vercred.vcverifier.publicKey.ParsedDID
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
 import java.net.URI
 import java.security.PublicKey
@@ -32,8 +33,7 @@ open class DidPublicKeyResolver : PublicKeyResolver {
         throw RuntimeException("extractPublicKey is not implemented for DidPublicKeyResolver")
     }
 
-    //TODO: this function should not be override by any of the children
-    /*final */override fun resolve(verificationMethod: URI, keyId: String?): PublicKey {
+    final override fun resolve(verificationMethod: URI, keyId: String?): PublicKey {
         val parsedDID: ParsedDID = parseDidUrl(verificationMethod.toString())
         val didPublicKeyResolver: DidPublicKeyResolver = resolver(parsedDID)
 
@@ -42,10 +42,9 @@ open class DidPublicKeyResolver : PublicKeyResolver {
 
     private fun resolver(parsedDID: ParsedDID): DidPublicKeyResolver {
         return when (parsedDID.method) {
-//            DidMethod.WEB -> DidWebPublicKeyResolver()
+            DidMethod.WEB -> DidWebPublicKeyResolver()
             DidMethod.KEY -> DidKeyPublicKeyResolver()
             DidMethod.JWK -> DidJwkPublicKeyResolver()
-            else -> throw  RuntimeException("its not supported")
         }
     }
 

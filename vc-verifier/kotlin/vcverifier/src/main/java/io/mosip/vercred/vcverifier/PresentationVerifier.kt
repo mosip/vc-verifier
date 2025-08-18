@@ -109,6 +109,7 @@ class PresentationVerifier {
             }
 
         } catch (e: Exception) {
+            logger.severe("Error while verifying presentation proof: ${e.message}")
             when (e) {
                 is PublicKeyNotFoundException,
                 is IllegalStateException,

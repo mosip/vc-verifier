@@ -7,9 +7,11 @@ import io.mockk.verify
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.publicKey.ParsedDID
 import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
 import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
 import io.mosip.vercred.vcverifier.testHelpers.validDidKey
+import io.mosip.vercred.vcverifier.testHelpers.validDidWeb
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URI
@@ -19,6 +21,7 @@ class DidPublicKeyResolverTest {
     fun setUp() {
         mockkConstructor(DidJwkPublicKeyResolver::class)
         mockkConstructor(DidKeyPublicKeyResolver::class)
+        mockkConstructor(DidWebPublicKeyResolver::class)
     }
 
     @Test
@@ -59,6 +62,32 @@ class DidPublicKeyResolverTest {
                     method = DidMethod.KEY,
                     id = validDidKey.split("did:key:")[1],
                     didUrl = validDidKey
+                ), null
+            )
+        }
+    }
+
+    @Test
+    fun `should call Did web resolver when the input did is of method type web`() {
+         val validDid = "$validDidWeb#key-1"
+        val didPublicKeyResolver = DidPublicKeyResolver()
+        every {
+            anyConstructed<DidWebPublicKeyResolver>().extractPublicKey(
+                any(),
+                any()
+            )
+        } returns mockk()
+
+        didPublicKeyResolver.resolve(URI(validDid))
+
+        verify(exactly = 1) {
+            anyConstructed<DidWebPublicKeyResolver>().extractPublicKey(
+                ParsedDID(
+                    did = validDidWeb,
+                    method = DidMethod.WEB,
+                    id = "example.com",
+                    didUrl = validDid,
+                    fragment = "key-1"
                 ), null
             )
         }

@@ -10,34 +10,33 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_METHOD
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.ParsedDID
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPemPublicKey
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPublicKeyMultibase
-import java.net.URI
+import io.mosip.vercred.vcverifier.publicKey.types.did.DidPublicKeyResolver
 import java.security.PublicKey
 import java.util.logging.Logger
 
-class DidWebPublicKeyResolver : PublicKeyResolver {
+class DidWebPublicKeyResolver : DidPublicKeyResolver() {
 
     private val logger = Logger.getLogger(DidWebPublicKeyResolver::class.java.name)
 
-    //TODO: Add support for getting keyId to extract public key from DID document
-    override fun resolve(verificationMethodUri: URI, keyId: String?): PublicKey {
+    override fun extractPublicKey(parsedDID: ParsedDID, keyId: String?): PublicKey {
         try {
-            val didDocument = DidWebResolver(verificationMethodUri.toString()).resolve()
+            val didDocument = DidWebResolver(parsedDID.didUrl).resolve()
 
             val verificationMethods = didDocument[VERIFICATION_METHOD] as? List<Map<String, Any>>
                 ?: throw PublicKeyNotFoundException("Verification method not found in DID document")
 
             // TODO: Accept kid, if not take verificationMethodUri as keyId
-            val verificationMethod = verificationMethods.find { it["id"] == verificationMethodUri.toString() }
+            val verificationMethod = verificationMethods.find { it["id"] == parsedDID.didUrl }
                 ?: throw PublicKeyNotFoundException("No verification methods available in DID document")
 
             val publicKeyStr = getKeyValue(
                 verificationMethod, arrayOf(
-                   PUBLIC_KEY_PEM, PUBLIC_KEY_MULTIBASE, PUBLIC_KEY_JWK, PUBLIC_KEY_HEX
+                    PUBLIC_KEY_PEM, PUBLIC_KEY_MULTIBASE, PUBLIC_KEY_JWK, PUBLIC_KEY_HEX
                 )
             )
             val keyType = getKeyValue(verificationMethod, arrayOf(KEY_TYPE))
@@ -45,12 +44,15 @@ class DidWebPublicKeyResolver : PublicKeyResolver {
                 PUBLIC_KEY_JWK in verificationMethod -> getPublicKeyFromJWK(
                     publicKeyStr, keyType
                 )
+
                 PUBLIC_KEY_HEX in verificationMethod -> getPublicKeyFromHex(
                     publicKeyStr, keyType
                 )
+
                 PUBLIC_KEY_PEM in verificationMethod -> getPublicKeyObjectFromPemPublicKey(
                     publicKeyStr, keyType
                 )
+
                 PUBLIC_KEY_MULTIBASE in verificationMethod -> getPublicKeyObjectFromPublicKeyMultibase(
                     publicKeyStr, keyType
                 )
