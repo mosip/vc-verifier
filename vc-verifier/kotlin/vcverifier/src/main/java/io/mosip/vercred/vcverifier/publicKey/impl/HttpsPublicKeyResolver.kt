@@ -23,7 +23,7 @@ class HttpsPublicKeyResolver : PublicKeyResolver {
     private val logger = Logger.getLogger(HttpsPublicKeyResolver::class.java.name)
 
 //TODO: accept verificationMethod as String instead of URI
-    override fun resolve(verificationMethod: URI): PublicKey {
+    override fun resolve(verificationMethod: URI, keyId : String?): PublicKey {
         try {
             val response = sendHTTPRequest(verificationMethod.toString(), GET)
 

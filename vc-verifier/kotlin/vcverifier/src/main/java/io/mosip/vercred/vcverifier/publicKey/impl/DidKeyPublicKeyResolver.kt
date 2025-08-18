@@ -19,8 +19,8 @@ import java.util.Arrays
 
 class DidKeyPublicKeyResolver : PublicKeyResolver {
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
-    override fun resolve(verificationMethod: URI): PublicKey {
 
+    override fun resolve(verificationMethod: URI, keyId: String?): PublicKey {
         val decodedKey =
             Multibase.decode(
                 verificationMethod.toString()

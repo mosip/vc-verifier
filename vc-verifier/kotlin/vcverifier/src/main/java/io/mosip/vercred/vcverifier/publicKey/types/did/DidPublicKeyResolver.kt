@@ -1,13 +1,16 @@
-package io.mosip.vercred.vcverifier.publicKey.impl
+package io.mosip.vercred.vcverifier.publicKey.types.did
 
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.publicKey.ParsedDID
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyResolver
 import java.net.URI
 import java.security.PublicKey
 
-class DidPublicKeyResolver : PublicKeyResolver {
+open class DidPublicKeyResolver : PublicKeyResolver {
     companion object {
         private const val PCT_ENCODED = "(?:%[0-9a-fA-F]{2})"
         private const val ID_CHAR = "(?:[a-zA-Z0-9._-]|$PCT_ENCODED)"
@@ -22,20 +25,30 @@ class DidPublicKeyResolver : PublicKeyResolver {
         private val DID_MATCHER = "^did:$METHOD:$METHOD_ID$PARAMS$PATH$QUERY$FRAGMENT$".toRegex()
     }
 
-    override fun resolve(verificationMethod: URI): PublicKey {
-        val parsedDID: ParsedDID = parseDidUrl(verificationMethod.toString())
-        val didPublicKeyResolver = resolver(parsedDID)
-
-        //TODO: resolve -> extractPublicKey
-        return didPublicKeyResolver.resolve(verificationMethod)
+    open fun extractPublicKey(
+        parsedDID: ParsedDID,
+        keyId: String? = null
+    ): PublicKey {
+        throw RuntimeException("extractPublicKey is not implemented for DidPublicKeyResolver")
     }
 
-    private fun resolver(parsedDID: ParsedDID): PublicKeyResolver {
+    override fun resolve(verificationMethod: URI, keyId: String?): PublicKey {
+        val parsedDID: ParsedDID = parseDidUrl(verificationMethod.toString())
+        val didPublicKeyResolver: DidPublicKeyResolver = resolver()
+
+        return didPublicKeyResolver.extractPublicKey(parsedDID, keyId)
+    }
+
+    private fun resolver1(parsedDID: ParsedDID): PublicKeyResolver {
         return when (parsedDID.method) {
             DidMethod.WEB -> DidWebPublicKeyResolver()
             DidMethod.KEY -> DidKeyPublicKeyResolver()
             DidMethod.JWK -> DidJwkPublicKeyResolver()
         }
+    }
+
+    private fun resolver(): DidPublicKeyResolver {
+        return DidJwkPublicKeyResolver()
     }
 
     private fun parseDidUrl(didUrl: String): ParsedDID {

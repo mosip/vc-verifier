@@ -24,7 +24,7 @@ class DidWebPublicKeyResolver : PublicKeyResolver {
     private val logger = Logger.getLogger(DidWebPublicKeyResolver::class.java.name)
 
     //TODO: Add support for getting keyId to extract public key from DID document
-    override fun resolve(verificationMethodUri: URI): PublicKey {
+    override fun resolve(verificationMethodUri: URI, keyId: String?): PublicKey {
         try {
             val didDocument = DidWebResolver(verificationMethodUri.toString()).resolve()
 

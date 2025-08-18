@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey.impl
+package io.mosip.vercred.vcverifier.publicKey.types.did.types
 
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyType
@@ -6,38 +6,36 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDD
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.ParsedDID
+import io.mosip.vercred.vcverifier.publicKey.types.did.DidPublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.net.URI
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.InvalidKeySpecException
 import java.security.spec.X509EncodedKeySpec
 
 
-class DidJwkPublicKeyResolver : PublicKeyResolver {
+class DidJwkPublicKeyResolver : DidPublicKeyResolver() {
     private var provider: BouncyCastleProvider = BouncyCastleProvider()
     private var b64Decoder: Base64Decoder = Base64Decoder()
-    override fun resolve(verificationMethod: URI): PublicKey {
 
+    override fun extractPublicKey(
+        parsedDID: ParsedDID,
+        keyId: String?
+    ): PublicKey {
         try {
             val jwk: JWK = JWK.parse(
                 String(
-                    b64Decoder.decodeFromBase64Url(
-                        verificationMethod.toString()
-                            .split("#".toRegex())
-                            .first()
-                            .split("did:jwk:")[1]
-                    )
+                    b64Decoder.decodeFromBase64Url(parsedDID.id)
                 )
             )
 
-            if (jwk.keyType != KeyType.OKP){
-                throw PublicKeyTypeNotSupportedException(message = "KeyType - ${jwk.keyType} is not supported. Supported: OKP",)
+            if (jwk.keyType != KeyType.OKP) {
+                throw PublicKeyTypeNotSupportedException(message = "KeyType - ${jwk.keyType} is not supported. Supported: OKP")
             }
 
             val publicKeyBytes =

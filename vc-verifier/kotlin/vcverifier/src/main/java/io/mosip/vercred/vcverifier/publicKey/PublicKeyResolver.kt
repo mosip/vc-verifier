@@ -4,5 +4,5 @@ import java.net.URI
 import java.security.PublicKey
 
 interface PublicKeyResolver {
-    fun resolve(verificationMethod: URI): PublicKey
+    fun resolve(verificationMethod: URI, keyId: String? = null): PublicKey
 }

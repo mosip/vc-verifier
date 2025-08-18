@@ -1,42 +1,42 @@
 package io.mosip.vercred.vcverifier.publicKey.impl
 
+import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import org.junit.jupiter.api.Test
-import java.net.URI
 import java.security.PublicKey
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
+import io.mosip.vercred.vcverifier.publicKey.ParsedDID
+import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
+import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
 import java.security.spec.InvalidKeySpecException
+import java.util.Base64
 
 class DidJwkPublicKeyResolverTest {
-    private val didJwk =
-        URI("did:jwk:eyJrdHkiOiAiT0tQIiwgImNydiI6ICJFZDI1NTE5IiwgIngiOiAiOGc5ZF9NQjBpVTJubWdiXzlQNERmMFRSUW01UkpUbWFpRWsySGtaeTVwRSIsICJhbGciOiAiRWREU0EiLCAia2V5X29wcyI6IFsidmVyaWZ5Il0sICJ1c2UiOiAic2lnIn0")
-
     @Test
     fun `should resolve JWK successfully`() {
         val resolver = DidJwkPublicKeyResolver()
 
-        val publicKey: PublicKey = resolver.resolve(didJwk)
+        val publicKey: PublicKey = resolver.extractPublicKey(
+            createParsedDid(validDidJwk)
+        )
 
         val expectedEncodedPublicKey =
             "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]"
         assertPublicKey(publicKey, expectedEncodedPublicKey)
     }
 
-
-    private fun encodeBase64Url(input: String): String =
-        java.util.Base64.getUrlEncoder().withoutPadding()
-            .encodeToString(input.toByteArray(Charsets.UTF_8))
-
     @Test
     fun `test invalid base64url`() {
         val invalidDid = "did:jwk:not@valid%base64"
         val resolver = DidJwkPublicKeyResolver()
         val exception = assertThrows<PublicKeyResolutionFailedException> {
-            resolver.resolve(URI(invalidDid))
+            resolver.extractPublicKey(
+                createParsedDid(invalidDid)
+            )
         }
 
         assertEquals("Invalid base64url encoding for public key data", exception.message)
@@ -47,7 +47,9 @@ class DidJwkPublicKeyResolverTest {
         val invalidJsonDid = "did:jwk:${encodeBase64Url("not valid json")}"
         val resolver = DidJwkPublicKeyResolver()
         val exception = assertThrows<UnknownException> {
-            resolver.resolve(URI(invalidJsonDid))
+            resolver.extractPublicKey(
+                createParsedDid(invalidJsonDid)
+            )
         }
 
         assertEquals("Error while getting public key object", exception.message)
@@ -68,7 +70,9 @@ class DidJwkPublicKeyResolverTest {
         val unsupportedCurveDid = "did:jwk:${encodeBase64Url(jwk)}"
         val resolver = DidJwkPublicKeyResolver()
         val exception = assertThrows<UnknownException> {
-            resolver.resolve(URI(unsupportedCurveDid))
+            resolver.extractPublicKey(
+                createParsedDid(unsupportedCurveDid)
+            )
         }
 
         assertEquals("Error while getting public key object", exception.message)
@@ -90,7 +94,9 @@ class DidJwkPublicKeyResolverTest {
         val resolver = DidJwkPublicKeyResolver()
 
         val exception = assertThrows<PublicKeyTypeNotSupportedException> {
-            resolver.resolve(URI(unsupportedKeyTypeDid))
+            resolver.extractPublicKey(
+                createParsedDid(unsupportedKeyTypeDid)
+            )
         }
         assertEquals("KeyType - EC is not supported. Supported: OKP", exception.message)
     }
@@ -108,7 +114,9 @@ class DidJwkPublicKeyResolverTest {
         val resolver = DidJwkPublicKeyResolver()
 
         val exception = assertThrows<UnknownException> {
-            resolver.resolve(URI(missingXDid))
+            resolver.extractPublicKey(
+                createParsedDid(missingXDid)
+            )
         }
         assertEquals("Error while getting public key object", exception.message)
     }
@@ -128,7 +136,9 @@ class DidJwkPublicKeyResolverTest {
         val resolver = DidJwkPublicKeyResolver()
 
         val exception = assertThrows<PublicKeyResolutionFailedException> {
-            resolver.resolve(URI(invalidXBase64Did))
+            resolver.extractPublicKey(
+                createParsedDid(invalidXBase64Did)
+            )
         }
         assertEquals("Invalid base64url encoding for public key data", exception.message)
     }
@@ -148,8 +158,22 @@ class DidJwkPublicKeyResolverTest {
         val resolver = DidJwkPublicKeyResolver()
 
         val exception = assertThrows<InvalidKeySpecException> {
-            resolver.resolve(URI(invalidKeyDataDid))
+            resolver.extractPublicKey(
+                createParsedDid(invalidKeyDataDid)
+            )
         }
         assertEquals("raw key data not recognised", exception.message)
     }
+
+    private fun createParsedDid(didJwk: String) = ParsedDID(
+        didJwk,
+        DidMethod.JWK,
+        didJwk.split("did:jwk:")[1],
+        didJwk,
+    )
+
+
+    private fun encodeBase64Url(input: String): String =
+        Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(input.toByteArray(Charsets.UTF_8))
 }

@@ -1,7 +1,7 @@
 package io.mosip.vercred.vcverifier.publicKey
 
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.publicKey.impl.DidJwkPublicKeyResolver
+import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.impl.HttpsPublicKeyResolver
