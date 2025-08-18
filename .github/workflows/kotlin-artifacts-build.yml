@@ -8,19 +8,53 @@ on:
         required: false
         default: 'Triggered for Updates'
         type: string
+      
+      release_type:
+        description: 'Select release type to publish: snapshot or release'
+        required: true
+        default: 'snapshot'
+        type: choice
+        options:
+          - snapshot
+          - release
+          
+      publication_type:
+        description: 'Select artifact type to publish: aar, jar, or both (only for release)'
+        required: true
+        default: both
+        type: string
 
 jobs:
-  maven-publish:
-    if: "${{ !contains(github.ref, 'master') }}"
+  publish-snapshot:
+    if: ${{ inputs.release_type == 'snapshot' }}
     uses: mosip/kattu/.github/workflows/maven-publish-android.yml@master
     with:
       SERVICE_LOCATION: 'vc-verifier/kotlin'
       ANDROID_SERVICE_LOCATION: 'vcverifier'
       JAVA_VERSION: 21
       LICENSE_NAME: 'MPL-2.0'
+      RELEASE_TYPE: ${{ inputs.release_type }}
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
-      OSSRH_URL: ${{secrets.OSSRH_CENTRAL_URL }}
+      OSSRH_URL: ${{ secrets.OSSRH_CENTRAL_URL }}
+      OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
+      OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+      GPG_SECRET: ${{ secrets.GPG_SECRET }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_INJI_TEAM }}
+  
+  publish-release:
+    if: ${{ inputs.release_type == 'release' }}
+    uses: mosip/kattu/.github/workflows/maven-publish-android-download.yaml@master
+    with:
+      SERVICE_LOCATION: 'vc-verifier/kotlin'
+      ANDROID_SERVICE_LOCATION: 'vcverifier'
+      JAVA_VERSION: 21
+      LICENSE_NAME: 'MPL-2.0'
+      RELEASE_TYPE: ${{ inputs.release_type }}
+      PUBLICATION_TYPE: ${{ inputs.publication_type }}
+    secrets:
+      OSSRH_USER: ${{ secrets.OSSRH_USER }}
+      OSSRH_URL: ${{ secrets.OSSRH_GRADLE_URL }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
       OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
       GPG_SECRET: ${{ secrets.GPG_SECRET }}
