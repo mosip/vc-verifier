@@ -61,6 +61,7 @@ fun getPublicKeyObjectFromPemPublicKey(publicKeyPem: String, keyType: String): P
         val keyFactory = KeyFactory.getInstance(PUBLIC_KEY_ALGORITHM[keyType], provider)
         return keyFactory.generatePublic(pubKeySpec)
     } catch (e: Exception) {
+        logger.severe("Error while getting public key object from PEM: ${e.message}")
         throw PublicKeyNotFoundException("Public key object is null")
     }
 }
@@ -123,6 +124,7 @@ fun getPublicKeyObjectFromPublicKeyMultibase(publicKeyPem: String, keyType: Stri
         val keyFactory = KeyFactory.getInstance(PUBLIC_KEY_ALGORITHM[keyType], provider)
         return keyFactory.generatePublic(pubKeySpec)
     } catch (e: Exception) {
+        logger.severe("Error while getting public key object from Multibase: ${e.message}")
         throw PublicKeyNotFoundException("Public key object is null")
     }
 }
