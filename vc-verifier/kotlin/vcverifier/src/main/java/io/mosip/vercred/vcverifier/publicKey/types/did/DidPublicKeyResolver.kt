@@ -25,7 +25,6 @@ open class DidPublicKeyResolver : PublicKeyResolver {
         private val DID_MATCHER = "^did:$METHOD:$METHOD_ID$PARAMS$PATH$QUERY$FRAGMENT$".toRegex()
     }
 
-    //TODO: Make this function to be strictly overridden by the children
     open fun extractPublicKey(
         parsedDID: ParsedDID,
         keyId: String? = null
