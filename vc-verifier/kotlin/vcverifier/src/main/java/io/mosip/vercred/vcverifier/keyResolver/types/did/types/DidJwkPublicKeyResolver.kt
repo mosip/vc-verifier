@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey.types.did.types
+package io.mosip.vercred.vcverifier.keyResolver.types.did.types
 
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyType
@@ -6,8 +6,8 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDD
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.ParsedDID
-import io.mosip.vercred.vcverifier.publicKey.types.did.DidPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.ParsedDID
+import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier

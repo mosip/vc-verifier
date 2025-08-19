@@ -1,8 +1,8 @@
-package io.mosip.vercred.vcverifier.publicKey
+package io.mosip.vercred.vcverifier.keyResolver
 
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.publicKey.impl.HttpsPublicKeyResolver
-import io.mosip.vercred.vcverifier.publicKey.types.did.DidPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.http.HttpsPublicKeyResolver
 import java.net.URI
 import java.security.PublicKey
 

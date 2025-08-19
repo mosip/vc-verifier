@@ -1,20 +1,18 @@
-package io.mosip.vercred.vcverifier.publicKey.types.did
+package io.mosip.vercred.vcverifier.keyResolver.types.did
 
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.verify
 import io.mosip.vercred.vcverifier.constants.DidMethod
-import io.mosip.vercred.vcverifier.publicKey.ParsedDID
-import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
-import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyResolver
-import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidKeyPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidWebPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidJwkPublicKeyResolver
 import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
 import io.mosip.vercred.vcverifier.testHelpers.validDidKey
 import io.mosip.vercred.vcverifier.testHelpers.validDidWeb
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URI
 
 class DidPublicKeyResolverTest {
     @BeforeEach

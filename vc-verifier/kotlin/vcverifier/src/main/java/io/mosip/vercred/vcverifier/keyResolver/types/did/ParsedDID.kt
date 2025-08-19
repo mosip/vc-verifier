@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey
+package io.mosip.vercred.vcverifier.keyResolver.types.did
 
 import io.mosip.vercred.vcverifier.constants.DidMethod
 

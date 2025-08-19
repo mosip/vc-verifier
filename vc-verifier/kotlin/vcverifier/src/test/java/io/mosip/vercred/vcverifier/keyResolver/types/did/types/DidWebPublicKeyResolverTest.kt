@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey.impl
+package io.mosip.vercred.vcverifier.keyResolver.types.did.types
 
 import io.mockk.every
 import io.mockk.mockkObject
@@ -9,7 +9,7 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
-import io.mosip.vercred.vcverifier.publicKey.ParsedDID
+import io.mosip.vercred.vcverifier.keyResolver.types.did.ParsedDID
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import io.mosip.vercred.vcverifier.testHelpers.encodedEcdsaPublicKey
 import io.mosip.vercred.vcverifier.testHelpers.encodedEd25519PublicKey

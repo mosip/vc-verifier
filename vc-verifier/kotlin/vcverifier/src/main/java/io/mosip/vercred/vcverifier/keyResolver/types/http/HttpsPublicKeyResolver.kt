@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey.impl
+package io.mosip.vercred.vcverifier.keyResolver.types.http
 
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_HEX
@@ -9,11 +9,11 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD.GET
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPemPublicKey
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPublicKeyMultibase
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromHex
+import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromJWK
+import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyObjectFromPemPublicKey
+import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyObjectFromPublicKeyMultibase
 import java.security.PublicKey
 import java.util.logging.Logger
 

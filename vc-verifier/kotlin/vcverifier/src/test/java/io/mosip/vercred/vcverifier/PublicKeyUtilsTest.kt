@@ -1,8 +1,8 @@
 package io.mosip.vercred.vcverifier
 
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
-import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
+import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromHex
+import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromJWK
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.security.PublicKey

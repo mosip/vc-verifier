@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey
+package io.mosip.vercred.vcverifier.keyResolver
 
 import io.mockk.every
 import io.mockk.mockkObject

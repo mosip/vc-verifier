@@ -1,12 +1,11 @@
-package io.mosip.vercred.vcverifier.publicKey.types.did
+package io.mosip.vercred.vcverifier.keyResolver.types.did
 
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
-import io.mosip.vercred.vcverifier.publicKey.ParsedDID
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
-import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
-import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyResolver
-import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidKeyPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidWebPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidJwkPublicKeyResolver
 import java.security.PublicKey
 
 open class DidPublicKeyResolver : PublicKeyResolver {

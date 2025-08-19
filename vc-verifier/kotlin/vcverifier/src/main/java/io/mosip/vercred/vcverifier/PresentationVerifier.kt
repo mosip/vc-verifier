@@ -17,14 +17,13 @@ import io.mosip.vercred.vcverifier.data.VCResult
 import io.mosip.vercred.vcverifier.data.VPVerificationStatus
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
-import io.mosip.vercred.vcverifier.exception.DidResolverExceptions
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.exception.PresentationNotSupportedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyGetterFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
 import io.mosip.vercred.vcverifier.utils.asIterable

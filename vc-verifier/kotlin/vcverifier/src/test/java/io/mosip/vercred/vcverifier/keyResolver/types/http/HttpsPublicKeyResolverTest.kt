@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey.impl
+package io.mosip.vercred.vcverifier.keyResolver.types.http
 
 import io.mockk.every
 import io.mockk.mockkObject
@@ -14,7 +14,6 @@ import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import java.net.URI
 
 class HttpsPublicKeyResolverTest {
     private val resolver = HttpsPublicKeyResolver()
@@ -60,7 +59,7 @@ class HttpsPublicKeyResolverTest {
             PUBLIC_KEY_HEX to "abcdef123456",
             KEY_TYPE to "EC"
         )
-        every { NetworkManagerClient.sendHTTPRequest(uri.toString(), any()) } returns mockResponse
+        every { NetworkManagerClient.sendHTTPRequest(uri, any()) } returns mockResponse
 
         val publicKeyNotFoundException =
             org.junit.jupiter.api.assertThrows<PublicKeyNotFoundException> { resolver.resolve(uri) }

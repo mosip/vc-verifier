@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey
+package io.mosip.vercred.vcverifier.keyResolver
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ipfs.multibase.Base58

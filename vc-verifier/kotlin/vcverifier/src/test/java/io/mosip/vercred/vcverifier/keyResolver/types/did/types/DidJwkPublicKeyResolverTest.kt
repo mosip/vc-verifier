@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey.impl
+package io.mosip.vercred.vcverifier.keyResolver.types.did.types
 
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
@@ -7,8 +7,7 @@ import java.security.PublicKey
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.ParsedDID
-import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
+import io.mosip.vercred.vcverifier.keyResolver.types.did.ParsedDID
 import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows

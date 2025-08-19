@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey
+package io.mosip.vercred.vcverifier.keyResolver
 
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
