@@ -32,7 +32,7 @@ open class DidPublicKeyResolver : PublicKeyResolver {
     }
 
     final override fun resolve(uri: String, keyId: String?): PublicKey {
-        val parsedDID: ParsedDID = parseDidUrl(uri.toString())
+        val parsedDID: ParsedDID = parseDidUrl(uri)
         val didPublicKeyResolver: DidPublicKeyResolver = resolver(parsedDID)
 
         return didPublicKeyResolver.extractPublicKey(parsedDID, keyId)
