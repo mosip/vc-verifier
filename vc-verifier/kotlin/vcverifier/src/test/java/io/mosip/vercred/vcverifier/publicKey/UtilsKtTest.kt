@@ -34,14 +34,19 @@ class UtilsKtTest {
         val publicKeyResolutionFailedException =
             assertThrows<PublicKeyResolutionFailedException> { getEdPublicKey(edPublicKeyJwk) }
 
-        assertEquals("Missing the public key data in JWK",publicKeyResolutionFailedException.message)
+        assertEquals(
+            "Missing the public key data in JWK",
+            publicKeyResolutionFailedException.message
+        )
     }
 
     @Test
     fun `should throw error when curve is not supported`() {
-        val edPublicKey = mapOf("kty" to "OKP",
-        "crv" to  "P-256",
-        "x" to  "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4672e691")
+        val edPublicKey = mapOf(
+            "kty" to "OKP",
+            "crv" to "P-256",
+            "x" to "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4672e691"
+        )
         val exception = assertThrows<PublicKeyResolutionFailedException> {
             getEdPublicKey(edPublicKey)
         }
@@ -54,9 +59,11 @@ class UtilsKtTest {
 
     @Test
     fun `should throw error when key type is not supported`() {
-        val edPublicKey = mapOf("kty" to  "EC",
-        "crv" to  "Ed25519",
-        "x" to  "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4672e691")
+        val edPublicKey = mapOf(
+            "kty" to "EC",
+            "crv" to "Ed25519",
+            "x" to "f20f5dfcc074894da79a06fff4fe037f44d1426e5125399a8849361e4672e691"
+        )
         val exception = assertThrows<PublicKeyResolutionFailedException> {
             getEdPublicKey(edPublicKey)
         }
@@ -74,7 +81,10 @@ class UtilsKtTest {
         val publicKey =
             getEdPublicKeyFromHex(validEdPublicKeyHex)
 
-        assertPublicKey(publicKey, "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]")
+        assertPublicKey(
+            publicKey,
+            "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]"
+        )
     }
 
     @Test
@@ -84,6 +94,6 @@ class UtilsKtTest {
         val exception =
             assertThrows<IllegalArgumentException> { getEdPublicKeyFromHex(invalidEdPublicKeyHex) }
 
-        assertEquals("Ed25519 public key must be 32 bytes",exception.message)
+        assertEquals("Ed25519 public key must be 32 bytes", exception.message)
     }
 }

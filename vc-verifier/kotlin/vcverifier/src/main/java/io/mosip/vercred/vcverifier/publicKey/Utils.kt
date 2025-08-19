@@ -81,17 +81,18 @@ fun getPublicKeyFromJWK(jwkStr: String, keyType: String): PublicKey {
 
 internal fun getEdPublicKey(jwk: Map<String, String>): PublicKey {
     val keyType = jwk["kty"]
-    require(keyType == "OKP") { throw  PublicKeyResolutionFailedException("KeyType - $keyType is not supported. Supported: OKP")}
+    require(keyType == "OKP") { throw PublicKeyResolutionFailedException("KeyType - $keyType is not supported. Supported: OKP") }
     val curve = jwk["crv"]
-    require(curve == "Ed25519") { throw PublicKeyResolutionFailedException("Curve - $curve is not supported. Supported: Ed25519") }
+    require(curve == ED25519_ALGORITHM) { throw PublicKeyResolutionFailedException("Curve - $curve is not supported. Supported: Ed25519") }
 
-    val xB64Url = jwk["x"] ?: throw PublicKeyResolutionFailedException("Missing the public key data in JWK")
+    val xB64Url =
+        jwk["x"] ?: throw PublicKeyResolutionFailedException("Missing the public key data in JWK")
     val xBytes = base64Decoder.decodeFromBase64Url(xB64Url)
 
     val spki = X509_HEADER_PREFIX_ED_KEY + xBytes
 
     val keySpec = X509EncodedKeySpec(spki)
-    return KeyFactory.getInstance("Ed25519").generatePublic(keySpec)
+    return KeyFactory.getInstance(ED25519_ALGORITHM, provider).generatePublic(keySpec)
 }
 
 
@@ -147,7 +148,7 @@ internal fun getEdPublicKeyFromHex(hexKey: String): PublicKey {
     val spki = X509_HEADER_PREFIX_ED_KEY + pubKeyBytes
     val keySpec = X509EncodedKeySpec(spki)
 
-    return KeyFactory.getInstance("Ed25519").generatePublic(keySpec)
+    return KeyFactory.getInstance(ED25519_ALGORITHM, provider).generatePublic(keySpec)
 }
 
 fun getECPublicKeyFromHex(hexKey: String): PublicKey {
