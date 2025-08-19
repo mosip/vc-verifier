@@ -1,5 +1,7 @@
 package io.mosip.vercred.vcverifier.keyResolver.types.did.types
 
+import io.mockk.clearAllMocks
+import io.mockk.unmockkAll
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import org.junit.jupiter.api.Test
@@ -9,12 +11,19 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.keyResolver.types.did.ParsedDID
 import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
 import java.security.spec.InvalidKeySpecException
 import java.util.Base64
 
 class DidJwkPublicKeyResolverTest {
+    @AfterEach
+    fun tearDown() {
+        clearAllMocks()
+        unmockkAll()
+    }
+
     @Test
     fun `should resolve JWK successfully`() {
         val resolver = DidJwkPublicKeyResolver()

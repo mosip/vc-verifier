@@ -1,7 +1,9 @@
 package io.mosip.vercred.vcverifier.keyResolver.types.did.types
 
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
@@ -14,11 +16,14 @@ import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import io.mosip.vercred.vcverifier.testHelpers.encodedEcdsaPublicKey
 import io.mosip.vercred.vcverifier.testHelpers.encodedEd25519PublicKey
 import io.mosip.vercred.vcverifier.testHelpers.validDidWeb
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.security.PublicKey
 
 
 class DidWebPublicKeyResolverTest {
@@ -32,6 +37,12 @@ class DidWebPublicKeyResolverTest {
     @BeforeEach
     fun setUp() {
         mockkObject(NetworkManagerClient.Companion)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        clearAllMocks()
+        unmockkAll()
     }
 
     // Key type - Ed25519VerificationKey2020
@@ -88,7 +99,7 @@ class DidWebPublicKeyResolverTest {
         )
         mockDidDocument(publicKeyHexInfo)
 
-        val resolvedPublicKey = resolver.extractPublicKey(createParsedDid())
+        val resolvedPublicKey: PublicKey = resolver.extractPublicKey(createParsedDid())
 
         assertPublicKey(resolvedPublicKey, encodedEd25519PublicKey)
     }

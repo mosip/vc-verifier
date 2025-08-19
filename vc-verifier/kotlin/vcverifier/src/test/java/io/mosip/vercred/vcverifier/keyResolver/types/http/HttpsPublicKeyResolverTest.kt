@@ -1,7 +1,9 @@
 package io.mosip.vercred.vcverifier.keyResolver.types.http
 
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_KEY_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_HEX
@@ -11,16 +13,29 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class HttpsPublicKeyResolverTest {
     private val resolver = HttpsPublicKeyResolver()
 
+    @BeforeEach
+    fun setUp() {
+        mockkObject(NetworkManagerClient.Companion)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        clearAllMocks()
+        unmockkAll()
+    }
+
     @Test
     fun `should throw exception for PEM public key`() {
-        mockkObject(NetworkManagerClient.Companion)
+        
         val uri = ("https://mock-server.com/pem")
         val mockResponse = mapOf(
             PUBLIC_KEY_PEM to "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA8g9d/MB0iU2nmgb/9P4Df0TRQm5RJTmaiEk2HkZy5pE=\n-----END PUBLIC KEY-----",
@@ -37,7 +52,7 @@ class HttpsPublicKeyResolverTest {
 
     @Test
     fun `should throw exception for JWK public key`() {
-        mockkObject(NetworkManagerClient.Companion)
+        
         val uri = ("https://mock-server.com/jwk")
         val mockResponse = mapOf(
             PUBLIC_KEY_JWK to "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"...\",\"y\":\"...\"}",
@@ -53,7 +68,7 @@ class HttpsPublicKeyResolverTest {
 
     @Test
     fun `should throw exception for HEX public key`() {
-        mockkObject(NetworkManagerClient.Companion)
+        
         val uri = ("https://mock-server.com/hex")
         val mockResponse = mapOf(
             PUBLIC_KEY_HEX to "abcdef123456",
@@ -69,7 +84,7 @@ class HttpsPublicKeyResolverTest {
 
     @Test
     fun `should throw exception for Multibase public key`() {
-        mockkObject(NetworkManagerClient.Companion)
+        
         val uri = ("https://mock-server.com/multibase")
         val mockResponse = mapOf(
             PUBLIC_KEY_MULTIBASE to "z6Mki...",
@@ -85,7 +100,7 @@ class HttpsPublicKeyResolverTest {
 
     @Test
     fun `should throw PublicKeyTypeNotSupportedException for unknown key type`() {
-        mockkObject(NetworkManagerClient.Companion)
+        
         val uri = ("https://mock-server.com/unknown")
         val mockResponse = mapOf(
             "unknown_key" to "value"
@@ -100,7 +115,7 @@ class HttpsPublicKeyResolverTest {
 
     @Test
     fun `should throw PublicKeyNotFoundException when response is null`() {
-        mockkObject(NetworkManagerClient.Companion)
+        
         val uri = ("https://mock-server.com/empty")
         every { NetworkManagerClient.sendHTTPRequest(uri, any()) } returns null
 

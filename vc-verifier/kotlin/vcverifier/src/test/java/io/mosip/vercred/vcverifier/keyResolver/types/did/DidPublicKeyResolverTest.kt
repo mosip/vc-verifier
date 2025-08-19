@@ -1,8 +1,10 @@
 package io.mosip.vercred.vcverifier.keyResolver.types.did
 
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
+import io.mockk.unmockkAll
 import io.mockk.verify
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidKeyPublicKeyResolver
@@ -11,6 +13,7 @@ import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidJwkPublicKeyRe
 import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
 import io.mosip.vercred.vcverifier.testHelpers.validDidKey
 import io.mosip.vercred.vcverifier.testHelpers.validDidWeb
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -20,6 +23,12 @@ class DidPublicKeyResolverTest {
         mockkConstructor(DidJwkPublicKeyResolver::class)
         mockkConstructor(DidKeyPublicKeyResolver::class)
         mockkConstructor(DidWebPublicKeyResolver::class)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        clearAllMocks()
+        unmockkAll()
     }
 
     @Test
