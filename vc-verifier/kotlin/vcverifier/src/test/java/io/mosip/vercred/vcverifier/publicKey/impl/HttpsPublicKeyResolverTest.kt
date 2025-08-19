@@ -12,7 +12,6 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.net.URI
@@ -23,12 +22,12 @@ class HttpsPublicKeyResolverTest {
     @Test
     fun `should throw exception for PEM public key`() {
         mockkObject(NetworkManagerClient.Companion)
-        val uri = URI("https://mock-server.com/pem")
+        val uri = ("https://mock-server.com/pem")
         val mockResponse = mapOf(
             PUBLIC_KEY_PEM to "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA8g9d/MB0iU2nmgb/9P4Df0TRQm5RJTmaiEk2HkZy5pE=\n-----END PUBLIC KEY-----",
             KEY_TYPE to ED25519_KEY_TYPE_2020
         )
-        every { NetworkManagerClient.sendHTTPRequest(uri.toString(), any()) } returns mockResponse
+        every { NetworkManagerClient.sendHTTPRequest(uri, any()) } returns mockResponse
 
         val publicKey = resolver.resolve(uri)
 
@@ -40,12 +39,12 @@ class HttpsPublicKeyResolverTest {
     @Test
     fun `should throw exception for JWK public key`() {
         mockkObject(NetworkManagerClient.Companion)
-        val uri = URI("https://mock-server.com/jwk")
+        val uri = ("https://mock-server.com/jwk")
         val mockResponse = mapOf(
             PUBLIC_KEY_JWK to "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"...\",\"y\":\"...\"}",
             KEY_TYPE to "EC"
         )
-        every { NetworkManagerClient.sendHTTPRequest(uri.toString(), any()) } returns mockResponse
+        every { NetworkManagerClient.sendHTTPRequest(uri, any()) } returns mockResponse
 
         val publicKeyNotFoundException =
             org.junit.jupiter.api.assertThrows<PublicKeyNotFoundException> { resolver.resolve(uri) }
@@ -56,7 +55,7 @@ class HttpsPublicKeyResolverTest {
     @Test
     fun `should throw exception for HEX public key`() {
         mockkObject(NetworkManagerClient.Companion)
-        val uri = URI("https://mock-server.com/hex")
+        val uri = ("https://mock-server.com/hex")
         val mockResponse = mapOf(
             PUBLIC_KEY_HEX to "abcdef123456",
             KEY_TYPE to "EC"
@@ -72,12 +71,12 @@ class HttpsPublicKeyResolverTest {
     @Test
     fun `should throw exception for Multibase public key`() {
         mockkObject(NetworkManagerClient.Companion)
-        val uri = URI("https://mock-server.com/multibase")
+        val uri = ("https://mock-server.com/multibase")
         val mockResponse = mapOf(
             PUBLIC_KEY_MULTIBASE to "z6Mki...",
             KEY_TYPE to "EC"
         )
-        every { NetworkManagerClient.sendHTTPRequest(uri.toString(), any()) } returns mockResponse
+        every { NetworkManagerClient.sendHTTPRequest(uri, any()) } returns mockResponse
 
         val publicKeyNotFoundException =
             org.junit.jupiter.api.assertThrows<PublicKeyNotFoundException> { resolver.resolve(uri) }
@@ -88,11 +87,11 @@ class HttpsPublicKeyResolverTest {
     @Test
     fun `should throw PublicKeyTypeNotSupportedException for unknown key type`() {
         mockkObject(NetworkManagerClient.Companion)
-        val uri = URI("https://mock-server.com/unknown")
+        val uri = ("https://mock-server.com/unknown")
         val mockResponse = mapOf(
             "unknown_key" to "value"
         )
-        every { NetworkManagerClient.sendHTTPRequest(uri.toString(), any()) } returns mockResponse
+        every { NetworkManagerClient.sendHTTPRequest(uri, any()) } returns mockResponse
 
         val publicKeyNotFoundException =
             assertThrows(PublicKeyNotFoundException::class.java) { resolver.resolve(uri) }
@@ -103,8 +102,8 @@ class HttpsPublicKeyResolverTest {
     @Test
     fun `should throw PublicKeyNotFoundException when response is null`() {
         mockkObject(NetworkManagerClient.Companion)
-        val uri = URI("https://mock-server.com/empty")
-        every { NetworkManagerClient.sendHTTPRequest(uri.toString(), any()) } returns null
+        val uri = ("https://mock-server.com/empty")
+        every { NetworkManagerClient.sendHTTPRequest(uri, any()) } returns null
 
         assertThrows(PublicKeyNotFoundException::class.java) { resolver.resolve(uri) }
     }

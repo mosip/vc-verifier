@@ -7,7 +7,6 @@ import io.mosip.vercred.vcverifier.publicKey.PublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyResolver
 import io.mosip.vercred.vcverifier.publicKey.types.did.types.DidJwkPublicKeyResolver
-import java.net.URI
 import java.security.PublicKey
 
 open class DidPublicKeyResolver : PublicKeyResolver {
@@ -32,8 +31,8 @@ open class DidPublicKeyResolver : PublicKeyResolver {
         throw RuntimeException("extractPublicKey is not implemented for DidPublicKeyResolver")
     }
 
-    final override fun resolve(verificationMethod: URI, keyId: String?): PublicKey {
-        val parsedDID: ParsedDID = parseDidUrl(verificationMethod.toString())
+    final override fun resolve(uri: String, keyId: String?): PublicKey {
+        val parsedDID: ParsedDID = parseDidUrl(uri.toString())
         val didPublicKeyResolver: DidPublicKeyResolver = resolver(parsedDID)
 
         return didPublicKeyResolver.extractPublicKey(parsedDID, keyId)

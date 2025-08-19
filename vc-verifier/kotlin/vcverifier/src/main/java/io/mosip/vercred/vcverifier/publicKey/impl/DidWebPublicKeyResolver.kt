@@ -9,6 +9,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_PEM
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.VERIFICATION_METHOD
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.publicKey.ParsedDID
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
@@ -18,6 +19,8 @@ import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPublicKeyMult
 import io.mosip.vercred.vcverifier.publicKey.types.did.DidPublicKeyResolver
 import java.security.PublicKey
 import java.util.logging.Logger
+
+private const val ID = "id"
 
 class DidWebPublicKeyResolver : DidPublicKeyResolver() {
 
@@ -30,9 +33,11 @@ class DidWebPublicKeyResolver : DidPublicKeyResolver() {
             val verificationMethods = didDocument[VERIFICATION_METHOD] as? List<Map<String, Any>>
                 ?: throw PublicKeyNotFoundException("Verification method not found in DID document")
 
-            // TODO: Accept kid, if not take verificationMethodUri as keyId
-            val verificationMethod = verificationMethods.find { it["id"] == parsedDID.didUrl }
-                ?: throw PublicKeyNotFoundException("No verification methods available in DID document")
+            val verificationMethodId = keyId ?: parsedDID.didUrl
+            val verificationMethod = verificationMethods.find {
+                it[ID] == verificationMethodId
+            }
+                ?: throw PublicKeyResolutionFailedException("Public key extraction failed for kid: $verificationMethodId")
 
             val publicKeyStr = getKeyValue(
                 verificationMethod, arrayOf(
@@ -61,7 +66,12 @@ class DidWebPublicKeyResolver : DidPublicKeyResolver() {
             }
         } catch (e: Exception) {
             logger.severe("Error fetching public key: ${e.message}")
-            throw PublicKeyNotFoundException(e.message ?: "Unknown error")
+            when (e) {
+                is PublicKeyNotFoundException,
+                is PublicKeyResolutionFailedException,
+                is PublicKeyTypeNotSupportedException -> throw e
+                else -> throw PublicKeyResolutionFailedException(e.message ?: "Unknown error")
+            }
         }
     }
 

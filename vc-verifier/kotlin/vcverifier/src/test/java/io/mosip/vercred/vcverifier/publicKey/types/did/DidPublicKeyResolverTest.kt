@@ -35,7 +35,7 @@ class DidPublicKeyResolverTest {
         } returns mockk()
 
 
-        didPublicKeyResolver.resolve(URI(validDidJwk))
+        didPublicKeyResolver.resolve(validDidJwk)
 
         verify(exactly = 1) {
             anyConstructed<DidJwkPublicKeyResolver>().extractPublicKey(any(), any())
@@ -53,7 +53,7 @@ class DidPublicKeyResolverTest {
         } returns mockk()
 
 
-        didPublicKeyResolver.resolve(URI(validDidKey))
+        didPublicKeyResolver.resolve(validDidKey)
 
         verify(exactly = 1) {
             anyConstructed<DidKeyPublicKeyResolver>().extractPublicKey(
@@ -78,7 +78,7 @@ class DidPublicKeyResolverTest {
             )
         } returns mockk()
 
-        didPublicKeyResolver.resolve(URI(validDid))
+        didPublicKeyResolver.resolve(validDid)
 
         verify(exactly = 1) {
             anyConstructed<DidWebPublicKeyResolver>().extractPublicKey(

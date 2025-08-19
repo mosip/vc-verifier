@@ -5,6 +5,7 @@ import io.mockk.mockkObject
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
@@ -128,6 +129,60 @@ class DidWebPublicKeyResolverTest {
         assertPublicKey(resolvedPublicKey, encodedEcdsaPublicKey)
     }
 
+    // Common Did resolution tests
+
+    @Test
+    fun `should resolve public key for the provided key id`() {
+        val publicKeyHexInfo = mapOf(
+            "publicKeyHex" to "02dbe2e02de0547405c62ae84646e5cbd8e9a838b38e03a803f53717d332f03a36",
+        )
+        val publicKeyInfo1 =
+            mapOf("id" to "$validDidWeb#key-1", "type" to ES256K_KEY_TYPE_2019) + publicKeyHexInfo
+        val publicKeyInfo2 =
+            mapOf("id" to "$validDidWeb#key-2", "type" to ES256K_KEY_TYPE_2019) + publicKeyHexInfo
+        val verificationMethods =
+            mapOf("verificationMethod" to listOf(publicKeyInfo1, publicKeyInfo2))
+        every {
+            sendHTTPRequest(
+                didJsonWellKnown,
+                HTTP_METHOD.GET
+            )
+        } returns verificationMethods
+        val parsedDID = ParsedDID(
+            "$validDidWeb#key-2",
+            DidMethod.WEB,
+            "example.com",
+            "$validDidWeb#key-2",
+        )
+
+        val resolvedPublicKey = resolver.extractPublicKey(parsedDID, "$validDidWeb#key-2")
+
+        assertPublicKey(resolvedPublicKey, encodedEcdsaPublicKey)
+    }
+
+    @Test
+    fun `should throw when provided key Id is not found in the did document`() {
+        val publicKeyHexInfo = mapOf(
+            "publicKeyHex" to "02dbe2e02de0547405c62ae84646e5cbd8e9a838b38e03a803f53717d332f03a36",
+        )
+        mockDidDocument(publicKeyHexInfo, ES256K_KEY_TYPE_2019)
+        val parsedDID = ParsedDID(
+            validDidWeb,
+            DidMethod.WEB,
+            "example.com",
+            validDidWeb,
+        )
+
+        val keyResolutionFailedException =
+            assertThrows(PublicKeyResolutionFailedException::class.java) {
+                resolver.extractPublicKey(parsedDID, "$validDidWeb#key-2")
+            }
+        assertEquals(
+            "Public key extraction failed for kid: did:web:example.com#key-2",
+            keyResolutionFailedException.message
+        )
+    }
+
     @Test
     fun `should throw when verification method not found`() {
         every {
@@ -148,10 +203,10 @@ class DidWebPublicKeyResolverTest {
         val verificationMaterial = mapOf("id" to "did:web:example.com#other-key")
         mockDidDocument(verificationMaterial)
 
-        val ex = assertThrows(PublicKeyNotFoundException::class.java) {
+        val ex = assertThrows(PublicKeyResolutionFailedException::class.java) {
             resolver.extractPublicKey(createParsedDid())
         }
-        assertTrue(ex.message!!.contains("No verification methods available"))
+        assertEquals("Public key extraction failed for kid: did:web:example.com#key-1", ex.message)
     }
 
     @Test
@@ -190,7 +245,7 @@ class DidWebPublicKeyResolverTest {
             )
         } throws RuntimeException("network error")
 
-        val ex = assertThrows(PublicKeyNotFoundException::class.java) {
+        val ex = assertThrows(PublicKeyResolutionFailedException::class.java) {
             resolver.extractPublicKey(createParsedDid())
         }
         assertTrue(ex.message!!.contains("network error"))

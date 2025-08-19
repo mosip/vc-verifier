@@ -14,7 +14,6 @@ import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromHex
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyFromJWK
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPemPublicKey
 import io.mosip.vercred.vcverifier.publicKey.getPublicKeyObjectFromPublicKeyMultibase
-import java.net.URI
 import java.security.PublicKey
 import java.util.logging.Logger
 
@@ -22,10 +21,9 @@ class HttpsPublicKeyResolver : PublicKeyResolver {
 
     private val logger = Logger.getLogger(HttpsPublicKeyResolver::class.java.name)
 
-//TODO: accept verificationMethod as String instead of URI
-    override fun resolve(verificationMethod: URI, keyId : String?): PublicKey {
+    override fun resolve(uri: String, keyId: String?): PublicKey {
         try {
-            val response = sendHTTPRequest(verificationMethod.toString(), GET)
+            val response = sendHTTPRequest(uri, GET)
 
             response?.let {
                 val publicKeyStr = it[PUBLIC_KEY_PEM].toString()
