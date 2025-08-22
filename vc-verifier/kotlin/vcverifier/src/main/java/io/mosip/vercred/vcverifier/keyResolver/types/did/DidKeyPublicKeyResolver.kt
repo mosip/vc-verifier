@@ -1,11 +1,9 @@
-package io.mosip.vercred.vcverifier.keyResolver.types.did.types
+package io.mosip.vercred.vcverifier.keyResolver.types.did
 
 import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.keyResolver.types.did.ParsedDID
-import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo

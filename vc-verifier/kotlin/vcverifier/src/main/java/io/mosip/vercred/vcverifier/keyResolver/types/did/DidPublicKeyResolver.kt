@@ -3,9 +3,6 @@ package io.mosip.vercred.vcverifier.keyResolver.types.did
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolver
-import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidKeyPublicKeyResolver
-import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidWebPublicKeyResolver
-import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidJwkPublicKeyResolver
 import java.security.PublicKey
 
 open class DidPublicKeyResolver : PublicKeyResolver {

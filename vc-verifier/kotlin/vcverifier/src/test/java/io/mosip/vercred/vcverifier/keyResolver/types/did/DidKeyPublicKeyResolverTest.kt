@@ -1,11 +1,10 @@
-package io.mosip.vercred.vcverifier.keyResolver.types.did.types
+package io.mosip.vercred.vcverifier.keyResolver.types.did
 
 import io.ipfs.multibase.Base58
 import io.mockk.clearAllMocks
 import io.mockk.unmockkAll
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.keyResolver.types.did.ParsedDID
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import io.mosip.vercred.vcverifier.testHelpers.validDidKey
 import org.junit.jupiter.api.AfterEach

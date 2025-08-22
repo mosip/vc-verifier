@@ -7,9 +7,6 @@ import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 import io.mockk.verify
 import io.mosip.vercred.vcverifier.constants.DidMethod
-import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidKeyPublicKeyResolver
-import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidWebPublicKeyResolver
-import io.mosip.vercred.vcverifier.keyResolver.types.did.types.DidJwkPublicKeyResolver
 import io.mosip.vercred.vcverifier.testHelpers.validDidJwk
 import io.mosip.vercred.vcverifier.testHelpers.validDidKey
 import io.mosip.vercred.vcverifier.testHelpers.validDidWeb

@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.keyResolver.types.did.types
+package io.mosip.vercred.vcverifier.keyResolver.types.did
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.KEY_TYPE
@@ -14,12 +14,10 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
-import io.mosip.vercred.vcverifier.keyResolver.types.did.ParsedDID
 import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromHex
 import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromJWK
 import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyObjectFromPemPublicKey
 import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyObjectFromPublicKeyMultibase
-import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import java.security.PublicKey
 import java.util.logging.Logger
 
