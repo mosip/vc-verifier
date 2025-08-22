@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.publicKey
+package io.mosip.vercred.vcverifier.keyResolver
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ipfs.multibase.Base58
@@ -13,6 +13,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_ALG
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.SECP256K1
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import org.bouncycastle.jce.ECNamedCurveTable
@@ -28,6 +29,16 @@ import java.security.interfaces.ECPublicKey
 import java.security.spec.ECParameterSpec
 import java.security.spec.ECPublicKeySpec
 import java.security.spec.X509EncodedKeySpec
+import java.util.logging.Logger
+
+private val base64Decoder = Base64Decoder()
+
+private val logger = Logger.getLogger("KeyResolverUtils")
+
+private val X509_HEADER_PREFIX_ED_KEY = byteArrayOf(
+    0x30, 0x2A, 0x30, 0x05, 0x06, 0x03,
+    0x2B, 0x65, 0x70, 0x03, 0x21, 0x00
+)
 
 private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
@@ -50,6 +61,7 @@ fun getPublicKeyObjectFromPemPublicKey(publicKeyPem: String, keyType: String): P
         val keyFactory = KeyFactory.getInstance(PUBLIC_KEY_ALGORITHM[keyType], provider)
         return keyFactory.generatePublic(pubKeySpec)
     } catch (e: Exception) {
+        logger.severe("Error while getting public key object from PEM: ${e.message}")
         throw PublicKeyNotFoundException("Public key object is null")
     }
 }
@@ -62,8 +74,25 @@ fun getPublicKeyFromJWK(jwkStr: String, keyType: String): PublicKey {
 
     return when (keyType) {
         ES256K_KEY_TYPE_2019 -> getECPublicKey(jwk)
+        ED25519_KEY_TYPE_2020 -> getEdPublicKey(jwk)
         else -> throw PublicKeyTypeNotSupportedException("Unsupported key type: $keyType")
     }
+}
+
+internal fun getEdPublicKey(jwk: Map<String, String>): PublicKey {
+    val keyType = jwk["kty"]
+    require(keyType == "OKP") { throw PublicKeyResolutionFailedException("KeyType - $keyType is not supported. Supported: OKP") }
+    val curve = jwk["crv"]
+    require(curve == ED25519_ALGORITHM) { throw PublicKeyResolutionFailedException("Curve - $curve is not supported. Supported: Ed25519") }
+
+    val xB64Url =
+        jwk["x"] ?: throw PublicKeyResolutionFailedException("Missing the public key data in JWK")
+    val xBytes = base64Decoder.decodeFromBase64Url(xB64Url)
+
+    val spki = X509_HEADER_PREFIX_ED_KEY + xBytes
+
+    val keySpec = X509EncodedKeySpec(spki)
+    return KeyFactory.getInstance(ED25519_ALGORITHM, provider).generatePublic(keySpec)
 }
 
 
@@ -96,6 +125,7 @@ fun getPublicKeyObjectFromPublicKeyMultibase(publicKeyPem: String, keyType: Stri
         val keyFactory = KeyFactory.getInstance(PUBLIC_KEY_ALGORITHM[keyType], provider)
         return keyFactory.generatePublic(pubKeySpec)
     } catch (e: Exception) {
+        logger.severe("Error while getting public key object from Multibase: ${e.message}")
         throw PublicKeyNotFoundException("Public key object is null")
     }
 }
@@ -103,8 +133,22 @@ fun getPublicKeyObjectFromPublicKeyMultibase(publicKeyPem: String, keyType: Stri
 fun getPublicKeyFromHex(hexKey: String, keyType: String): PublicKey {
     return when (keyType) {
         ES256K_KEY_TYPE_2019 -> getECPublicKeyFromHex(hexKey)
+        ED25519_KEY_TYPE_2020 -> getEdPublicKeyFromHex(hexKey)
         else -> throw PublicKeyTypeNotSupportedException("Unsupported key type: $keyType")
     }
+}
+
+internal fun getEdPublicKeyFromHex(hexKey: String): PublicKey {
+    val pubKeyBytes = hexKey.chunked(2)
+        .map { it.toInt(16).toByte() }
+        .toByteArray()
+
+    require(pubKeyBytes.size == 32) { "Ed25519 public key must be 32 bytes" }
+
+    val spki = X509_HEADER_PREFIX_ED_KEY + pubKeyBytes
+    val keySpec = X509EncodedKeySpec(spki)
+
+    return KeyFactory.getInstance(ED25519_ALGORITHM, provider).generatePublic(keySpec)
 }
 
 fun getECPublicKeyFromHex(hexKey: String): PublicKey {

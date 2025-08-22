@@ -7,11 +7,12 @@ import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
 import info.weboftrust.ldsignatures.util.JWSUtil
 import io.ipfs.multibase.Multibase
+import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyGetterFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
 import io.mosip.vercred.vcverifier.utils.Util.SIGNATURE_VERIFIER
@@ -50,7 +51,8 @@ class LdpVerifier {
                 val jwsObject = JWSObject.parse(signJWS)
                 val signature = jwsObject.signature.decode()
                 val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
-                val signatureVerifier = SIGNATURE_VERIFIER[jwsObject.header.algorithm.name] ?: throw SignatureNotSupportedException("Unsupported jws signature algorithm")
+                val signatureVerifier = SIGNATURE_VERIFIER[jwsObject.header.algorithm.name]
+                    ?: throw SignatureNotSupportedException("Unsupported jws signature algorithm")
                 return signatureVerifier.verify(publicKeyObj, actualData, signature)
             }
 
@@ -65,7 +67,9 @@ class LdpVerifier {
         } catch (exception: Exception) {
             when (exception) {
                 is PublicKeyNotFoundException,
+                is UnsupportedDidUrl,
                 is SignatureVerificationException -> throw exception
+
                 else -> {
                     throw UnknownException("Error while doing verification of verifiable credential: $exception")
                 }

@@ -1,6 +1,6 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
-import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
+import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -43,10 +43,10 @@ class LdpVerifierTest {
     fun `should throw error if did url is not valid while verify valid sunbird credential`(){
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/InvalidDidUrlSunbirdVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
-        val exception = assertThrows<PublicKeyNotFoundException> {
+        val exception = assertThrows<UnsupportedDidUrl> {
             LdpVerifier().verify(vc)
         }
-        assertEquals("Given did url is not supported", exception.message)
+        assertEquals("Unsupported DID method: web1", exception.message)
     }
 
     @Test
