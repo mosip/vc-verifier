@@ -289,7 +289,11 @@ class SdJwtValidator {
     }
 
     private fun validateDigest(digest: String, sdAlg: String) {
-        val expectedLength = HASH_LENGTHS[sdAlg.lowercase()]!!
+        val expectedLength = HASH_LENGTHS[sdAlg.lowercase()]
+            ?: throw ValidationException(
+                "Unsupported digest algorithm: $sdAlg",
+                "${ERROR_CODE_INVALID}ALG"
+            )
         if (digest.isBlank()) {
             throw ValidationException(
                 "Invalid digest: must be a non-empty string",
