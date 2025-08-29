@@ -3,6 +3,7 @@ package io.mosip.vercred.vcverifier.signature.impl
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
+import io.mosip.vercred.vcverifier.signature.bouncyCastleProvider
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
@@ -10,13 +11,13 @@ import java.security.PublicKey
 import java.security.Signature
 
 private const val ECDSA_SIGNATURE_LENGTH = 64
-private var provider: BouncyCastleProvider = BouncyCastleProvider()
 
 class ES256KSignatureVerifierImpl : SignatureVerifier {
     override fun verify(
         publicKey: PublicKey,
         signData: ByteArray,
-        signature: ByteArray?
+        signature: ByteArray?,
+        provider: BouncyCastleProvider?
     ): Boolean {
         if (signature == null || signature.size != ECDSA_SIGNATURE_LENGTH) {
             throw SignatureVerificationException("Invalid signature length: Expected 64 bytes for R || S format")
@@ -25,7 +26,10 @@ class ES256KSignatureVerifierImpl : SignatureVerifier {
         try {
             val derSignature = convertRawSignatureToDER(signature) // Convert to ASN.1 DER
 
-            Signature.getInstance(CredentialVerifierConstants.EC_ALGORITHM, provider)
+            Signature.getInstance(
+                CredentialVerifierConstants.EC_ALGORITHM,
+                provider ?: bouncyCastleProvider
+            )
                 .apply {
                     initVerify(publicKey)
                     update(signData)
