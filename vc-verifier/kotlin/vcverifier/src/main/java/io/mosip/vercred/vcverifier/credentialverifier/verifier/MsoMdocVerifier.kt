@@ -151,7 +151,7 @@ class MsoMdocVerifier {
     private fun verifyValueDigests(issuerSignedNamespaces: Map, mso: Map): Boolean {
         issuerSignedNamespaces.keys.forEach { namespace ->
             run {
-                val namespaceData: MutableList<DataItem> =
+                val namespaceData: List<DataItem> =
                     ((issuerSignedNamespaces[namespace]) as Array).dataItems
                 val calculatedDigests = mutableMapOf<Number, ByteArray>()
                 val actualDigests = mutableMapOf<Number, ByteArray>()
