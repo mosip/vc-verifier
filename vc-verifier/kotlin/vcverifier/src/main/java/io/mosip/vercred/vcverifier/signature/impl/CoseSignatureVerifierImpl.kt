@@ -4,13 +4,15 @@ import com.android.identity.internal.Util
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.utils.CborDataItemUtils
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey
 
 class CoseSignatureVerifierImpl: SignatureVerifier {
     override fun verify(
         publicKey: PublicKey,
         signData: ByteArray,
-        signature: ByteArray?
+        signature: ByteArray?,
+        provider: BouncyCastleProvider?
     ): Boolean {
         val coseSign1 = CborDataItemUtils.fromByteArray(signData)
         val coseSign1CheckSignature =
