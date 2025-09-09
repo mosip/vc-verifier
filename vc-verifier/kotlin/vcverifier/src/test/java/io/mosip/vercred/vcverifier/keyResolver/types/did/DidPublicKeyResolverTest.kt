@@ -13,6 +13,7 @@ import io.mosip.vercred.vcverifier.testHelpers.validDidWeb
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
 
 class DidPublicKeyResolverTest {
     @BeforeEach
@@ -96,4 +97,17 @@ class DidPublicKeyResolverTest {
             )
         }
     }
+
+    //test without mocking
+    @Test
+    fun `should successfully resolve did with method type jwk`() {
+        unmockkAll()
+        val validDid = "did:jwk:eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImlydDktbTFubUtyM0dhTXlKTEdGV0ZscUd6UlJjSnV3TEtxTFlTQWJWdFkiLCJ5IjoiNXhMeGNKeDg2UEdvZDFnTzRadThvY29iR3hNNXRnMi13NVc5ZEFaQk5kQSIsInVzZSI6InNpZyJ9#0"
+        val didPublicKeyResolver = DidPublicKeyResolver()
+
+        val publicKey = didPublicKeyResolver.resolve(validDid)
+
+        assertEquals("EC",publicKey.algorithm)
+    }
+
 }
