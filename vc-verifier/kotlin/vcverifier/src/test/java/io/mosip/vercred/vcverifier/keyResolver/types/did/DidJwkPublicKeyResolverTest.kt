@@ -24,7 +24,7 @@ class DidJwkPublicKeyResolverTest {
     }
 
     @Test
-    fun `should resolve JWK successfully`() {
+    fun `should resolve JWK successfully for OKP`() {
         val resolver = DidJwkPublicKeyResolver()
 
         val publicKey: PublicKey = resolver.extractPublicKey(
@@ -35,6 +35,31 @@ class DidJwkPublicKeyResolverTest {
             "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, -14, 15, 93, -4, -64, 116, -119, 77, -89, -102, 6, -1, -12, -2, 3, 127, 68, -47, 66, 110, 81, 37, 57, -102, -120, 73, 54, 30, 70, 114, -26, -111]"
         assertPublicKey(publicKey, expectedEncodedPublicKey)
     }
+
+    @Test
+    fun `should resolve JWK successfully for EC`() {
+        val jwk = """
+        {
+            "kty":"EC",
+            "alg":"ES256",
+            "crv":"P-256",
+            "x":"MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+            "y":"4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
+            "use":"enc",
+            "kid":"1"
+        }
+    """.trimIndent()
+
+        val did = "did:jwk:${encodeBase64Url(jwk)}"
+        val resolver = DidJwkPublicKeyResolver()
+
+        val publicKey = resolver.extractPublicKey(createParsedDid(did))
+
+        assertNotNull(publicKey)
+        assertEquals("EC", publicKey.algorithm)
+        assertEquals("X.509", publicKey.format)
+    }
+
 
     @Test
     fun `test invalid base64url`() {
@@ -88,15 +113,14 @@ class DidJwkPublicKeyResolverTest {
     @Test
     fun `test unsupported key type`() {
         val jwk = """
-            {
-                "kty": "EC",
-                "crv": "P-256",
-                "alg": "ES256",
-                "use":"sig",
-                "x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
-                "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"
-            }
-        """.trimIndent()
+        {
+            "kty": "RSA",
+            "alg": "RS256",
+            "use": "sig",
+            "n": "sXch9z_AqKXohRAAE2Aw53zrk9B3QHkMbhZNEQURnPvDPjGvqX2m-d0emw7np2ROmMUT_k0rAj6kgaHQnxKm3w",
+            "e": "AQAB"
+        }
+    """.trimIndent()
         val unsupportedKeyTypeDid = "did:jwk:${encodeBase64Url(jwk)}"
         val resolver = DidJwkPublicKeyResolver()
 
@@ -105,7 +129,7 @@ class DidJwkPublicKeyResolverTest {
                 createParsedDid(unsupportedKeyTypeDid)
             )
         }
-        assertEquals("KeyType - EC is not supported. Supported: OKP", exception.message)
+        assertEquals("KeyType - RSA is not supported. Supported: OKP, EC", exception.message)
     }
 
     @Test

@@ -26,32 +26,50 @@ class DidJwkPublicKeyResolver : DidPublicKeyResolver() {
         keyId: String?
     ): PublicKey {
         try {
-            val jwk: JWK = JWK.parse(
-                String(
-                    b64Decoder.decodeFromBase64Url(parsedDID.id)
-                )
-            )
+            val jwkJson = String(b64Decoder.decodeFromBase64Url(parsedDID.id))
+            val jwk: JWK = JWK.parse(jwkJson)
 
-            if (jwk.keyType != KeyType.OKP) {
-                throw PublicKeyTypeNotSupportedException(message = "KeyType - ${jwk.keyType} is not supported. Supported: OKP")
+            return when (jwk.keyType) {
+                KeyType.OKP -> extractEd25519PublicKey(jwk)
+                KeyType.EC -> extractES256PublicKey(jwk)
+                else -> throw PublicKeyTypeNotSupportedException(
+                    "KeyType - ${jwk.keyType} is not supported. Supported: OKP, EC"
+                )
             }
 
-            val publicKeyBytes =
-                b64Decoder.decodeFromBase64Url(jwk.toOctetKeyPair().x.toString())
-            val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
-            val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
-            val encodedKey = subjectPublicKeyInfo.encoded
-            val keySpec = X509EncodedKeySpec(encodedKey)
-            val keyFactory = KeyFactory.getInstance(JWS_EDDSA_SIGN_ALGO_CONST, provider)
-            return keyFactory.generatePublic(keySpec)
         } catch (e: Exception) {
             when (e) {
                 is IllegalArgumentException -> throw PublicKeyResolutionFailedException("Invalid base64url encoding for public key data")
-                is InvalidKeySpecException, is PublicKeyTypeNotSupportedException -> throw e
-                else -> {
-                    throw UnknownException("Error while getting public key object")
-                }
+                is InvalidKeySpecException,
+                is PublicKeyTypeNotSupportedException -> throw e
+                else -> throw UnknownException("Error while getting public key object")
             }
         }
+    }
+
+    private fun extractEd25519PublicKey(jwk: JWK): PublicKey {
+        val publicKeyBytes = b64Decoder.decodeFromBase64Url(jwk.toOctetKeyPair().x.toString())
+        val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
+        val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
+        val encodedKey = subjectPublicKeyInfo.encoded
+        val keySpec = X509EncodedKeySpec(encodedKey)
+        val keyFactory = KeyFactory.getInstance(JWS_EDDSA_SIGN_ALGO_CONST, provider)
+        return keyFactory.generatePublic(keySpec)
+    }
+
+    private fun extractES256PublicKey(jwk: JWK): PublicKey {
+        val ecJwk = jwk.toECKey()
+
+        if (ecJwk.curve.name != "P-256") {
+            throw PublicKeyTypeNotSupportedException(
+                "Curve ${ecJwk.curve.name} is not supported. Only P-256 is supported for ES256."
+            )
+        }
+
+        val ecPublicKey = ecJwk.toECPublicKey()
+        val encodedKey = ecPublicKey.encoded
+        val keySpec = X509EncodedKeySpec(encodedKey)
+        val keyFactory = KeyFactory.getInstance("EC", provider)
+        return keyFactory.generatePublic(keySpec)
     }
 }
