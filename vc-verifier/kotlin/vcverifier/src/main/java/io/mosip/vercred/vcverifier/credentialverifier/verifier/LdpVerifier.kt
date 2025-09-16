@@ -9,13 +9,12 @@ import info.weboftrust.ldsignatures.util.JWSUtil
 import io.ipfs.multibase.Multibase
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
-import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.keyResolver.PublicKeyGetterFactory
+import io.mosip.vercred.vcverifier.signature.SignatureFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
-import io.mosip.vercred.vcverifier.utils.Util.SIGNATURE_VERIFIER
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
 import java.util.logging.Logger
@@ -51,8 +50,7 @@ class LdpVerifier {
                 val jwsObject = JWSObject.parse(signJWS)
                 val signature = jwsObject.signature.decode()
                 val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
-                val signatureVerifier = SIGNATURE_VERIFIER[jwsObject.header.algorithm.name]
-                    ?: throw SignatureNotSupportedException("Unsupported jws signature algorithm")
+                val signatureVerifier = SignatureFactory().get(jwsObject.header.algorithm.name)
                 return signatureVerifier.verify(publicKeyObj, actualData, signature)
             }
 
