@@ -63,7 +63,8 @@ class CredentialsVerifier {
             }
             VerificationResult(true, validationStatus.validationMessage, validationStatus.validationErrorCode)
         } catch (e: Exception) {
-            VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}", validationStatus.validationErrorCode)
+            val errorCode = validationStatus.validationErrorCode.takeIf { !it.isNullOrEmpty() } ?: ERROR_CODE_VERIFICATION_FAILED
+            VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}", errorCode)
         }
     }
 }
