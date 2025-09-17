@@ -115,7 +115,6 @@ object DateUtils {
 
     fun formatEpochSecondsToIsoUtc(epochSeconds: Long): String {
         val odt = OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC)
-        println(odt)
         return odt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     }
 
