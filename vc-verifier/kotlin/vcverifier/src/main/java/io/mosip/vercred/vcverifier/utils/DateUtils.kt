@@ -16,38 +16,37 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import org.json.JSONObject
-import java.text.SimpleDateFormat
+import org.threeten.bp.Instant
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.OffsetDateTime
+import org.threeten.bp.ZoneOffset
+import org.threeten.bp.format.DateTimeFormatter
 import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 import java.util.logging.Logger
 
 object DateUtils {
 
     private val logger = Logger.getLogger(DateUtils::class.java.name)
 
-    private val dateFormats = listOf(
-        ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-        ("yyyy-MM-dd'T'HH:mm:ss'Z'")
-    )
+    private val formatterWithOffset: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+    private val formatterLocal: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
-    private const val UTC = "UTC"
-
-    fun isValidDate(dateValue: String): Boolean {
-        return DATE_REGEX.matches(dateValue)
+    fun isValidDate(dateString: String): Boolean {
+        return parseDate(dateString) != null
     }
 
-    fun parseDate(date: String): Date? {
-        dateFormats.forEach {
+    fun parseDate(dateString: String): Date? {
+        return try {
+            val offsetDateTime = OffsetDateTime.parse(dateString, formatterWithOffset)
+            Date(offsetDateTime.toInstant().toEpochMilli())
+        } catch (e: Exception) {
             try {
-                val format = SimpleDateFormat(it, Locale.getDefault()).apply {
-                    timeZone = TimeZone.getTimeZone(UTC)
-                }
-                return format.parse(date)
+                val localDateTime = LocalDateTime.parse(dateString, formatterLocal)
+                Date(localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli())
             } catch (_: Exception) {
+                null
             }
         }
-        return null
     }
 
     fun validateV1DateFields(vcJsonObject: JSONObject) {
@@ -98,10 +97,7 @@ object DateUtils {
 
     fun isFutureDateWithTolerance(inputDateString: String, toleranceInMilliSeconds: Long = 3000): Boolean {
         val inputDate: Date? = try {
-            parseDate(inputDateString) ?: run {
-                val localFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
-                localFormat.parse(inputDateString)
-            }
+            parseDate(inputDateString)
         } catch (e: Exception) {
             logger.severe("Given date is not available in supported date formats")
             return false
@@ -115,6 +111,12 @@ object DateUtils {
 
         val upperBound = currentTime + toleranceInMilliSeconds
         return inputDateTime > upperBound
+    }
+
+    fun formatEpochSecondsToIsoUtc(epochSeconds: Long): String {
+        val odt = OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC)
+        println(odt)
+        return odt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     }
 
 }
