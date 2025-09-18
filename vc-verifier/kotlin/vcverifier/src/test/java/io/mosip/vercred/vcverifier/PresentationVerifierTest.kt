@@ -4,9 +4,12 @@ import io.mosip.vercred.vcverifier.data.VPVerificationStatus
 import io.mosip.vercred.vcverifier.data.VerificationStatus
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.exception.PresentationNotSupportedException
+import io.mosip.vercred.vcverifier.utils.LocalDocumentLoader
+import io.mosip.vercred.vcverifier.utils.Util
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertThrows
@@ -15,6 +18,13 @@ import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 
 class PresentationVerifierTest {
+
+    @BeforeEach
+    fun setup() {
+        LocalDocumentLoader.reset()
+        Util.documentLoader = LocalDocumentLoader
+    }
+
 
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)

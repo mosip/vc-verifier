@@ -1,9 +1,12 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
+import io.mosip.vercred.vcverifier.utils.LocalDocumentLoader
+import io.mosip.vercred.vcverifier.utils.Util
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertThrows
@@ -13,6 +16,14 @@ import java.util.concurrent.TimeUnit
 
 
 class LdpVerifierTest {
+
+
+    @BeforeEach
+    fun setup() {
+        LocalDocumentLoader.reset()
+        Util.documentLoader = LocalDocumentLoader
+    }
+
 
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
