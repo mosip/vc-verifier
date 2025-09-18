@@ -1,22 +1,5 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
-
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_PROCESSING_DATE
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_JWT_FORMAT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_KB_JWT_FORMAT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_PROCESSING_DATE
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_JWT_FORMAT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_KB_JWT_FORMAT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_INVALID_VCT_URI
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_MISSING_VCT
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_MESSAGE_VC_EXPIRED
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
 import java.util.*
@@ -96,7 +79,7 @@ class SdJwtValidatorTest {
     fun `should fail on empty string`() {
         val status = validator.validate("")
         assertEquals("Validation Error: Input VC JSON string is null or empty.",status.validationMessage)
-        assertEquals(CredentialValidatorConstants.ERROR_CODE_EMPTY_VC_JSON,status.validationErrorCode)
+        assertEquals("ERR_EMPTY_VC",status.validationErrorCode)
     }
 
     @Test
@@ -106,14 +89,14 @@ class SdJwtValidatorTest {
         }
         val status = validator.validate(vc)
         assertEquals("Missing or invalid 'alg' in JWT header",status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}ALG",status.validationErrorCode)
+        assertEquals("ERR_INVALID_ALG",status.validationErrorCode)
     }
 
     @Test
     fun `should fail for invalid JWT format`() {
         val status = validator.validate("invalid.ajbsdj.sdjbja.jwt.structure~")
-        assertEquals(ERROR_MESSAGE_INVALID_JWT_FORMAT, status.validationMessage)
-        assertEquals(ERROR_CODE_INVALID_JWT_FORMAT,status.validationErrorCode)
+        assertEquals("Validation Error: Invalid JWT format", status.validationMessage)
+        assertEquals("ERR_INVALID_JWT_FORMAT",status.validationErrorCode)
     }
 
     @Test
@@ -122,8 +105,8 @@ class SdJwtValidatorTest {
             it.remove("vct")
         }
         val status = validator.validate(vc)
-        assertEquals(ERROR_MESSAGE_MISSING_VCT, status.validationMessage)
-        assertEquals(CredentialValidatorConstants.ERROR_CODE_MISSING_VCT,status.validationErrorCode)
+        assertEquals("Validation Error: Missing or empty 'vct' in JWT payload", status.validationMessage)
+        assertEquals("ERR_MISSING_VCT",status.validationErrorCode)
     }
 
     @Test
@@ -132,8 +115,8 @@ class SdJwtValidatorTest {
             it.put("vct", "http:///invalid-vct-url")
         }
         val status = validator.validate(vc)
-        assertEquals(ERROR_MESSAGE_INVALID_VCT_URI, status.validationMessage)
-        assertEquals(CredentialValidatorConstants.ERROR_CODE_INVALID_VCT_URI,status.validationErrorCode)
+        assertEquals("Validation Error: 'vct' must be a valid URI when it contains ':'", status.validationMessage)
+        assertEquals("ERR_INVALID_VCT_URI",status.validationErrorCode)
     }
 
     @Test
@@ -148,7 +131,7 @@ class SdJwtValidatorTest {
         val modified = listOf(newJwt).plus(parts.drop(1)).joinToString("~")
         val status = validator.validate(modified)
         assertEquals("Unsupported or missing 'typ' in JWT header", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}TYP",status.validationErrorCode)
+        assertEquals("ERR_INVALID_TYP",status.validationErrorCode)
     }
 
     @Test
@@ -157,8 +140,8 @@ class SdJwtValidatorTest {
             it.put("iat", 9999999999)
         }
         val status = validator.validate(vc)
-        assertEquals(ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE, status.validationMessage)
-        assertEquals(ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE,status.validationErrorCode)
+        assertEquals("Validation Error: The current date time is before the issuanceDate", status.validationMessage)
+        assertEquals("ERR_ISSUANCE_DATE_IS_FUTURE_DATE",status.validationErrorCode)
     }
 
     @Test
@@ -167,8 +150,8 @@ class SdJwtValidatorTest {
             it.put("nbf", 9999999999)
         }
         val status = validator.validate(vc)
-        assertEquals(ERROR_CURRENT_DATE_BEFORE_PROCESSING_DATE, status.validationMessage)
-        assertEquals(ERROR_CODE_CURRENT_DATE_BEFORE_PROCESSING_DATE,status.validationErrorCode)
+        assertEquals("Validation Error: The current date time is before the not before(nbf) claim Date", status.validationMessage)
+        assertEquals("ERR_PROCESSING_DATE_IS_FUTURE_DATE",status.validationErrorCode)
     }
 
     @Test
@@ -177,8 +160,8 @@ class SdJwtValidatorTest {
             it.put("exp", 1234567890)
         }
         val status = validator.validate(vc)
-        assertEquals(ERROR_MESSAGE_VC_EXPIRED, status.validationMessage)
-        assertEquals(ERROR_CODE_VC_EXPIRED,status.validationErrorCode)
+        assertEquals("VC is expired", status.validationMessage)
+        assertEquals("ERR_VC_EXPIRED",status.validationErrorCode)
     }
 
     @Test
@@ -191,7 +174,7 @@ class SdJwtValidatorTest {
         val modifiedVc = parts.joinToString("~")
         val status = validator.validate(modifiedVc)
         assertEquals("Exception during Validation: Failed to parse disclosures.", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}UNKNOWN",status.validationErrorCode)
+        assertEquals("ERR_INVALID_UNKNOWN",status.validationErrorCode)
     }
 
     @Test
@@ -215,7 +198,7 @@ class SdJwtValidatorTest {
         val modifiedVc = parts.joinToString("~")
         val status = validator.validate(modifiedVc)
         assertEquals("Invalid digest length of digest: expected 32 bytes, got 16", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}DIGEST",status.validationErrorCode)
+        assertEquals("ERR_INVALID_DIGEST",status.validationErrorCode)
 
     }
 
@@ -227,7 +210,7 @@ class SdJwtValidatorTest {
         val status = validator.validate(vc)
 
         assertEquals("Unsupported _sd_alg: sha3-384. Allowed: [sha-256, sha-384, sha-512]", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}SD_ALG",status.validationErrorCode)
+        assertEquals("ERR_INVALID_SD_ALG",status.validationErrorCode)
     }
 
     @Test
@@ -250,7 +233,7 @@ class SdJwtValidatorTest {
         val status = validator.validate(vc)
 
         assertEquals("Invalid 'iss' claim: $iss", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}ISS",status.validationErrorCode)
+        assertEquals("ERR_INVALID_ISS",status.validationErrorCode)
     }
 
     @Test
@@ -262,7 +245,7 @@ class SdJwtValidatorTest {
         val status = validator.validate(vc)
 
         assertEquals("Validation Error: Invalid URI: https:///iss", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}AUD",status.validationErrorCode)
+        assertEquals("ERR_INVALID_AUD",status.validationErrorCode)
     }
 
     @Test
@@ -274,7 +257,7 @@ class SdJwtValidatorTest {
         val status = validator.validate(vc)
 
         assertEquals("Validation Error: Invalid URI: https:///nonce", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}NONCE",status.validationErrorCode)
+        assertEquals("ERR_INVALID_NONCE",status.validationErrorCode)
     }
 
     @Test
@@ -289,7 +272,7 @@ class SdJwtValidatorTest {
         val status = validator.validate(vc)
 
         assertEquals("Invalid 'cnf' object: must contain either 'jwk' or 'kid'", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}CNF",status.validationErrorCode)
+        assertEquals("ERR_INVALID_CNF",status.validationErrorCode)
     }
 
     @Test
@@ -305,16 +288,16 @@ class SdJwtValidatorTest {
         val modifiedVc = parts.joinToString("~")
         val status = validator.validate(modifiedVc)
 
-        assertEquals("$ERROR_MESSAGE_INVALID_DISCLOSURE_CLAIM_NAME at index 12", status.validationMessage)
-        assertEquals(ERROR_CODE_INVALID_DISCLOSURE_CLAIM_NAME,status.validationErrorCode)
+        assertEquals("Validation Error: Disclosure has invalid or reserved claim name (starts with underscore) at index 12", status.validationMessage)
+        assertEquals("ERR_INVALID_DISCLOSURE_CLAIM_NAME" ,status.validationErrorCode)
     }
 
     @Test
     fun `should fail for malformed KB JWT`() {
         val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt") + "header.payload"
         val status = validator.validate(vc)
-        assertEquals(ERROR_MESSAGE_INVALID_KB_JWT_FORMAT, status.validationMessage)
-        assertEquals(ERROR_CODE_INVALID_KB_JWT_FORMAT,status.validationErrorCode)
+        assertEquals("Validation Error: Invalid Key Binding JWT format", status.validationMessage)
+        assertEquals("ERR_INVALID_KB_JWT_FORMAT",status.validationErrorCode)
     }
 
     @Test
@@ -323,7 +306,7 @@ class SdJwtValidatorTest {
         val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt") + validKbJwt
         val status = validator.validate(vc)
         assertEquals("Missing 'aud' in Key Binding JWT", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}AUD",status.validationErrorCode)
+        assertEquals("ERR_INVALID_AUD",status.validationErrorCode)
     }
 
     @Test
@@ -331,7 +314,7 @@ class SdJwtValidatorTest {
         val vc = getDisclosureTamperedSdJWT()
         val status = validator.validate(vc)
         assertEquals("Digest value of all disclosures must be present in the '_sd' claim of payload", status.validationMessage)
-        assertEquals("${ERROR_CODE_INVALID}DISCLOSURE",status.validationErrorCode)
+        assertEquals("ERR_INVALID_DISCLOSURE",status.validationErrorCode)
     }
 
     @Test

@@ -70,7 +70,7 @@ class SdJwtValidator {
         val disclosures = sdJwt.disclosures
         val keyBindingJwt = sdJwt.bindingJwt
 
-        validateSDJwtStructure(credentialJwt, disclosures)
+        validateSdJwtStructure(credentialJwt, disclosures)
         keyBindingJwt?.let {
             validateKeyBindingJwt(it)
         }
@@ -78,7 +78,7 @@ class SdJwtValidator {
         return ValidationStatus("", "")
     }
 
-    private fun validateSDJwtStructure(credentialJwt: String, disclosures: List<Disclosure>) {
+    private fun validateSdJwtStructure(credentialJwt: String, disclosures: List<Disclosure>) {
         val jwtParts = credentialJwt.split(".")
         if (jwtParts.size != 3) {
             throw ValidationException(
