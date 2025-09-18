@@ -11,18 +11,11 @@ import java.net.URI
 @VisibleForTesting
 object LocalDocumentLoader : ConfigurableDocumentLoader() {
 
-    var calls = 0
-        private set
-    var lastUrl: URI? = null
-        private set
 
     override fun loadDocument(url: URI, options: DocumentLoaderOptions): Document {
-        calls++
-        lastUrl = url
 
         val resourcePath = getResourcePath(url)
 
-        // Load resource lazily
         val inputStream = this::class.java.getResourceAsStream(resourcePath)
             ?: throw IllegalArgumentException("Context not found in test resources: $resourcePath")
 
@@ -51,10 +44,5 @@ object LocalDocumentLoader : ConfigurableDocumentLoader() {
                 "/contexts/farmer-context.json"
             else -> throw IllegalArgumentException("Unexpected context: $url")
         }
-    }
-
-    fun reset() {
-        calls = 0
-        lastUrl = null
     }
 }

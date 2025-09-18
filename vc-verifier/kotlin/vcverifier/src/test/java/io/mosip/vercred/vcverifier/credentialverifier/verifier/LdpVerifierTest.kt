@@ -3,25 +3,30 @@ package io.mosip.vercred.vcverifier.credentialverifier.verifier
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import io.mosip.vercred.vcverifier.utils.LocalDocumentLoader
 import io.mosip.vercred.vcverifier.utils.Util
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertThrows
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 
-
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LdpVerifierTest {
 
-
-    @BeforeEach
+    @BeforeAll
     fun setup() {
-        LocalDocumentLoader.reset()
         Util.documentLoader = LocalDocumentLoader
+    }
+
+    @AfterAll
+    fun teardownAll() {
+        Util.documentLoader = null
     }
 
 
