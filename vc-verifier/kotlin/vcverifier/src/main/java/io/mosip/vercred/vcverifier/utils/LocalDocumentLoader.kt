@@ -1,10 +1,10 @@
 package io.mosip.vercred.vcverifier.utils
 
-import androidx.annotation.VisibleForTesting
 import com.apicatalog.jsonld.document.Document
 import com.apicatalog.jsonld.document.DocumentParser
 import com.apicatalog.jsonld.http.media.MediaType
 import com.apicatalog.jsonld.loader.DocumentLoaderOptions
+import com.google.common.annotations.VisibleForTesting
 import foundation.identity.jsonld.ConfigurableDocumentLoader
 import java.net.URI
 
