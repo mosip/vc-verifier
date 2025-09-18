@@ -31,16 +31,28 @@ import java.security.cert.X509Certificate
 
 object Util {
 
+    var documentLoader : ConfigurableDocumentLoader? = null
+
+    val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
+        JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
+        JWS_RS256_SIGN_ALGO_CONST to RS256SignatureVerifierImpl(),
+        JWS_EDDSA_SIGN_ALGO_CONST to ED25519SignatureVerifierImpl(),
+        JWS_ES256K_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl(),
+        JWS_ES256_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl()
+    )
+
     fun isAndroid(): Boolean {
         return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
     }
 
     fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
-        val confDocumentLoader = ConfigurableDocumentLoader()
-        confDocumentLoader.isEnableHttps = true
-        confDocumentLoader.isEnableHttp = true
-        confDocumentLoader.isEnableFile = false
-        return confDocumentLoader
+        return documentLoader ?: run {
+            val loader = ConfigurableDocumentLoader()
+            loader.isEnableHttps = true
+            loader.isEnableHttp = true
+            loader.isEnableFile = false
+            loader
+        }
     }
 
     fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
