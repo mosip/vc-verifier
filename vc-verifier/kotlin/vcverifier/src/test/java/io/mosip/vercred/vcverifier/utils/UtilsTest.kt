@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.threeten.bp.OffsetDateTime
+import org.threeten.bp.ZoneOffset
+import org.threeten.bp.format.DateTimeFormatter
 import java.io.ByteArrayOutputStream
 import java.util.Date
 
@@ -171,8 +174,9 @@ class UtilsTest {
 
     @Test
     fun `test when issuanceDate time is future date time but outside tolerance range`() {
-        val currentDate = Date()
-        val issuanceDate = Date(currentDate.time + 5000).toString()
+        val currentDateTime = OffsetDateTime.now(ZoneOffset.UTC)
+        val futureDateTime = currentDateTime.plusSeconds(5)
+        val issuanceDate = futureDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
         val result = dateUtils.isFutureDateWithTolerance(issuanceDate)
         assertTrue(result)
