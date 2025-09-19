@@ -48,10 +48,7 @@ class SdJwtVerifier {
     }
 
     private fun getPublicKeyFromCertificate(certBase64: String): PublicKey {
-        val urlSafeBase64Certificate = certBase64.replace("\\s+".toRegex(), "")
-            .replace('+', '-')
-            .replace('/', '_')
-        val certificateBytes = Base64Decoder().decodeFromBase64Url(urlSafeBase64Certificate)
+        val certificateBytes = Base64Decoder().decodeFromBase64(certBase64)
         val x509Certificate = Util.toX509Certificate(certificateBytes)
         val publicKey = x509Certificate.publicKey
         return publicKey
