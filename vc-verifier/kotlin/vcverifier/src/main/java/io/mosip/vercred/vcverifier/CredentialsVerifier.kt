@@ -6,8 +6,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_VC_REVOKED
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VC_REVOKED
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import java.util.logging.Logger
@@ -35,13 +33,6 @@ class CredentialsVerifier {
             return false
         }
 
-        val isRevoked = credentialVerifier.isRevoked(credentials)
-
-        if (isRevoked) {
-            logger.warning("Credential has been revoked")
-            return false
-        }
-
         return true
     }
 
@@ -57,10 +48,6 @@ class CredentialsVerifier {
                 return  VerificationResult(false, ERROR_MESSAGE_VERIFICATION_FAILED, ERROR_CODE_VERIFICATION_FAILED)
             }
 
-            val isRevoked = credentialVerifier.isRevoked(credential)
-            if (isRevoked){
-                return VerificationResult(false, ERROR_VC_REVOKED, ERROR_CODE_VC_REVOKED)
-            }
             VerificationResult(true, validationStatus.validationMessage, validationStatus.validationErrorCode)
         } catch (e: Exception) {
             val errorCode = validationStatus.validationErrorCode.takeIf { !it.isNullOrEmpty() } ?: ERROR_CODE_VERIFICATION_FAILED

@@ -5,5 +5,4 @@ import io.mosip.vercred.vcverifier.data.ValidationStatus
 interface VerifiableCredential {
     fun validate(credential: String): ValidationStatus
     fun verify(credential: String): Boolean
-    fun isRevoked(credential: String): Boolean
 }
