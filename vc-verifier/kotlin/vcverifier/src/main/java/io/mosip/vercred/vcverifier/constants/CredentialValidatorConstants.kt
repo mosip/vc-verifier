@@ -98,12 +98,7 @@ object CredentialValidatorConstants {
     const val ERROR_CODE_INVALID_KB_JWT_FORMAT = "${ERROR_CODE_INVALID}KB_JWT_FORMAT"
     const val ERROR_MESSAGE_INVALID_KB_JWT_FORMAT = "${VALIDATION_ERROR}Invalid Key Binding JWT format"
 
-
-    val DATE_REGEX = Regex(
-        """^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)([01][0-9]|2[0-3]):([0-5][0-9]))$""",
-        RegexOption.IGNORE_CASE
-    )
-
+    
     val ALGORITHMS_SUPPORTED = listOf(
         "PS256",
         "RS256",

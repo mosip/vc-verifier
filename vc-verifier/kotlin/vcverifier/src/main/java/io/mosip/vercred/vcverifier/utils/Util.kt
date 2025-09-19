@@ -12,7 +12,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES2
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST
-import io.mosip.vercred.vcverifier.data.DATA_MODEL
+import io.mosip.vercred.vcverifier.data.DataModel
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
@@ -88,16 +88,16 @@ object Util {
     }
 
     fun jsonArrayToList(jsonArray: JSONArray): List<Any> {
-        return List(jsonArray.length()) { jsonArray.get(it) }
+        return List(jsonArray.length()) { jsonArray[it] }
     }
 
-    fun getContextVersion(vcJsonObject: JSONObject): DATA_MODEL? {
+    fun getContextVersion(vcJsonObject: JSONObject): DataModel? {
         if (vcJsonObject.has(CONTEXT)) {
-            val contextUrl = vcJsonObject.getJSONArray(CONTEXT).get(0)
+            val contextUrl = vcJsonObject.getJSONArray(CONTEXT)[0]
             return when (contextUrl) {
-                CREDENTIALS_CONTEXT_V1_URL -> DATA_MODEL.DATA_MODEL_1_1
-                CREDENTIALS_CONTEXT_V2_URL -> DATA_MODEL.DATA_MODEL_2_0
-                else -> DATA_MODEL.UNSUPPORTED
+                CREDENTIALS_CONTEXT_V1_URL -> DataModel.DATA_MODEL_1_1
+                CREDENTIALS_CONTEXT_V2_URL -> DataModel.DATA_MODEL_2_0
+                else -> DataModel.UNSUPPORTED
             }
         }
         return null

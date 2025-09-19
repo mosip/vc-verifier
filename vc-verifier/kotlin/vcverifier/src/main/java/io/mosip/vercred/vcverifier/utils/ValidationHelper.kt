@@ -42,7 +42,7 @@ class ValidationHelper {
 
             for (key in keys) {
                 if (currentJson != null && currentJson.has(key)) {
-                    if (currentJson.get(key) is JSONObject) {
+                    if (currentJson[key] is JSONObject) {
                         currentJson = currentJson.getJSONObject(key)
                     } else {
                         break
@@ -76,12 +76,9 @@ class ValidationHelper {
     }
 
     fun validateId(vcJsonObject: JSONObject){
-        if(vcJsonObject.has(ID)){
-            if(!Util.isValidUri(vcJsonObject.getString(ID))){
-                throw ValidationException("$ERROR_INVALID_URI$ID", "${ERROR_CODE_INVALID}${ID}")
-            }
+        if(vcJsonObject.has(ID) && !Util.isValidUri(vcJsonObject.getString(ID))) {
+            throw ValidationException("$ERROR_INVALID_URI$ID", "${ERROR_CODE_INVALID}${ID}")
         }
-
     }
 
     fun validateType(vcJsonObject: JSONObject){
@@ -98,7 +95,7 @@ class ValidationHelper {
 
     fun validateIssuer(vcJsonObject: JSONObject){
         if(vcJsonObject.has(ISSUER)){
-            val issuerId = Util.getId(vcJsonObject.get(ISSUER))
+            val issuerId = Util.getId(vcJsonObject[ISSUER])
             if(issuerId == null || !Util.isValidUri(issuerId)) {
                 throw ValidationException( "$ERROR_INVALID_URI${ISSUER}", "${ERROR_CODE_INVALID}${ISSUER.uppercase()}")
             }
@@ -114,7 +111,7 @@ class ValidationHelper {
 
         nameDescriptionList.forEach { fieldPair ->
             if(vcJsonObject.has(fieldPair.first)){
-                when (val fieldValue = vcJsonObject.get(fieldPair.first)) {
+                when (val fieldValue = vcJsonObject[fieldPair.first]) {
                     is String -> return
                     is JSONArray -> checkForLanguageObject(fieldValue, fieldPair)
                     else -> {
@@ -140,14 +137,14 @@ class ValidationHelper {
     }
 
     fun validateCredentialSubject(vcJsonObject: JSONObject) {
-        val credentialSubject = vcJsonObject.get(CREDENTIAL_SUBJECT)
+        val credentialSubject = vcJsonObject[CREDENTIAL_SUBJECT]
         validateJsonObjectOrArray(CREDENTIAL_SUBJECT, credentialSubject, ::validateSingleCredentialObject,
             ERROR_CREDENTIAL_SUBJECT_NON_NULL_OBJECT
         )
     }
 
     fun validateFieldsByIdAndType(vcJsonObject: JSONObject, fieldName: String, idMandatoryFields: List<String>) {
-        val fieldValue = vcJsonObject.get(fieldName)
+        val fieldValue = vcJsonObject[fieldName]
         validateJsonObjectOrArray(fieldName, fieldValue, { obj -> validateSingleObject(fieldName, obj, idMandatoryFields) }, "$ERROR_INVALID_FIELD$fieldName")
     }
 

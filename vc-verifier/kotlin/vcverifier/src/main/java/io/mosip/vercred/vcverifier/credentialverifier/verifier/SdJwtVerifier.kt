@@ -18,15 +18,16 @@ class SdJwtVerifier {
 
     private fun verifyJWTSignature(jwt: String): Boolean {
         val jwtParts = jwt.split(".")
+
+        require(jwtParts.size == 3) { "Invalid JWT format" }
+
         if (jwtParts.size != 3)
             throw IllegalArgumentException("Invalid JWT format")
 
         val jwsObject = JWSObject.parse(jwt)
         val header = jwsObject.header
 
-        if (header.x509CertChain.isEmpty()) {
-            throw IllegalArgumentException("No X.509 certificate chain found in JWT header")
-        }
+        require(!(header.x509CertChain.isEmpty())) { "No X.509 certificate chain found in JWT header" }
 
         val certBase64 = header.x509CertChain[0].toString()
         val publicKey = getPublicKeyFromCertificate(certBase64)

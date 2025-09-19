@@ -8,7 +8,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_
 import io.mosip.vercred.vcverifier.constants.DidMethod
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
-import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
+import io.mosip.vercred.vcverifier.networkManager.HttpMethod
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
@@ -154,7 +154,7 @@ class DidWebPublicKeyResolverTest {
         every {
             sendHTTPRequest(
                 didJsonWellKnown,
-                HTTP_METHOD.GET
+                HttpMethod.GET
             )
         } returns verificationMethods
         val parsedDID = ParsedDID(
@@ -197,7 +197,7 @@ class DidWebPublicKeyResolverTest {
         every {
             sendHTTPRequest(
                 didJsonWellKnown,
-                HTTP_METHOD.GET
+                HttpMethod.GET
             )
         } returns emptyMap()
 
@@ -250,7 +250,7 @@ class DidWebPublicKeyResolverTest {
         every {
             sendHTTPRequest(
                 didJsonWellKnown,
-                HTTP_METHOD.GET
+                HttpMethod.GET
             )
         } throws RuntimeException("network error")
 
@@ -277,7 +277,7 @@ class DidWebPublicKeyResolverTest {
         every {
             sendHTTPRequest(
                 didJsonWellKnown,
-                HTTP_METHOD.GET
+                HttpMethod.GET
             )
         } returns didDocWithMethod(publicKeyInfo)
     }
