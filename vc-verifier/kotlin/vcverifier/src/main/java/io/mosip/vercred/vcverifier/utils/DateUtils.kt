@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier.utils
 
-import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.DATE_REGEX
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_CURRENT_DATE_BEFORE_VALID_FROM
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID
@@ -54,7 +53,7 @@ object DateUtils {
             ISSUANCE_DATE to ERROR_ISSUANCE_DATE_INVALID,
             EXPIRATION_DATE to ERROR_EXPIRATION_DATE_INVALID
         ).map { (dateKey, errorMessage) ->
-            if (vcJsonObject.has(dateKey) && !isValidDate(vcJsonObject.get(dateKey).toString())) {
+            if (vcJsonObject.has(dateKey) && !isValidDate(vcJsonObject[dateKey].toString())) {
                 throw ValidationException(errorMessage, "${ERROR_CODE_INVALID}${dateKey.uppercase()}")
             }
         }
@@ -76,7 +75,7 @@ object DateUtils {
             VALID_FROM to ERROR_VALID_FROM_INVALID,
             VALID_UNTIL to ERROR_VALID_UNTIL_INVALID
         ).map { (dateKey, errorMessage) ->
-            if (vcJsonObject.has(dateKey) && !isValidDate(vcJsonObject.get(dateKey).toString())) {
+            if (vcJsonObject.has(dateKey) && !isValidDate(vcJsonObject[dateKey].toString())) {
                 throw ValidationException(errorMessage,"${ERROR_CODE_INVALID}${dateKey.uppercase()}")
             }
         }

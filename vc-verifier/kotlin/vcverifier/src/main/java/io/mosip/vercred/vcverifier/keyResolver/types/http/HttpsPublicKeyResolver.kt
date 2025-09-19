@@ -7,7 +7,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_PEM
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD.GET
+import io.mosip.vercred.vcverifier.networkManager.HttpMethod.GET
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolver
 import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromHex

@@ -15,7 +15,7 @@ class SdJwtVerifiableCredential: VerifiableCredential {
     }
 
     override fun isRevoked(credential: String): Boolean {
-        //TODO("Not yet implemented")
+        // TODO: Not yet implemented
         return false;
     }
 }

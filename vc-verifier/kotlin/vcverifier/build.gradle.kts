@@ -64,11 +64,11 @@ dependencies {
     implementation (libs.identity)
     implementation(libs.annotation.jvm)
     implementation(libs.authelete.sd.jwt)
+    implementation(libs.threetenabp)
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
     testImplementation(libs.mockWebServer)
-    implementation(libs.threetenabp)
 
 }
 
@@ -109,9 +109,15 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
     executionData.setFrom(files("${layout.buildDirectory.get()}/jacoco/testDebugUnitTest.exec"))
 }
 
-tasks.register("prepareKotlinBuildScriptModel"){}
+tasks.register("prepareKotlinBuildScriptModel"){
+    group = "ide"
+    description = "Prepares the Kotlin build script model for IDE support"
+}
 
 tasks.register<Jar>("jarRelease") {
+    group = "release"
+    description = "Assemple Jar Release"
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn("assembleRelease")
     dependsOn("dokkaJavadoc")
@@ -131,17 +137,25 @@ tasks.register<Jar>("jarRelease") {
 }
 
 tasks.register<Jar>("javadocJar") {
+    group = "release"
+    description = "Create JavaDoc Jar for Release"
+
     dependsOn("dokkaJavadoc")
     archiveClassifier.set("javadoc")
     from(tasks.named("dokkaHtml").get().outputs.files)
 }
 tasks.register<Jar>("sourcesJar") {
+    group = "release"
+    description = "Create Source Jar for Release"
+
     archiveClassifier.set("sources")
     from(android.sourceSets["main"].java.srcDirs)
 }
 
 apply(from = "publish-artifact.gradle")
 tasks.register("generatePom") {
+    group = "release"
+    description = "Geneate POM file for AAR and JAR Release"
     dependsOn("generatePomFileForAarPublication", "generatePomFileForJarReleasePublication")
 }
 

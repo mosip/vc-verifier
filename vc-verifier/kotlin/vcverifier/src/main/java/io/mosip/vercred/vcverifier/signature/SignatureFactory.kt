@@ -15,11 +15,11 @@ class SignatureFactory {
 
     fun get(signatureAlgorithm: String) : SignatureVerifier {
         return when {
-            JWS_PS256_SIGN_ALGO_CONST.equals(signatureAlgorithm) -> PS256SignatureVerifierImpl()
-            JWS_RS256_SIGN_ALGO_CONST.equals(signatureAlgorithm) -> RS256SignatureVerifierImpl()
-            JWS_EDDSA_SIGN_ALGO_CONST.equals(signatureAlgorithm) -> ED25519SignatureVerifierImpl()
-            JWS_ES256K_SIGN_ALGO_CONST.equals(signatureAlgorithm) -> ES256KSignatureVerifierImpl()
-            JWS_ES256_SIGN_ALGO_CONST.equals(signatureAlgorithm) -> ES256KSignatureVerifierImpl()
+            JWS_PS256_SIGN_ALGO_CONST == signatureAlgorithm -> PS256SignatureVerifierImpl()
+            JWS_RS256_SIGN_ALGO_CONST == signatureAlgorithm -> RS256SignatureVerifierImpl()
+            JWS_EDDSA_SIGN_ALGO_CONST == signatureAlgorithm -> ED25519SignatureVerifierImpl()
+            JWS_ES256K_SIGN_ALGO_CONST == signatureAlgorithm -> ES256KSignatureVerifierImpl()
+            JWS_ES256_SIGN_ALGO_CONST == signatureAlgorithm -> ES256KSignatureVerifierImpl()
             else -> throw SignatureNotSupportedException("Unsupported jws signature algorithm")
         }
     }

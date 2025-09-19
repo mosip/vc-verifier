@@ -23,7 +23,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.REFRES
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TERMS_OF_USE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_UNTIL
-import io.mosip.vercred.vcverifier.data.DATA_MODEL
+import io.mosip.vercred.vcverifier.data.DataModel
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.DateUtils
@@ -65,7 +65,7 @@ class LdpValidator {
             val contextVersion = Util.getContextVersion(vcJsonObject)
                 ?: throw ValidationException("$ERROR_MISSING_REQUIRED_FIELDS$CONTEXT", "${ERROR_CODE_MISSING}${CONTEXT.uppercase()}")
             when (contextVersion) {
-                DATA_MODEL.DATA_MODEL_1_1 -> {
+                DataModel.DATA_MODEL_1_1 -> {
                     validateV1SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     val expirationMessage = if (vcJsonObject.has(EXPIRATION_DATE) && dateUtils.isVCExpired(vcJsonObject.optString(
@@ -74,7 +74,7 @@ class LdpValidator {
                             EXPIRATION_DATE))) ERROR_CODE_VC_EXPIRED else ""
                     return ValidationStatus(expirationMessage, verificationStatusCode)
                 }
-                DATA_MODEL.DATA_MODEL_2_0 -> {
+                DataModel.DATA_MODEL_2_0 -> {
                     validateV2SpecificFields(vcJsonObject)
                     validateCommonFields(vcJsonObject)
                     val expirationMessage = if (vcJsonObject.has(VALID_UNTIL) && dateUtils.isVCExpired(vcJsonObject.optString(VALID_UNTIL))) ERROR_MESSAGE_VC_EXPIRED else ""

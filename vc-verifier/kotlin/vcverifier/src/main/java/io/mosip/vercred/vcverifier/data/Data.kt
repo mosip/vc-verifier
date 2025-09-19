@@ -30,7 +30,7 @@ enum class VPVerificationStatus {
     INVALID
 }
 
-enum class DATA_MODEL {
+enum class DataModel {
     DATA_MODEL_1_1,
     DATA_MODEL_2_0,
     UNSUPPORTED

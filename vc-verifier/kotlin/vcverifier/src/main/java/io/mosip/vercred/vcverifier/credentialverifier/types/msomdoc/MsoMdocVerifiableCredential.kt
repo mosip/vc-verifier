@@ -56,7 +56,7 @@ class MsoMdocVerifiableCredential : VerifiableCredential {
             throw RuntimeException("Error on decoding base64Url encoded data " + exception.message)
         }
 
-        val cbors: MutableList<DataItem>
+        val cbors: List<DataItem>
         try {
             cbors = CborDecoder(ByteArrayInputStream(decodedData)).decode()
         } catch (exception: Exception) {
