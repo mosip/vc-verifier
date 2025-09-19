@@ -39,11 +39,15 @@ import org.json.JSONObject
 
 class SdJwtValidator {
     companion object {
-        private val SUPPORTED_SD_HASH_ALGORITHMS = setOf("sha-256", "sha-384", "sha-512")
+        const val HASH_ALG_SHA_256 = "sha-256"
+        const val HASH_ALG_SHA_384 = "sha-384"
+        const val HASH_ALG_SHA_512 = "sha-512"
+        private val SUPPORTED_SD_HASH_ALGORITHMS = setOf(HASH_ALG_SHA_256, HASH_ALG_SHA_384,
+            HASH_ALG_SHA_512)
         private val HASH_LENGTHS = mapOf(
-            "sha-256" to 32,
-            "sha-384" to 48,
-            "sha-512" to 64
+            HASH_ALG_SHA_256 to 32,
+            HASH_ALG_SHA_384 to 48,
+            HASH_ALG_SHA_512 to 64
         )
         private val VALID_JWT_TYPES = setOf("vc+sd-jwt", "dc+sd-jwt")
     }
@@ -122,7 +126,7 @@ class SdJwtValidator {
 
     private fun validateDisclosures(disclosures: List<Disclosure>, payload: Map<*, *>) {
         validateDisclosureFormat(disclosures)
-        val hashAlg = (payload["_sd_alg"] as? String) ?: "sha-256"
+        val hashAlg = (payload["_sd_alg"] as? String) ?: HASH_ALG_SHA_256
         val digestToDisclosure = disclosures.associateBy { it.digest(hashAlg) }
         val allSdDigests = mutableSetOf<String>()
         validateDisclosureSha(payload, digestToDisclosure, allSdDigests, hashAlg)
@@ -151,7 +155,7 @@ class SdJwtValidator {
                     throw ValidationException("Invalid 'iss' claim: $iss", "${ERROR_CODE_INVALID}ISS")
                 }
             }
-        val hashAlg = payload.optString("_sd_alg", "sha-256")
+        val hashAlg = payload.optString("_sd_alg", HASH_ALG_SHA_256)
 
         if (hashAlg !in SUPPORTED_SD_HASH_ALGORITHMS) {
             throw ValidationException(

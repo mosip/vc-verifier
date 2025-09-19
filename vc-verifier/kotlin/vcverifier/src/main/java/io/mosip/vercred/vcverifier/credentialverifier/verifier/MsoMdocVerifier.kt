@@ -98,7 +98,7 @@ class MsoMdocVerifier {
         }
 
         val issuingCountry: String = issuerSignedNamespaces.extractFieldValue(ISSUING_COUNTRY)
-        if (countryName == null || !issuingCountry.equals(countryName)) {
+        if (countryName == null || issuingCountry != countryName) {
             throw InvalidPropertyException("Issuing country is not valid in the credential - Mismatch in credential data and DS certificate country name dound")
         }
         return true

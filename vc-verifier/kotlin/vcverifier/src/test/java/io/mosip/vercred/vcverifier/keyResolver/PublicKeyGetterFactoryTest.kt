@@ -6,7 +6,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.PUBLIC_KEY_PEM
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
+import io.mosip.vercred.vcverifier.networkManager.HttpMethod
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
@@ -42,7 +42,7 @@ class PublicKeyGetterFactoryTest {
         every {
             sendHTTPRequest(
                 "https://example.com/.well-known/did.json",
-                HTTP_METHOD.GET
+                HttpMethod.GET
             )
         } returns mockResponse
         val uri = URI("did:web:example.com")
@@ -80,7 +80,7 @@ class PublicKeyGetterFactoryTest {
             PUBLIC_KEY_PEM to "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA8g9d/MB0iU2nmgb/9P4Df0TRQm5RJTmaiEk2HkZy5pE=\n-----END PUBLIC KEY-----",
             KEY_TYPE to ED25519_KEY_TYPE_2020
         )
-        every { sendHTTPRequest(httpsVerificationMethodUri, HTTP_METHOD.GET, any(), any()) } returns mockResponse
+        every { sendHTTPRequest(httpsVerificationMethodUri, HttpMethod.GET, any(), any()) } returns mockResponse
 
         val uri = URI(httpsVerificationMethodUri)
 
