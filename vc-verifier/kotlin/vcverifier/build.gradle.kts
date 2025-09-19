@@ -64,7 +64,7 @@ dependencies {
     implementation (libs.identity)
     implementation(libs.annotation.jvm)
     implementation(libs.authelete.sd.jwt)
-    implementation(libs.threetenabp)
+    implementation(libs.threetenbp)
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
