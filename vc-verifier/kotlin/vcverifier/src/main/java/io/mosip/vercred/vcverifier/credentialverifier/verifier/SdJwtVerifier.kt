@@ -18,15 +18,16 @@ class SdJwtVerifier {
 
     private fun verifyJWTSignature(jwt: String): Boolean {
         val jwtParts = jwt.split(".")
+
+        require(jwtParts.size == 3) { "Invalid JWT format" }
+
         if (jwtParts.size != 3)
             throw IllegalArgumentException("Invalid JWT format")
 
         val jwsObject = JWSObject.parse(jwt)
         val header = jwsObject.header
 
-        if (header.x509CertChain.isEmpty()) {
-            throw IllegalArgumentException("No X.509 certificate chain found in JWT header")
-        }
+        require(!(header.x509CertChain.isEmpty())) { "No X.509 certificate chain found in JWT header" }
 
         val certBase64 = header.x509CertChain[0].toString()
         val publicKey = getPublicKeyFromCertificate(certBase64)
@@ -48,10 +49,7 @@ class SdJwtVerifier {
     }
 
     private fun getPublicKeyFromCertificate(certBase64: String): PublicKey {
-        val urlSafeBase64Certificate = certBase64.replace("\\s+".toRegex(), "")
-            .replace('+', '-')
-            .replace('/', '_')
-        val certificateBytes = Base64Decoder().decodeFromBase64Url(urlSafeBase64Certificate)
+        val certificateBytes = Base64Decoder().decodeFromBase64(certBase64)
         val x509Certificate = Util.toX509Certificate(certificateBytes)
         val publicKey = x509Certificate.publicKey
         return publicKey

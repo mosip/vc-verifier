@@ -12,7 +12,7 @@ import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.DidResolution
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
-import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD
+import io.mosip.vercred.vcverifier.networkManager.HttpMethod
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromHex
 import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromJWK
@@ -82,7 +82,7 @@ class DidWebPublicKeyResolver : DidPublicKeyResolver() {
     private fun resolveDidDocument(parsedDID: ParsedDID): Map<String, Any> {
         try {
             val url = constructDIDUrl(parsedDID)
-            return sendHTTPRequest(url, HTTP_METHOD.GET)
+            return sendHTTPRequest(url, HttpMethod.GET)
                 ?: throw DidDocumentNotFound("Did document could not be fetched")
         } catch (e: Exception) {
             logger.severe("Error fetching DID document: ${e.message}")

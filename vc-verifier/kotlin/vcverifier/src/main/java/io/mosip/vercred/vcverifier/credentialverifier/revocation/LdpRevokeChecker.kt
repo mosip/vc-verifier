@@ -11,7 +11,7 @@ import java.util.logging.Logger
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.exception.*
-import io.mosip.vercred.vcverifier.networkManager.HTTP_METHOD.GET
+import io.mosip.vercred.vcverifier.networkManager.HttpMethod.GET
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import com.fasterxml.jackson.databind.ObjectMapper
