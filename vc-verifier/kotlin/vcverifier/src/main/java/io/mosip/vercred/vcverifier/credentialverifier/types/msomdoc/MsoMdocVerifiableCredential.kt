@@ -9,7 +9,6 @@ import co.nstant.`in`.cbor.model.UnicodeString
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_GENERIC
 import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
-import io.mosip.vercred.vcverifier.credentialverifier.revocation.MsoMdocRevokeChecker
 import io.mosip.vercred.vcverifier.credentialverifier.validator.MsoMdocValidator
 import io.mosip.vercred.vcverifier.credentialverifier.verifier.MsoMdocVerifier
 import io.mosip.vercred.vcverifier.data.ValidationStatus
@@ -42,10 +41,6 @@ class MsoMdocVerifiableCredential : VerifiableCredential {
 
     override fun verify(credential: String): Boolean {
         return MsoMdocVerifier().verify(credential)
-    }
-
-    override fun isRevoked(credential: String): Boolean {
-        return MsoMdocRevokeChecker().isRevoked(credential)
     }
 
     fun parse(credential: String): MsoMdocCredentialData {
