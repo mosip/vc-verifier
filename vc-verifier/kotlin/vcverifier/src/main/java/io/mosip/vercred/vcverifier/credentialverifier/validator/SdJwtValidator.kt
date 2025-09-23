@@ -13,6 +13,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_JWT_FORMAT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_KB_JWT_FORMAT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_INVALID_VCT_URI
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_MISSING
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_MISSING_VCT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE
@@ -30,12 +31,19 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
+import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
+import io.mosip.vercred.vcverifier.utils.Base64Encoder
 import io.mosip.vercred.vcverifier.utils.DateUtils
 import io.mosip.vercred.vcverifier.utils.DateUtils.formatEpochSecondsToIsoUtc
+import io.mosip.vercred.vcverifier.utils.Util
+import io.mosip.vercred.vcverifier.utils.Util.SUPPORTED_JWS_ALGORITHMS
+import io.mosip.vercred.vcverifier.utils.Util.isValidHttpsUri
 import io.mosip.vercred.vcverifier.utils.Util.isValidUri
 import org.json.JSONArray
 import org.json.JSONObject
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 
 class SdJwtValidator {
     companion object {
@@ -44,6 +52,7 @@ class SdJwtValidator {
         const val HASH_ALG_SHA_512 = "sha-512"
         private val SUPPORTED_SD_HASH_ALGORITHMS = setOf(HASH_ALG_SHA_256, HASH_ALG_SHA_384,
             HASH_ALG_SHA_512)
+        private val SUPPORTED_CNF_KEY_OBJECT_TYPES = setOf("kid")
         private val HASH_LENGTHS = mapOf(
             HASH_ALG_SHA_256 to 32,
             HASH_ALG_SHA_384 to 48,
@@ -76,7 +85,7 @@ class SdJwtValidator {
 
         validateSdJwtStructure(credentialJwt, disclosures)
         keyBindingJwt?.let {
-            validateKeyBindingJwt(it)
+            validateKeyBindingJwt(it, sdJwt)
         }
 
         return ValidationStatus("", "")
@@ -151,8 +160,11 @@ class SdJwtValidator {
 
         payload.optString("iss", "").takeIf { it.isNotBlank() }
             ?.let { iss ->
-                if (!isValidUri(iss)) {
-                    throw ValidationException("Invalid 'iss' claim: $iss", "${ERROR_CODE_INVALID}ISS")
+                if (!isValidHttpsUri(iss)) {
+                    throw ValidationException(
+                        "Invalid 'iss' claim: $iss",
+                        "${ERROR_CODE_INVALID}ISS"
+                    )
                 }
             }
         val hashAlg = payload.optString("_sd_alg", HASH_ALG_SHA_256)
@@ -323,7 +335,7 @@ class SdJwtValidator {
 
     }
 
-    private fun validateKeyBindingJwt(kbJwt: String) {
+    private fun validateKeyBindingJwt(kbJwt: String, sdJwt: SDJWT) {
         val parts = kbJwt.split(".")
         if (parts.size != 3) {
             throw ValidationException(
@@ -333,17 +345,78 @@ class SdJwtValidator {
         }
 
         val payload = JSONObject(decodeBase64Json(parts[1]))
-        validateKeyBindingPayload(payload)
+        validateKeyBindingHeader(kbJwt)
+        verifyKeyBindingSignature(kbJwt,sdJwt)
+        validateKeyBindingPayload(payload, sdJwt)
+
     }
 
-    private fun validateKeyBindingPayload(payload: JSONObject) {
-        val requiredFields = listOf("aud", "nonce", "cnf")
+    private fun validateKeyBindingHeader(kbJwt: String) {
+        val parts = kbJwt.split(".")
+        val headerPart = parts[0]
+        val headerJsonString = try {
+            decodeBase64Json(headerPart)
+        } catch (e: IllegalArgumentException) {
+            throw ValidationException( "Failed to decode KB-JWT header","${ERROR_CODE_INVALID}KB_JWT_HEADER")
+        }
+
+        val header = try {
+            JSONObject(headerJsonString)
+        } catch (e: Exception) {
+            throw ValidationException( "Failed to decode KB-JWT header","${ERROR_CODE_INVALID}KB_JWT_HEADER")
+        }
+
+        val alg = header.optString("alg")
+        if (alg.isNullOrBlank()) {
+            throw ValidationException( "Missing 'alg' in Key Binding JWT header","${ERROR_CODE_MISSING}KB_JWT_ALG")
+        }
+
+        if (!SUPPORTED_JWS_ALGORITHMS.contains(alg)) {
+            throw ValidationException( "Unsupported signature algorithm in Key Binding JWT: $alg", "${ERROR_CODE_INVALID}KB_JWT_ALG")
+        }
+
+        val typ = header.optString("typ")
+        if (typ != null && typ != "kb+jwt") {
+            throw ValidationException( "Invalid 'typ' in KB-JWT header. Expected 'kb+jwt'","${ERROR_CODE_INVALID}KB_JWT_TYP")
+        }
+    }
+
+
+    private fun verifyKeyBindingSignature(kbJwt: String, sdJwt: SDJWT) {
+        val parts = kbJwt.split(".")
+        val kbJwtHeader = JSONObject(decodeBase64Json(parts[0]))
+        val algorithm = kbJwtHeader["alg"] as? String
+
+        val jwtParts = sdJwt.credentialJwt.split(".")
+
+        val payloadJson = decodeBase64Json(jwtParts[1])
+        val payload = JSONObject(payloadJson)
+
+        val cnf = payload.optJSONObject("cnf")
+            ?: throw ValidationException("Missing 'cnf' in SD-JWT payload", "${ERROR_CODE_INVALID}CNF")
+
+        val cnfKey = SUPPORTED_CNF_KEY_OBJECT_TYPES.firstOrNull { cnf.has(it) }
+            ?: throw ValidationException("Missing supported key type in 'cnf': Supported 'kid'", "${ERROR_CODE_INVALID}CNF_TYPE")
+
+        val kid = cnf.getString(cnfKey).trimEnd('=')
+
+        val publicKey = DidPublicKeyResolver().resolve(kid)
+
+        val isValid = Util.verifyJwt(kbJwt, publicKey, algorithm!!)
+        if (!isValid) {
+            throw ValidationException("Signature verification failed for KB-JWT", "${ERROR_CODE_INVALID}KB_SIGNATURE")
+        }
+    }
+
+
+    private fun validateKeyBindingPayload(payload: JSONObject, sdJwt: SDJWT) {
+        val requiredFields = listOf("aud", "nonce", "sd_hash", "iat")
 
         requiredFields.forEach { field ->
             if (!payload.has(field)) {
                 throw ValidationException(
                     "Missing '$field' in Key Binding JWT",
-                    "${ERROR_CODE_INVALID}${field.uppercase()}"
+                    "${ERROR_CODE_MISSING}${field.uppercase()}"
                 )
             }
         }
@@ -371,11 +444,40 @@ class SdJwtValidator {
             )
         }
 
-        val cnf = payload.optJSONObject("cnf")
-        if (cnf == null || (!cnf.has("jwk") && !cnf.has("kid"))) {
+        val iat = payload.optLong("iat", -1)
+        if (iat <= 0) {
             throw ValidationException(
-                "Invalid or missing 'cnf' in Key Binding JWT",
-                "${ERROR_CODE_INVALID}CNF"
+                "Missing or invalid 'iat' in Key Binding JWT",
+                "${ERROR_CODE_INVALID}_KB_JWT_IAT"
+            )
+        }
+
+        val sdHash = payload.optString("sd_hash")
+        if (sdHash.isBlank()) {
+            throw ValidationException(
+                "Missing or blank 'sd_hash' in Key Binding JWT",
+                "${ERROR_CODE_INVALID}SD_HASH"
+            )
+        }
+        validateSdHash(sdJwt, sdHash)
+    }
+
+    private fun validateSdHash(sdJwt: SDJWT, expectedHash: String) {
+        val sdAlg = sdJwt.hashAlgorithm ?: "sha-256"
+        val combinedSdJwt = buildString {
+            append(sdJwt.credentialJwt).append("~")
+            sdJwt.disclosures.forEach { append(it.disclosure).append("~") }
+        }
+
+        val digest = MessageDigest.getInstance(sdAlg)
+            .digest(combinedSdJwt.toByteArray(StandardCharsets.US_ASCII))
+
+        val actualHash = Base64Encoder().encodeToBase64Url(digest)
+
+        if (actualHash != expectedHash) {
+            throw ValidationException(
+                "Key Binding JWT sd_hash mismatch. Expected: $expectedHash, Computed: $actualHash",
+                "${ERROR_CODE_INVALID}SD_HASH"
             )
         }
     }
