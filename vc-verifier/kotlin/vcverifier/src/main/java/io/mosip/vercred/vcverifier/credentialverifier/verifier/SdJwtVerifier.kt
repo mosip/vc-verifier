@@ -1,12 +1,10 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
 import com.nimbusds.jose.JWSObject
-import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import io.mosip.vercred.vcverifier.utils.Util
-import io.mosip.vercred.vcverifier.signature.SignatureFactory
+import io.mosip.vercred.vcverifier.utils.Util.verifyJwt
 import java.security.PublicKey
-import kotlin.text.Charsets.UTF_8
 
 class SdJwtVerifier {
 
@@ -17,35 +15,16 @@ class SdJwtVerifier {
     }
 
     private fun verifyJWTSignature(jwt: String): Boolean {
-        val jwtParts = jwt.split(".")
-
-        require(jwtParts.size == 3) { "Invalid JWT format" }
-
-        if (jwtParts.size != 3)
-            throw IllegalArgumentException("Invalid JWT format")
+        val parts = jwt.split(".")
+        require(parts.size == 3) { "Invalid JWT format" }
 
         val jwsObject = JWSObject.parse(jwt)
-        val header = jwsObject.header
+        val certBase64 = jwsObject.header.x509CertChain.firstOrNull()?.toString()
+            ?: throw IllegalArgumentException("No X.509 certificate found in JWT header")
 
-        require(!(header.x509CertChain.isEmpty())) { "No X.509 certificate chain found in JWT header" }
-
-        val certBase64 = header.x509CertChain[0].toString()
         val publicKey = getPublicKeyFromCertificate(certBase64)
 
-        val signedData = "${jwtParts[0]}.${jwtParts[1]}"
-        val signatureBytes = Base64Decoder().decodeFromBase64Url(jwtParts[2])
-
-        val signatureVerifier = SignatureFactory().get(jwsObject.header.algorithm.name)
-
-        return try {
-            signatureVerifier.verify(
-                publicKey,
-                signedData.toByteArray(UTF_8),
-                signatureBytes
-            )
-        } catch (e: Exception) {
-            throw SignatureVerificationException("Error while verifying signature: ${e.message}")
-        }
+        return verifyJwt(jwt, publicKey, jwsObject.header.algorithm.name)
     }
 
     private fun getPublicKeyFromCertificate(certBase64: String): PublicKey {
