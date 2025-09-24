@@ -2,23 +2,20 @@ package io.mosip.vercred.vcverifier.keyResolver.types.did
 
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyType
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_KEY_TYPE_2020
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_KEY_TYPE
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.exception.UnknownException
+import io.mosip.vercred.vcverifier.keyResolver.getPublicKeyFromJWK
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
-import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.InvalidKeySpecException
-import java.security.spec.X509EncodedKeySpec
 
 
 class DidJwkPublicKeyResolver : DidPublicKeyResolver() {
-    private var provider: BouncyCastleProvider = BouncyCastleProvider()
     private var b64Decoder: Base64Decoder = Base64Decoder()
 
     override fun extractPublicKey(
@@ -30,10 +27,11 @@ class DidJwkPublicKeyResolver : DidPublicKeyResolver() {
             val jwk: JWK = JWK.parse(jwkJson)
 
             return when (jwk.keyType) {
-                KeyType.OKP -> extractEd25519PublicKey(jwk)
-                KeyType.EC -> extractES256PublicKey(jwk)
+                KeyType.OKP -> getPublicKeyFromJWK(jwkJson,ED25519_KEY_TYPE_2020)
+                KeyType.EC -> getPublicKeyFromJWK(jwkJson,ES256K_KEY_TYPE_2019)
+                KeyType.RSA -> getPublicKeyFromJWK(jwkJson,RSA_KEY_TYPE)
                 else -> throw PublicKeyTypeNotSupportedException(
-                    "KeyType - ${jwk.keyType} is not supported. Supported: OKP, EC"
+                    "KeyType - ${jwk.keyType} is not supported. Supported: OKP, EC, RSA"
                 )
             }
 
@@ -45,31 +43,5 @@ class DidJwkPublicKeyResolver : DidPublicKeyResolver() {
                 else -> throw UnknownException("Error while getting public key object")
             }
         }
-    }
-
-    private fun extractEd25519PublicKey(jwk: JWK): PublicKey {
-        val publicKeyBytes = b64Decoder.decodeFromBase64Url(jwk.toOctetKeyPair().x.toString())
-        val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
-        val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
-        val encodedKey = subjectPublicKeyInfo.encoded
-        val keySpec = X509EncodedKeySpec(encodedKey)
-        val keyFactory = KeyFactory.getInstance(JWS_EDDSA_SIGN_ALGO_CONST, provider)
-        return keyFactory.generatePublic(keySpec)
-    }
-
-    private fun extractES256PublicKey(jwk: JWK): PublicKey {
-        val ecJwk = jwk.toECKey()
-
-        if (ecJwk.curve.name != "P-256") {
-            throw PublicKeyTypeNotSupportedException(
-                "Curve ${ecJwk.curve.name} is not supported. Only P-256 is supported for ES256."
-            )
-        }
-
-        val ecPublicKey = ecJwk.toECPublicKey()
-        val encodedKey = ecPublicKey.encoded
-        val keySpec = X509EncodedKeySpec(encodedKey)
-        val keyFactory = KeyFactory.getInstance("EC", provider)
-        return keyFactory.generatePublic(keySpec)
     }
 }

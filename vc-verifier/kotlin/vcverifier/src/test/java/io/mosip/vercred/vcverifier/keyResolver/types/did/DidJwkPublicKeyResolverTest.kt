@@ -111,16 +111,48 @@ class DidJwkPublicKeyResolverTest {
     }
 
     @Test
-    fun `test unsupported key type`() {
+    fun `should resolve JWK successfully for RSA`() {
         val jwk = """
         {
-            "kty": "RSA",
-            "alg": "RS256",
-            "use": "sig",
-            "n": "sXch9z_AqKXohRAAE2Aw53zrk9B3QHkMbhZNEQURnPvDPjGvqX2m-d0emw7np2ROmMUT_k0rAj6kgaHQnxKm3w",
-            "e": "AQAB"
+          "alg": "RS256",
+          "e": "AQAB",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "RSA",
+          "n": "u1SU1LfVLPHCozMxH2Mo4lgOEePzNm0tRgeLezV6ffAt0gunVTLw7onLRnrq0_IzW7yWR7QkrmBL7jTKEn5u-qKhbwKfBstIs-bMY2Zkp18gnTxKLxoS2tFczGkPLPgizskuemMghRniWaoLcyehkd3qqGElvW_VDL5AaWTg0nLVkjRo9z-40RQzuVaE8AkAFmxZzow3x-VJYKdjykkJ0iT9wCS0DRTXu269V264Vf_3jvredZiKRkgwlL9xNAwxXFg0x_XFw005UWVRIkdgcKWTjpBP2dPwVZ4WWC-9aGVd-Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbcmw",
+          "kid": "9WyLASJ/Yt28FusppqwLMQ4nZ2Cl4GMC+ogaNRRva8c="
         }
     """.trimIndent()
+        val unsupportedKeyTypeDid = "did:jwk:${encodeBase64Url(jwk)}"
+        val resolver = DidJwkPublicKeyResolver()
+
+
+        val publicKey = resolver.extractPublicKey(
+            createParsedDid(unsupportedKeyTypeDid)
+        )
+
+        assertNotNull(publicKey)
+        assertEquals("RSA", publicKey.algorithm)
+    }
+
+    @Test
+    fun `test unsupported key type`() {
+        val jwk = """
+         {
+              "alg": "HS256",
+              "ext": true,
+              "k": "dHeRiVvfG9ZHyQa2Jr32PqNnTNePd0alIrL5XQoE18k",
+              "key_ops": [
+                "sign",
+                "verify"
+              ],
+              "kty": "oct",
+              "kid": "ddDtvJKL8v1sZpclOX8i8a9hi8wEbknry+bRP9vXqgA=",
+              "use": "sig"
+        }
+        """.trimIndent()
         val unsupportedKeyTypeDid = "did:jwk:${encodeBase64Url(jwk)}"
         val resolver = DidJwkPublicKeyResolver()
 
@@ -129,7 +161,7 @@ class DidJwkPublicKeyResolverTest {
                 createParsedDid(unsupportedKeyTypeDid)
             )
         }
-        assertEquals("KeyType - RSA is not supported. Supported: OKP, EC", exception.message)
+        assertEquals("KeyType - oct is not supported. Supported: OKP, EC, RSA", exception.message)
     }
 
     @Test
