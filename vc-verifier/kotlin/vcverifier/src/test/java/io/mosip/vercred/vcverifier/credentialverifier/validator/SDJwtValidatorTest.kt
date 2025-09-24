@@ -1,13 +1,30 @@
 package io.mosip.vercred.vcverifier.credentialverifier.validator
 
+import io.mockk.every
+import io.mockk.mockkConstructor
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
+import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
+import io.mosip.vercred.vcverifier.utils.Util
+import org.json.JSONObject
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
-import java.util.*
-import org.json.JSONObject
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import java.util.Base64
 
 class SdJwtValidatorTest {
+
+    @BeforeEach
+    fun setup() {
+        mockkObject(Util)
+        every { Util.verifyJwt(
+            any(),
+          any(),
+          any()
+        ) } returns true
+    }
 
     private val validator = SdJwtValidator()
 
@@ -31,6 +48,30 @@ class SdJwtValidatorTest {
 
         val newJwt = listOf(header, modifiedPayload, signature).joinToString(".")
         return listOf(newJwt).plus(parts.drop(1)).joinToString("~")
+    }
+    private fun modifyKbJwtHeader(jwt: String, modify: (JSONObject) -> Unit): String {
+        val parts = jwt.split(".")
+        val header = JSONObject(String(Base64.getUrlDecoder().decode(parts[0])))
+        modify(header)
+        val encodedHeader = Base64.getUrlEncoder().withoutPadding().encodeToString(header.toString().toByteArray())
+        return listOf(encodedHeader, parts[1], parts[2]).joinToString(".")
+    }
+
+    fun modifyKbJwtPayload(kbJwt: String, modify: (JSONObject) -> Unit): String {
+        val jwtParts = kbJwt.split(".")
+        require(jwtParts.size == 3) { "Invalid JWT format" }
+
+        val header = jwtParts[0]
+        val payload = jwtParts[1]
+        val signature = jwtParts[2]
+
+        val payloadJson = JSONObject(String(Base64.getUrlDecoder().decode(payload)))
+        modify(payloadJson)
+
+        val modifiedPayload = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(payloadJson.toString().toByteArray())
+
+        return listOf(header, modifiedPayload, signature).joinToString(".")
     }
 
     private fun modifySdJwtHeader(sdJwt: String, modify: (JSONObject) -> Unit): String {
@@ -302,11 +343,11 @@ class SdJwtValidatorTest {
 
     @Test
     fun `should fail for missing aud in KB JWT`() {
-        val validKbJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImFiYyIsImNuZiI6eyJraWQiOiJrZXkifX0.c2lnbmF0dXJl"
+        val validKbJwt = "ewogICJhbGciOiAiRVMyNTYiLAogICJ0eXAiOiAia2Irand0Igp9.eyJub25jZSI6ImFiYyIsImNuZiI6eyJraWQiOiJrZXkifX0.c2lnbmF0dXJl"
         val vc = loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt") + validKbJwt
         val status = validator.validate(vc)
         assertEquals("Missing 'aud' in Key Binding JWT", status.validationMessage)
-        assertEquals("ERR_INVALID_AUD",status.validationErrorCode)
+        assertEquals("ERR_MISSING_AUD",status.validationErrorCode)
     }
 
     @Test
@@ -332,4 +373,161 @@ class SdJwtValidatorTest {
         assertEquals("", status.validationMessage)
         assertEquals("",status.validationErrorCode)
     }
+
+    @Test
+    fun `should validate sd jwt with kb-jwt attached`() {
+        val vc = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+        val status = validator.validate(vc)
+        assertEquals("", status.validationMessage)
+        assertEquals("",status.validationErrorCode)
+    }
+
+
+    @Test
+    fun `should fail for invalid KB-JWT signature`() {
+        val vc = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+        unmockkAll()
+        // Tamper the KB-JWT's payload so the signature fails
+        val parts = vc.split("~").toMutableList()
+        val kbJwt = parts.last()
+        val jwtParts = kbJwt.split(".")
+        val payload = JSONObject(
+            String(Base64.getUrlDecoder().decode(jwtParts[1]))
+        )
+        payload.put("aud", "tampered-audience")
+
+        val modifiedPayload = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(payload.toString().toByteArray())
+
+        val tamperedKbJwt = "${jwtParts[0]}.$modifiedPayload.${jwtParts[2]}"
+        parts[parts.lastIndex] = tamperedKbJwt
+        val tamperedVc = parts.joinToString("~")
+
+        val status = validator.validate(tamperedVc)
+
+        assertEquals("Signature verification failed for KB-JWT", status.validationMessage)
+        assertEquals("ERR_INVALID_KB_SIGNATURE", status.validationErrorCode)
+    }
+
+    @Test
+    fun `should fail when iat is missing in KB-JWT`() {
+        val originalSdJwt = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+
+        val parts = originalSdJwt.split("~")
+        val originalKbJwt = parts.getOrNull(2) ?: error("KB-JWT not found in input")
+
+        val modifiedKbJwt = modifyKbJwtPayload(originalKbJwt) { payload ->
+            payload.remove("iat")
+        }
+
+        val tamperedVc = listOf(parts[0], parts[1], modifiedKbJwt).plus(parts.drop(3)).joinToString("~")
+
+        val status = validator.validate(tamperedVc)
+
+        assertEquals("ERR_MISSING_IAT", status.validationErrorCode)
+        assertEquals("Missing 'iat' in Key Binding JWT", status.validationMessage)
+    }
+
+    @Test
+    fun `should fail when nonce is missing in KB-JWT`() {
+        val originalSdJwt = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+
+        val parts = originalSdJwt.split("~")
+        val originalKbJwt = parts.getOrNull(2) ?: error("KB-JWT not found")
+
+        val modifiedKbJwt = modifyKbJwtPayload(originalKbJwt) { payload ->
+            payload.remove("nonce")
+        }
+
+        val tamperedVc = listOf(parts[0], parts[1], modifiedKbJwt).plus(parts.drop(3)).joinToString("~")
+
+        val status = validator.validate(tamperedVc)
+
+        assertEquals("ERR_MISSING_NONCE", status.validationErrorCode)
+        assertEquals("Missing 'nonce' in Key Binding JWT", status.validationMessage)
+    }
+
+    @Test
+    fun `should fail when _sd_hash in KB-JWT does not match actual SD-JWT`() {
+        val originalSdJwt = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+
+        val parts = originalSdJwt.split("~").toMutableList()
+        val originalKbJwt = parts[2]
+
+        val modifiedKbJwt = modifyKbJwtPayload(originalKbJwt) { payload ->
+            // invalid hash
+            payload.put("sd_hash", "invalidHashValue")
+        }
+
+        parts[2] = modifiedKbJwt
+        val tamperedVc = parts.joinToString("~")
+
+        val status = validator.validate(tamperedVc)
+
+        assertEquals("ERR_INVALID_SD_HASH", status.validationErrorCode)
+    }
+
+    @Test
+    fun `should fail when KB-JWT alg is unsupported`() {
+        val originalSdJwt = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+        mockkConstructor(ES256KSignatureVerifierImpl::class)
+        every { anyConstructed<ES256KSignatureVerifierImpl>().verify(any(), any(), any()) } returns true
+
+        val parts = originalSdJwt.split("~")
+        val originalKbJwt = parts.getOrNull(2)!!
+
+        val modifiedKbJwt = modifyKbJwtHeader(originalKbJwt) { header ->
+            header.put("alg", "unsupported-alg")
+        }
+
+        val tamperedVc = listOf(parts[0], parts[1], modifiedKbJwt).plus(parts.drop(3)).joinToString("~")
+        val status = validator.validate(tamperedVc)
+
+        assertEquals("ERR_INVALID_KB_JWT_ALG", status.validationErrorCode)
+        assertEquals("Unsupported signature algorithm in Key Binding JWT: unsupported-alg", status.validationMessage)
+    }
+    @Test
+    fun `should fail when alg is missing in KB-JWT header`() {
+        val originalSdJwt = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+
+        mockkConstructor(ES256KSignatureVerifierImpl::class)
+        every { anyConstructed<ES256KSignatureVerifierImpl>().verify(any(), any(), any()) } returns true
+
+        val parts = originalSdJwt.split("~")
+        val originalKbJwt = parts.getOrNull(2) ?: error("KB-JWT not found")
+
+        val modifiedKbJwt = modifyKbJwtHeader(originalKbJwt) { header ->
+            header.remove("alg")
+        }
+
+        val tamperedVc = listOf(parts[0], parts[1], modifiedKbJwt).plus(parts.drop(3)).joinToString("~")
+
+        val status = validator.validate(tamperedVc)
+
+        assertEquals("ERR_MISSING_KB_JWT_ALG", status.validationErrorCode)
+        assertEquals("Missing 'alg' in Key Binding JWT header", status.validationMessage)
+    }
+
+    @Test
+    fun `should fail when typ is invalid in KB-JWT header`() {
+        val originalSdJwt = loadSampleSdJwt("sdJwtWithKbJwtEdDSA.txt")
+
+        mockkConstructor(ES256KSignatureVerifierImpl::class)
+        every { anyConstructed<ES256KSignatureVerifierImpl>().verify(any(), any(), any()) } returns true
+
+        val parts = originalSdJwt.split("~")
+        val originalKbJwt = parts.getOrNull(2) ?: error("KB-JWT not found")
+
+        val modifiedKbJwt = modifyKbJwtHeader(originalKbJwt) { header ->
+            header.put("typ", "INVALID_TYP")
+        }
+
+        val tamperedVc = listOf(parts[0], parts[1], modifiedKbJwt).plus(parts.drop(3)).joinToString("~")
+
+        val status = validator.validate(tamperedVc)
+
+        assertEquals("ERR_INVALID_KB_JWT_TYP", status.validationErrorCode)
+        assertEquals("Invalid 'typ' in KB-JWT header. Expected 'kb+jwt'", status.validationMessage)
+    }
+
 }

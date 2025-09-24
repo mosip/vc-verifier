@@ -15,6 +15,9 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS2
 import io.mosip.vercred.vcverifier.data.DataModel
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
+import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
+import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
+import io.mosip.vercred.vcverifier.signature.SignatureFactory
 import io.mosip.vercred.vcverifier.signature.SignatureVerifier
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
@@ -26,21 +29,22 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.security.MessageDigest
+import java.security.PublicKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import kotlin.text.Charsets.UTF_8
 
 object Util {
 
     var documentLoader : ConfigurableDocumentLoader? = null
 
-    val SIGNATURE_VERIFIER: Map<String, SignatureVerifier> = mapOf(
-        JWS_PS256_SIGN_ALGO_CONST to PS256SignatureVerifierImpl(),
-        JWS_RS256_SIGN_ALGO_CONST to RS256SignatureVerifierImpl(),
-        JWS_EDDSA_SIGN_ALGO_CONST to ED25519SignatureVerifierImpl(),
-        JWS_ES256K_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl(),
-        JWS_ES256_SIGN_ALGO_CONST to ES256KSignatureVerifierImpl()
+    val SUPPORTED_JWS_ALGORITHMS = setOf(
+        JWS_PS256_SIGN_ALGO_CONST,
+        JWS_RS256_SIGN_ALGO_CONST,
+        JWS_EDDSA_SIGN_ALGO_CONST,
+        JWS_ES256K_SIGN_ALGO_CONST,
+        JWS_ES256_SIGN_ALGO_CONST
     )
-
     fun isAndroid(): Boolean {
         return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
     }
@@ -87,6 +91,15 @@ object Util {
         }
     }
 
+    fun isValidHttpsUri(value: String): Boolean {
+        return try {
+            val uri = URI(value)
+            uri.scheme == "https" && uri.host != null
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     fun jsonArrayToList(jsonArray: JSONArray): List<Any> {
         return List(jsonArray.length()) { jsonArray[it] }
     }
@@ -119,6 +132,22 @@ object Util {
     fun toX509Certificate(certificateBytes: ByteArray): X509Certificate {
         val certFactory: CertificateFactory = CertificateFactory.getInstance("X.509")
         return certFactory.generateCertificate(ByteArrayInputStream(certificateBytes)) as X509Certificate
+    }
+
+    fun verifyJwt(jwt: String, publicKey: PublicKey, algorithm: String): Boolean {
+        val parts = jwt.split(".")
+        require(parts.size == 3) { "Invalid JWT format" }
+
+        val signedData = "${parts[0]}.${parts[1]}"
+        val signatureBytes = Base64Decoder().decodeFromBase64Url(parts[2])
+
+        val signatureVerifier = SignatureFactory().get(algorithm)
+
+        return try {
+            signatureVerifier.verify(publicKey, signedData.toByteArray(UTF_8), signatureBytes)
+        } catch (e: Exception) {
+            throw SignatureVerificationException("Signature verification failed: ${e.message}")
+        }
     }
 
 }
