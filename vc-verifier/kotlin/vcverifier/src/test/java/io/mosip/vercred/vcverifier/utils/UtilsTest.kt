@@ -1,5 +1,6 @@
 package io.mosip.vercred.vcverifier.utils
 
+import io.mosip.vercred.vcverifier.utils.Util.isValidHttpsUri
 import org.json.JSONArray
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -188,5 +189,38 @@ class UtilsTest {
         assertFalse(result)
     }
 
+    @Test
+    fun `valid HTTPS URL with host`() {
+        assertTrue(isValidHttpsUri("https://example.com"))
+    }
 
+    @Test
+    fun `valid HTTPS URL with port and path`() {
+        assertTrue(isValidHttpsUri("https://example.com:443/path"))
+    }
+
+    @Test
+    fun `valid HTTPS URL with trailing slash`() {
+        assertTrue(isValidHttpsUri("https://example.com/"))
+    }
+
+    @Test
+    fun `invalid HTTP URL`() {
+        assertFalse(isValidHttpsUri("http://example.com"))
+    }
+
+    @Test
+    fun `missing scheme`() {
+        assertFalse(isValidHttpsUri("example.com"))
+    }
+
+    @Test
+    fun `empty string`() {
+        assertFalse(isValidHttpsUri(""))
+    }
+
+    @Test
+    fun `null host`() {
+        assertFalse(isValidHttpsUri("https:///path"))
+    }
 }
