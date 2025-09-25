@@ -21,7 +21,7 @@ object CredentialVerifierConstants {
     const val ED25519_ALGORITHM = "Ed25519"
     const val RSA_ALGORITHM = "RSA"
     const val SECP256K1 = "secp256k1"
-
+    const val P256 = "P-256"
     const val JWS_PS256_SIGN_ALGO_CONST = "PS256"
     const val JWS_RS256_SIGN_ALGO_CONST = "RS256"
     const val JWS_EDDSA_SIGN_ALGO_CONST = "EdDSA"
@@ -35,6 +35,8 @@ object CredentialVerifierConstants {
     const val JSON_WEB_PROOF_TYPE_2020 = "JsonWebSignature2020"
     const val ED25519_KEY_TYPE_2020 = "Ed25519VerificationKey2020"
     const val ES256K_KEY_TYPE_2019 = "EcdsaSecp256k1VerificationKey2019"
+
+    const val ES256_KEY_TYPE_2019 = "EcdsaSecp256r1VerificationKey2019"
 
     const val JWK_KEY_TYPE_EC = "EC"
 

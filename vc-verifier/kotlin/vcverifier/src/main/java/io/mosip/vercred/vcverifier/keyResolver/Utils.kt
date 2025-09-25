@@ -1,6 +1,7 @@
 package io.mosip.vercred.vcverifier.keyResolver
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusds.jose.jwk.JWK
 import io.ipfs.multibase.Base58
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.COMPRESSED_HEX_KEY_LENGTH
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.DER_PUBLIC_KEY_PREFIX
@@ -8,7 +9,9 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_KEY_TYPE_2018
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_KEY_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256_KEY_TYPE_2019
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWK_KEY_TYPE_EC
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.P256
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_ALGORITHM
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.SECP256K1
@@ -73,11 +76,25 @@ fun getPublicKeyFromJWK(jwkStr: String, keyType: String): PublicKey {
         objectMapper.readValue(jwkStr, Map::class.java) as Map<String, String>
 
     return when (keyType) {
-        ES256K_KEY_TYPE_2019 -> getECPublicKey(jwk)
+        ES256K_KEY_TYPE_2019,ES256_KEY_TYPE_2019 -> getECPublicKey(jwk)
         ED25519_KEY_TYPE_2020 -> getEdPublicKey(jwk)
+        RSA_KEY_TYPE -> getRSAPublicKey(jwk)
         else -> throw PublicKeyTypeNotSupportedException("Unsupported key type: $keyType")
     }
 }
+
+private fun getRSAPublicKey(jwk: Map<String, String>): PublicKey {
+    val nB64Url = jwk["n"] ?: throw PublicKeyResolutionFailedException("Missing modulus 'n' in JWK for RSA key")
+    val eB64Url = jwk["e"] ?: throw PublicKeyResolutionFailedException("Missing exponent 'e' in JWK for RSA key")
+
+    val modulus = BigInteger(1, base64Decoder.decodeFromBase64Url(nB64Url))
+    val exponent = BigInteger(1, base64Decoder.decodeFromBase64Url(eB64Url))
+
+    val keySpec = java.security.spec.RSAPublicKeySpec(modulus, exponent)
+    val keyFactory = KeyFactory.getInstance("RSA", provider)
+    return keyFactory.generatePublic(keySpec)
+}
+
 
 internal fun getEdPublicKey(jwk: Map<String, String>): PublicKey {
     val keyType = jwk["kty"]
@@ -107,10 +124,11 @@ private fun getECPublicKey(jwk: Map<String, String>): PublicKey {
 
     val ecSpec = when (curve) {
         SECP256K1 -> ECNamedCurveTable.getParameterSpec(SECP256K1)
+        P256 -> ECNamedCurveTable.getParameterSpec(P256)
         else -> throw IllegalArgumentException("Unsupported EC curve: $curve")
     }
 
-    val ecParameterSpec = ECNamedCurveSpec(curve, ecSpec.curve, ecSpec.g, ecSpec.n)
+    val ecParameterSpec = ECNamedCurveSpec(curve, ecSpec.curve, ecSpec.g, ecSpec.n, ecSpec.h, ecSpec.seed)
     val pubKeySpec = ECPublicKeySpec(ecPoint, ecParameterSpec)
     val keyFactory = KeyFactory.getInstance(JWK_KEY_TYPE_EC, provider)
     return keyFactory.generatePublic(pubKeySpec)
