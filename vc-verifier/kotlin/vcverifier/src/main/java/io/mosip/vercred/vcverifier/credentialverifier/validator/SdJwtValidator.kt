@@ -158,15 +158,17 @@ class SdJwtValidator {
             throw ValidationException(ERROR_MESSAGE_INVALID_VCT_URI, ERROR_CODE_INVALID_VCT_URI)
         }
 
-        payload.optString("iss", "").takeIf { it.isNotBlank() }
-            ?.let { iss ->
-                if (!isValidHttpsUri(iss)) {
-                    throw ValidationException(
-                        "Invalid 'iss' claim: $iss",
-                        "${ERROR_CODE_INVALID}ISS"
-                    )
-                }
+        val iss = payload.opt("iss")
+
+        iss?.let { value ->
+            if (value !is String || value.isBlank()) {
+                throw ValidationException(
+                    "Invalid 'iss' claim: $iss",
+                    "${ERROR_CODE_INVALID}ISS"
+                )
             }
+        }
+
         val hashAlg = payload.optString("_sd_alg", HASH_ALG_SHA_256)
 
         if (hashAlg !in SUPPORTED_SD_HASH_ALGORITHMS) {

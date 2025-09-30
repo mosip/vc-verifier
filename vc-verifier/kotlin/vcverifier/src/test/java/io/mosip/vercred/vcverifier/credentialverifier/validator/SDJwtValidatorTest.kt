@@ -266,8 +266,8 @@ class SdJwtValidatorTest {
     }
 
     @Test
-    fun `should fail if optional parameter iss is empty`() {
-        val iss = "https:///iss"
+    fun `should fail if optional parameter iss is number`() {
+        val iss = 12345
         val vc = modifySdJwtPayload(loadSampleSdJwt("sdJwtWithRootLevelSdNestedPayload.txt")) {
             it.put("iss", iss)
         }
