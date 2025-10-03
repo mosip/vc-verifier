@@ -2,6 +2,7 @@ package io.mosip.vercred.vcverifier.keyResolver
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.KeyType
 import io.ipfs.multibase.Base58
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.COMPRESSED_HEX_KEY_LENGTH
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.DER_PUBLIC_KEY_PREFIX
@@ -210,4 +211,15 @@ private fun secp256k1Params(): ECParameterSpec {
 }
 
 
+fun toPublicKey(jwkJson: String): PublicKey {
+    val jwk: JWK = JWK.parse(jwkJson)
 
+    return when (jwk.keyType) {
+        KeyType.OKP -> getPublicKeyFromJWK(jwkJson, ED25519_KEY_TYPE_2020)
+        KeyType.EC -> getPublicKeyFromJWK(jwkJson, ES256K_KEY_TYPE_2019)
+        KeyType.RSA -> getPublicKeyFromJWK(jwkJson, RSA_KEY_TYPE)
+        else -> throw PublicKeyTypeNotSupportedException(
+            "KeyType - ${jwk.keyType} is not supported. Supported: OKP, EC, RSA"
+        )
+    }
+}

@@ -31,6 +31,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
+import io.mosip.vercred.vcverifier.keyResolver.toPublicKey
 import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import io.mosip.vercred.vcverifier.utils.Base64Encoder
@@ -38,12 +39,12 @@ import io.mosip.vercred.vcverifier.utils.DateUtils
 import io.mosip.vercred.vcverifier.utils.DateUtils.formatEpochSecondsToIsoUtc
 import io.mosip.vercred.vcverifier.utils.Util
 import io.mosip.vercred.vcverifier.utils.Util.SUPPORTED_JWS_ALGORITHMS
-import io.mosip.vercred.vcverifier.utils.Util.isValidHttpsUri
 import io.mosip.vercred.vcverifier.utils.Util.isValidUri
 import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import java.security.PublicKey
 
 class SdJwtValidator {
     companion object {
@@ -52,7 +53,7 @@ class SdJwtValidator {
         const val HASH_ALG_SHA_512 = "sha-512"
         private val SUPPORTED_SD_HASH_ALGORITHMS = setOf(HASH_ALG_SHA_256, HASH_ALG_SHA_384,
             HASH_ALG_SHA_512)
-        private val SUPPORTED_CNF_KEY_OBJECT_TYPES = setOf("kid")
+        private val SUPPORTED_CNF_KEY_OBJECT_TYPES = setOf("kid", "jwk")
         private val HASH_LENGTHS = mapOf(
             HASH_ALG_SHA_256 to 32,
             HASH_ALG_SHA_384 to 48,
@@ -400,9 +401,16 @@ class SdJwtValidator {
         val cnfKey = SUPPORTED_CNF_KEY_OBJECT_TYPES.firstOrNull { cnf.has(it) }
             ?: throw ValidationException("Missing supported key type in 'cnf': Supported 'kid'", "${ERROR_CODE_INVALID}CNF_TYPE")
 
-        val kid = cnf.getString(cnfKey).trimEnd('=')
 
-        val publicKey = DidPublicKeyResolver().resolve(kid)
+        val publicKey : PublicKey = if (cnfKey == "kid") {
+            val kid = cnf.getString(cnfKey).trimEnd('=')
+            // TODO: support only for did
+            DidPublicKeyResolver().resolve(kid)
+        } else {
+            val jwkJson = cnf.getJSONObject("jwk").toString()
+
+            toPublicKey(jwkJson)
+        }
 
         val isValid = Util.verifyJwt(kbJwt, publicKey, algorithm!!)
         if (!isValid) {

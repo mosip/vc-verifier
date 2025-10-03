@@ -382,6 +382,14 @@ class SdJwtValidatorTest {
         assertEquals("",status.validationErrorCode)
     }
 
+    @Test
+    fun `should validate sd jwt with kb-jwt attached with cnf in jwk format`() {
+        val vc = loadSampleSdJwt("sdJwtWithKbJwtEs256kAndCnfBeingJwk.txt")
+        val status = validator.validate(vc)
+        assertEquals("", status.validationMessage)
+        assertEquals("",status.validationErrorCode)
+    }
+
 
     @Test
     fun `should fail for invalid KB-JWT signature`() {
@@ -529,5 +537,4 @@ class SdJwtValidatorTest {
         assertEquals("ERR_INVALID_KB_JWT_TYP", status.validationErrorCode)
         assertEquals("Invalid 'typ' in KB-JWT header. Expected 'kb+jwt'", status.validationMessage)
     }
-
 }
