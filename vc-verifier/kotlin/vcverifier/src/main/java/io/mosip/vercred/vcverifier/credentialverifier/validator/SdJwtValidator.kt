@@ -379,7 +379,7 @@ class SdJwtValidator {
         }
 
         val typ = header.optString("typ")
-        if (typ != null && typ != "kb+jwt") {
+        if (typ != "kb+jwt") {
             throw ValidationException( "Invalid 'typ' in KB-JWT header. Expected 'kb+jwt'","${ERROR_CODE_INVALID}KB_JWT_TYP")
         }
     }
@@ -404,7 +404,9 @@ class SdJwtValidator {
 
         val publicKey : PublicKey = if (cnfKey == "kid") {
             val kid = cnf.getString(cnfKey).trimEnd('=')
-            // TODO: support only for did
+            if( !kid.startsWith("did:")) {
+                throw ValidationException("Unsupported 'kid' format in 'cnf'. Only DID format is supported", "${ERROR_CODE_INVALID}CNF_KID")
+            }
             DidPublicKeyResolver().resolve(kid)
         } else {
             val jwkJson = cnf.getJSONObject("jwk").toString()
