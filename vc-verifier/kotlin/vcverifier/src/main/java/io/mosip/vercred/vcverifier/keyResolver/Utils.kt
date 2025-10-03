@@ -211,7 +211,7 @@ private fun secp256k1Params(): ECParameterSpec {
 }
 
 
-fun toPublicKey(jwkJson: String): PublicKey {
+fun jwkToPublicKey(jwkJson: String): PublicKey {
     val jwk: JWK = JWK.parse(jwkJson)
 
     return when (jwk.keyType) {

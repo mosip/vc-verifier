@@ -32,7 +32,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPT
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.keyResolver.DID_PREFIX
-import io.mosip.vercred.vcverifier.keyResolver.toPublicKey
+import io.mosip.vercred.vcverifier.keyResolver.jwkToPublicKey
 import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import io.mosip.vercred.vcverifier.utils.Base64Encoder
@@ -400,7 +400,7 @@ class SdJwtValidator {
             ?: throw ValidationException("Missing 'cnf' in SD-JWT payload", "${ERROR_CODE_INVALID}CNF")
 
         val cnfKey = SUPPORTED_CNF_KEY_OBJECT_TYPES.firstOrNull { cnf.has(it) }
-            ?: throw ValidationException("Missing supported key type in 'cnf': Supported 'kid'", "${ERROR_CODE_INVALID}CNF_TYPE")
+            ?: throw ValidationException("Missing supported key type in 'cnf': Supported 'kid', 'jwk'", "${ERROR_CODE_INVALID}CNF_TYPE")
 
 
         val publicKey : PublicKey = if (cnfKey == "kid") {
@@ -412,7 +412,7 @@ class SdJwtValidator {
         } else {
             val jwkJson = cnf.getJSONObject("jwk").toString()
 
-            toPublicKey(jwkJson)
+            jwkToPublicKey(jwkJson)
         }
 
         val isValid = Util.verifyJwt(kbJwt, publicKey, algorithm!!)

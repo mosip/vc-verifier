@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier.keyResolver
 
-import com.nimbusds.jose.jwk.JWK
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
@@ -146,7 +145,7 @@ class UtilsKtTest {
         }
         """.trimIndent()
 
-        val publicKey = toPublicKey(jwkJson)
+        val publicKey = jwkToPublicKey(jwkJson)
 
         val expectedEncoded = "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, 32, 25, -63, 23, -9, 24, -117, -65, 23, 6, -57, 100, -36, 40, -79, 49, -9, -42, -116, -71, -63, 107, -73, -105, -71, 124, -65, -121, 70, -53, -63, -28]"
         assertPublicKey(publicKey, expectedEncoded)
@@ -166,7 +165,7 @@ class UtilsKtTest {
         }
         """.trimIndent()
 
-        val publicKey = toPublicKey(jwkJson)
+        val publicKey = jwkToPublicKey(jwkJson)
 
         val expectedEncoded =
             "[48, 86, 48, 16, 6, 7, 42, -122, 72, -50, 61, 2, 1, 6, 5, 43, -127, 4, 0, 10, 3, 66, 0, 4, 106, -80, -14, -102, -117, -25, 15, -6, -1, -98, 81, 45, 80, -84, 64, -72, 70, -64, -94, -98, -28, -128, -56, -74, 11, -127, -103, 93, 50, -112, 101, 49, -97, -92, -115, 65, -91, -119, 97, -93, 56, -125, -1, -73, -21, 104, 127, 12, -42, -67, 125, 27, -52, -83, 54, 42, -62, -32, 21, -45, 127, -74, -34, 123]"
@@ -186,7 +185,7 @@ class UtilsKtTest {
         }
         """.trimIndent()
 
-        val publicKey = toPublicKey(jwkJson)
+        val publicKey = jwkToPublicKey(jwkJson)
 
         val expectedEncoded =
             "[48, -126, 1, 34, 48, 13, 6, 9, 42, -122, 72, -122, -9, 13, 1, 1, 1, 5, 0, 3, -126, 1, 15, 0, 48, -126, 1, 10, 2, -126, 1, 1, 0, -127, -102, -115, -84, 95, 127, 8, 118, 71, -13, 43, -92, 20, -42, -55, -17, -48, 79, -84, -42, 41, -99, -2, -80, -58, -86, -2, 9, -112, 102, 1, 69, 58, 58, -126, -113, 120, 114, 70, -73, -52, -20, -35, -76, -95, -60, -25, -45, 9, 19, -89, -9, -81, 124, -96, -24, -76, -84, -59, 9, 14, 99, 94, -107, 40, 79, 6, -34, 67, -7, -19, -30, 40, -68, -76, -87, 55, -107, -105, -68, -36, 5, -97, 28, -84, 111, -93, 35, 82, 40, -37, 50, 8, 20, -20, 75, -40, -53, 61, -95, 61, -68, 82, -87, 59, -20, -126, 122, 110, 115, 58, 42, 3, 87, 5, 95, -77, 17, -60, -107, 95, 102, 120, -10, 108, 122, 16, 29, 119, -96, -116, 81, -46, 63, 20, 92, 25, 16, 94, -10, 126, -106, -38, 69, 3, -50, -13, -4, -47, -104, -60, 13, -75, -8, -48, -76, 93, -103, 84, 75, -47, 57, -8, -116, -38, 68, 95, -120, 40, 121, 116, 27, 93, -30, 22, -5, -108, 26, -23, 101, -24, 121, -96, -74, -38, 15, -14, -51, 104, -82, -99, -90, -6, 118, -113, 32, -26, 127, -27, -44, -8, -100, -32, -114, 31, 3, -41, 70, 15, -29, 49, 89, 38, -24, -112, 75, -39, -122, 1, -78, 3, -107, 72, 97, -48, 17, 40, -106, -24, 118, -85, -65, 118, 117, 26, -63, -7, 9, -124, 103, 7, 120, 22, -108, -5, 53, -1, 85, 29, 88, 45, 124, -52, 24, -15, -101, 2, 3, 1, 0, 1]"
@@ -203,7 +202,7 @@ class UtilsKtTest {
         """.trimIndent()
 
         assertThrows<PublicKeyTypeNotSupportedException> {
-            toPublicKey(jwkJson)
+            jwkToPublicKey(jwkJson)
         }
     }
 }

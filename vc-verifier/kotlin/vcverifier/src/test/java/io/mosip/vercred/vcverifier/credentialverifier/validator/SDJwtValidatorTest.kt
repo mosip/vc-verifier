@@ -544,4 +544,14 @@ class SdJwtValidatorTest {
         assertEquals("ERR_INVALID_KB_JWT_TYP", status.validationErrorCode)
         assertEquals("Invalid 'typ' in KB-JWT header. Expected 'kb+jwt'", status.validationMessage)
     }
+
+    @Test
+    fun `should fail when cnf is not in supported format (supported - jwk, kid)`() {
+        val vc = "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJ2YytzZC1qd3QifQ.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLmNvbSIsInZjdCI6InVybjpldWRpOnBpZDpkZToxIiwiaWF0IjoxNzU5NDgyMTYyLCJleHAiOjE3NTk1Njg1NjIsInN1YiI6InVzZXIxMjMiLCJfc2QiOlsiMG9pbGZldE1ieFhjVjBIV1JhSzI5ZWhBQlYyNUZMM1o4X0JXMGVBTDZjSSIsInEyMk9neXZESFdHQ2tsTENxemhhY20ydXRvX2xKTWM1WVk3R3dhU0szRTgiLCJHUW8wUFJFUEpoZ1UzOW5maGlKSDZVN2tfakNWc0E2dmpLaHBNVENjQlRNIl0sImNuZiI6eyJqa3UiOiJodHRwczovL2F0dGFja2VyLmNvbS9qd2tzLmpzb24ifSwiX3NkX2FsZyI6InNoYS0yNTYifQ.MEYCIQDwM8MH2834CBXpI8n8IbbCm9IohelUXGZlGzlwUPIxfwIhAKO1sDOehPngwoBkm0a6rsO_3J8-MM0s2FojdiAqqYnF~WyJYa1pqdnlvZWpycENkYV9JUVRHc2hnIiwiZ2l2ZW5fbmFtZSIsIkpvaG4iXQ~WyJtcUN4WTdIZUcwMWV6Tl82czFySlJnIiwiZmFtaWx5X25hbWUiLCJEb2UiXQ~WyJIV25ycVFDSXVsVENDdmVCOTZUZGpnIiwiZW1haWwiLCJqb2huLmRvZUBleGFtcGxlLmNvbSJd~eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJrYitqd3QifQ.eyJpYXQiOjE3NTk0ODIxNjIsImF1ZCI6Imh0dHBzOi8vdmVyaWZpZXIuZXhhbXBsZS5jb20iLCJub25jZSI6InJhbmRvbS1ub25jZS1OLXh4ZXdXNmYwMTk0aHFpbUNRRUtnIiwic2RfaGFzaCI6InRjTGc2NTlCSV9HUHJXMGtXX0l0eHBlS0dMc0ZHVnVtSDZoMUsxRkxoOUEifQ.MEUCIDOdBaaDto0yK2QXWT5SfNfccViayLDglioQdTjQf-MyAiEAsmS5ojtS2Xa6S4VofAzbwPi5Wr7DQLVwFghVTcSFYjU"
+
+        val status = validator.validate(vc)
+
+        assertEquals("Missing supported key type in 'cnf': Supported 'kid', 'jwk'", status.validationMessage)
+        assertEquals("ERR_INVALID_CNF_TYPE",status.validationErrorCode)
+    }
 }
