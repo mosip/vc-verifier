@@ -31,6 +31,8 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
+import io.mosip.vercred.vcverifier.keyResolver.DID_PREFIX
+import io.mosip.vercred.vcverifier.keyResolver.jwkToPublicKey
 import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import io.mosip.vercred.vcverifier.utils.Base64Encoder
@@ -44,6 +46,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import java.security.PublicKey
 
 class SdJwtValidator {
     companion object {
@@ -52,7 +55,7 @@ class SdJwtValidator {
         const val HASH_ALG_SHA_512 = "sha-512"
         private val SUPPORTED_SD_HASH_ALGORITHMS = setOf(HASH_ALG_SHA_256, HASH_ALG_SHA_384,
             HASH_ALG_SHA_512)
-        private val SUPPORTED_CNF_KEY_OBJECT_TYPES = setOf("kid")
+        private val SUPPORTED_CNF_KEY_OBJECT_TYPES = setOf("kid", "jwk")
         private val HASH_LENGTHS = mapOf(
             HASH_ALG_SHA_256 to 32,
             HASH_ALG_SHA_384 to 48,
@@ -378,7 +381,7 @@ class SdJwtValidator {
         }
 
         val typ = header.optString("typ")
-        if (typ != null && typ != "kb+jwt") {
+        if (typ != "kb+jwt") {
             throw ValidationException( "Invalid 'typ' in KB-JWT header. Expected 'kb+jwt'","${ERROR_CODE_INVALID}KB_JWT_TYP")
         }
     }
@@ -398,11 +401,19 @@ class SdJwtValidator {
             ?: throw ValidationException("Missing 'cnf' in SD-JWT payload", "${ERROR_CODE_INVALID}CNF")
 
         val cnfKey = SUPPORTED_CNF_KEY_OBJECT_TYPES.firstOrNull { cnf.has(it) }
-            ?: throw ValidationException("Missing supported key type in 'cnf': Supported 'kid'", "${ERROR_CODE_INVALID}CNF_TYPE")
+            ?: throw ValidationException("Missing supported key type in 'cnf': Supported 'kid', 'jwk'", "${ERROR_CODE_INVALID}CNF_TYPE")
 
-        val kid = cnf.getString(cnfKey).trimEnd('=')
+        val publicKey : PublicKey = if (cnfKey == "kid") {
+            val kid = cnf.getString(cnfKey).trimEnd('=')
+            if( !kid.startsWith(DID_PREFIX)) {
+                throw ValidationException("Unsupported 'kid' format in 'cnf'. Only DID format is supported", "${ERROR_CODE_INVALID}CNF_KID")
+            }
+            DidPublicKeyResolver().resolve(kid)
+        } else {
+            val jwkJson = cnf.getJSONObject("jwk").toString()
 
-        val publicKey = DidPublicKeyResolver().resolve(kid)
+            jwkToPublicKey(jwkJson)
+        }
 
         val isValid = Util.verifyJwt(kbJwt, publicKey, algorithm!!)
         if (!isValid) {

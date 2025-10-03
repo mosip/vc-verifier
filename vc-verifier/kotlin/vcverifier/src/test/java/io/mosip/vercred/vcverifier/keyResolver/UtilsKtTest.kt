@@ -2,6 +2,7 @@ package io.mosip.vercred.vcverifier.keyResolver
 
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
+import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.testHelpers.assertPublicKey
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -129,5 +130,38 @@ class UtilsKtTest {
             assertThrows<IllegalArgumentException> { getEdPublicKeyFromHex(invalidEdPublicKeyHex) }
 
         assertEquals("Ed25519 public key must be 32 bytes", exception.message)
+    }
+
+    @Test
+    fun `should convert OKP Ed25519 JWK to PublicKey`() {
+        val jwkJson = """
+        {
+            "kty": "OKP",
+            "use": "sig",
+            "crv": "Ed25519",
+            "kid": "sig-2025-10-03T07:54:47Z",
+            "x": "IBnBF_cYi78XBsdk3CixMffWjLnBa7eXuXy_h0bLweQ",
+            "alg": "EdDSA"
+        }
+        """.trimIndent()
+
+        val publicKey = jwkToPublicKey(jwkJson)
+
+        val expectedEncoded = "[48, 42, 48, 5, 6, 3, 43, 101, 112, 3, 33, 0, 32, 25, -63, 23, -9, 24, -117, -65, 23, 6, -57, 100, -36, 40, -79, 49, -9, -42, -116, -71, -63, 107, -73, -105, -71, 124, -65, -121, 70, -53, -63, -28]"
+        assertPublicKey(publicKey, expectedEncoded)
+    }
+
+    @Test
+    fun `should throw for unsupported key type`() {
+        val jwkJson = """
+        {
+          "kty": "oct",
+          "k": "GawgguFyGrWKav7AX4VKUg"
+        }
+        """.trimIndent()
+
+        assertThrows<PublicKeyTypeNotSupportedException> {
+            jwkToPublicKey(jwkJson)
+        }
     }
 }

@@ -1,6 +1,8 @@
 package io.mosip.vercred.vcverifier.keyResolver
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.KeyType
 import io.ipfs.multibase.Base58
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.COMPRESSED_HEX_KEY_LENGTH
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.DER_PUBLIC_KEY_PREFIX
@@ -9,6 +11,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_KEY_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ES256K_KEY_TYPE_2019
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWK_KEY_TYPE_EC
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_ALGORITHM
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.RSA_KEY_TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.SECP256K1
@@ -16,6 +19,9 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.PublicKeyResolutionFailedException
 import io.mosip.vercred.vcverifier.exception.PublicKeyTypeNotSupportedException
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
+import org.bouncycastle.asn1.edec.EdECObjectIdentifiers
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jce.spec.ECNamedCurveSpec
@@ -191,5 +197,40 @@ private fun secp256k1Params(): ECParameterSpec {
     return ECNamedCurveSpec(SECP256K1, params.curve, params.g, params.n, params.h)
 }
 
+fun jwkToPublicKey(jwkJson: String): PublicKey {
+    val jwk: JWK = JWK.parse(jwkJson)
 
+    return when (jwk.keyType) {
+        KeyType.OKP -> extractEd25519PublicKey(jwk)
+        KeyType.EC -> extractES256PublicKey(jwk)
+        else -> throw PublicKeyTypeNotSupportedException(
+            "KeyType - ${jwk.keyType} is not supported. Supported: OKP, EC"
+        )
+    }
+}
 
+private fun extractEd25519PublicKey(jwk: JWK): PublicKey {
+    val publicKeyBytes = Base64Decoder().decodeFromBase64Url(jwk.toOctetKeyPair().x.toString())
+    val algorithmIdentifier = AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519)
+    val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
+    val encodedKey = subjectPublicKeyInfo.encoded
+    val keySpec = X509EncodedKeySpec(encodedKey)
+    val keyFactory = KeyFactory.getInstance(JWS_EDDSA_SIGN_ALGO_CONST, provider)
+    return keyFactory.generatePublic(keySpec)
+}
+
+private fun extractES256PublicKey(jwk: JWK): PublicKey {
+    val ecJwk = jwk.toECKey()
+
+    if (ecJwk.curve.name != "P-256") {
+        throw PublicKeyTypeNotSupportedException(
+            "Curve ${ecJwk.curve.name} is not supported. Only P-256 is supported for ES256."
+        )
+    }
+
+    val ecPublicKey = ecJwk.toECPublicKey()
+    val encodedKey = ecPublicKey.encoded
+    val keySpec = X509EncodedKeySpec(encodedKey)
+    val keyFactory = KeyFactory.getInstance("EC", provider)
+    return keyFactory.generatePublic(keySpec)
+}
