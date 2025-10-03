@@ -31,6 +31,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.EXCEPTION_DURING_VALIDATION
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
+import io.mosip.vercred.vcverifier.keyResolver.DID_PREFIX
 import io.mosip.vercred.vcverifier.keyResolver.toPublicKey
 import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
@@ -404,7 +405,7 @@ class SdJwtValidator {
 
         val publicKey : PublicKey = if (cnfKey == "kid") {
             val kid = cnf.getString(cnfKey).trimEnd('=')
-            if( !kid.startsWith("did:")) {
+            if( !kid.startsWith(DID_PREFIX)) {
                 throw ValidationException("Unsupported 'kid' format in 'cnf'. Only DID format is supported", "${ERROR_CODE_INVALID}CNF_KID")
             }
             DidPublicKeyResolver().resolve(kid)

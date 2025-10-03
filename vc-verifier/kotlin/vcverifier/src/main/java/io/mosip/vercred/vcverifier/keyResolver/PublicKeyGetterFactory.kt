@@ -7,7 +7,7 @@ import java.net.URI
 import java.security.PublicKey
 
 
-private const val DID_PREFIX = "did:"
+internal const val DID_PREFIX = "did:"
 private const val HTTP_PREFIX = "http"
 
 class PublicKeyGetterFactory {
