@@ -17,9 +17,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URI
 
-class PublicKeyGetterFactoryTest {
+class PublicKeyResolverFactoryTest {
 
-    private val factory = PublicKeyGetterFactory()
+    private val factory = PublicKeyResolverFactory()
 
     @BeforeEach
     fun setUp() {
