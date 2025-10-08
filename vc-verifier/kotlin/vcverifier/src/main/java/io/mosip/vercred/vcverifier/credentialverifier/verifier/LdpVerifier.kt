@@ -11,7 +11,7 @@ import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDi
 import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.keyResolver.PublicKeyGetterFactory
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolverFactory
 import io.mosip.vercred.vcverifier.signature.SignatureFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
@@ -43,7 +43,7 @@ class LdpVerifier {
             val canonicalHashBytes = canonicalizer.canonicalize(ldProof, vcJsonLdObject)
 
             val verificationMethod = ldProof.verificationMethod
-            val publicKeyObj = PublicKeyGetterFactory().get(verificationMethod)
+            val publicKeyObj = PublicKeyResolverFactory().get(verificationMethod)
 
             if (!ldProof.jws.isNullOrEmpty()) {
                 val signJWS: String = ldProof.jws
