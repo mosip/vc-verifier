@@ -10,7 +10,7 @@ import java.security.PublicKey
 internal const val DID_PREFIX = "did:"
 private const val HTTP_PREFIX = "http"
 
-class PublicKeyGetterFactory {
+class PublicKeyResolverFactory {
 
     fun get(verificationMethod: URI): PublicKey {
         val verificationMethodStr = verificationMethod.toString()
