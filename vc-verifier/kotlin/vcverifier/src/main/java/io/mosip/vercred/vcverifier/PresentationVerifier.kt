@@ -23,7 +23,7 @@ import io.mosip.vercred.vcverifier.exception.PublicKeyNotFoundException
 import io.mosip.vercred.vcverifier.exception.SignatureNotSupportedException
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.exception.UnknownException
-import io.mosip.vercred.vcverifier.keyResolver.PublicKeyGetterFactory
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolverFactory
 import io.mosip.vercred.vcverifier.signature.impl.ED25519SignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Util
 import io.mosip.vercred.vcverifier.utils.asIterable
@@ -58,7 +58,7 @@ class PresentationVerifier {
             val canonicalHashBytes = URDNA2015Canonicalizer().canonicalize(ldProof, vcJsonLdObject)
 
             val verificationMethod = ldProof.verificationMethod
-            val publicKeyObj = PublicKeyGetterFactory().get(verificationMethod)
+            val publicKeyObj = PublicKeyResolverFactory().get(verificationMethod)
 
             when {
                 ldProof.type == ED25519_PROOF_TYPE_2018 && !ldProof.jws.isNullOrEmpty() -> {
