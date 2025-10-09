@@ -3,6 +3,37 @@
 
 **VC Verifier Library** is a comprehensive Java/Kotlin library designed to enable the validation and verification of **Verifiable Credentials (VCs)**, a crucial component in modern decentralized identity systems. This library provides a robust mechanism for verifying the authenticity and integrity of VCs, ensuring that the claims made within the credential are both valid and trustworthy.
 
+## 🚨 Breaking Changes
+
+### From Version `release-1.5.x` onward:
+
+#### ❗ Required Update in Imports
+
+Replace:
+
+```kotlin
+import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetterFactory;
+import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter;
+import io.mosip.vercred.vcverifier.DidWebResolver;
+import io.mosip.vercred.vcverifier.publicKey.impl.DidWebPublicKeyGetter;
+import io.mosip.vercred.vcverifier.publicKey.impl.DidJwkPublicKeyGetter;
+import io.mosip.vercred.vcverifier.publicKey.impl.DidKeyPublicKeyGetter;
+import io.mosip.vercred.vcverifier.publicKey.impl.HttpsPublicKeyGetter;
+```
+
+With:
+
+```kotlin
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolverFactory;
+import io.mosip.vercred.vcverifier.keyResolver.PublicKeyResolver;
+import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver;
+import io.mosip.vercred.vcverifier.keyResolver.types.did.DidWebPublicKeyResolver;
+import io.mosip.vercred.vcverifier.keyResolver.types.did.DidJwkPublicKeyResolver;
+import io.mosip.vercred.vcverifier.keyResolver.types.did.DidKeyPublicKeyResolver;
+import io.mosip.vercred.vcverifier.keyResolver.types.http.HttpsPublicKeyResolver;
+```
+
+
 #### Key Features:
 
 -   **VC Validation**: The library validates the structure, signatures, and expiration of Verifiable Credentials to ensure they conform to the W3C VC standards.
@@ -28,21 +59,31 @@
     - `verifier`
 - **data**
 - **exception**
+- **keyResolver**
 - **signature**
     - `impl`
 - **utils**
 - **CredentialVerifier.kt**
+- **PresentationVerifier.kt**
 
 #### Package Description
 
 - **constants** - All Validator and Verifier constants are declared in this package.
-- **credentialverifier** - CredentialFactory for different credential formats are declared in this package. It also consists of classes for different credential formats.
+- **credentialverifier** - CredentialFactory for different credential formats are declared in this package. It also 
+consists of classes for different credential formats.
 - **data** - It has data classes for Validation Status and Verification Result.
 - **exception** - Custom exceptions are defined in this package.
+- **keyResolver** - PublicKeyResolverFactory for different type of verification method types are declared in this package.
+It has support for DID(web, key, jwk) and HTTP verification methods.
 - **signature** - Interface and Implementations for multiple Signature Verification are available in this package.
 - **utils** - It helper classes and methods that provide reusable and general-purpose functionalities across the project.
-- **CredentialVerifier.kt** - The `CredentialVerifier.kt` file serves as the main entry point to the VC Verifier Library. This class provides the primary interface for interacting with the library and encapsulates all the core functionalities related to validating and verifying Verifiable Credentials (VCs).
-- **Revocation** - The `CredentialVerifier.kt` do validating and verifying Verifiable Credentials (VCs) along with these performs a revocation check by calling the method isRevoked(credential).
+- **CredentialVerifier.kt** - The `CredentialVerifier.kt` file serves as the main entry point to the VC Verifier Library. 
+This class provides the primary interface for interacting with the library and encapsulates all the core functionalities 
+related to validating and verifying Verifiable Credentials (VCs). It also performs a revocation check by calling the method isRevoked(credential).
+- **PresentationVerifier.kt** - The `PresentationVerifier.kt` file is a dedicated class within the VC Verifier Library
+that focuses on the verification of Verifiable Presentations (VPs). This class provides methods and functionalities 
+specifically designed to handle the unique aspects of VPs, including their structure, proof mechanisms, and the embedded 
+Verifiable Credentials they may contain.
 
 #### Integrating jar to Maven Project
 
@@ -100,5 +141,6 @@ To avoid Duplicate classes error while building the application, include the bel
 
 #### References:
 
-[Data Model 1.1]( https://www.w3.org/TR/vc-data-model-1.1/)
-[Data Model 2.0]( https://www.w3.org/TR/vc-data-model-2.0/)
+- [Data Model 1.1](https://www.w3.org/TR/vc-data-model-1.1/)
+- [Data Model 2.0](https://www.w3.org/TR/vc-data-model-2.0/)
+- [IETF SD-JWT DRAFT](https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-10.html)
