@@ -1,5 +1,9 @@
 package io.mosip.vercred.vcverifier.utils
 
+import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
+import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants
+import io.mosip.vercred.vcverifier.data.VerificationResult
+import io.mosip.vercred.vcverifier.data.VerificationStatus
 import io.mosip.vercred.vcverifier.utils.Util.isValidHttpsUri
 import org.json.JSONArray
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -222,5 +226,53 @@ class UtilsTest {
     @Test
     fun `null host`() {
         assertFalse(isValidHttpsUri("https:///path"))
+    }
+
+    @Test
+    fun `getVerificationStatus returns SUCCESS when verificationStatus is true and no error code`() {
+        val result = VerificationResult(
+            verificationStatus = true,
+            verificationMessage = "Valid VC",
+            verificationErrorCode = ""
+        )
+
+        val status = Util.getVerificationStatus(result)
+        assertEquals(VerificationStatus.SUCCESS, status)
+    }
+
+    @Test
+    fun `getVerificationStatus returns EXPIRED when error code is VC_EXPIRED`() {
+        val result = VerificationResult(
+            verificationStatus = true,
+            verificationMessage = "Expired",
+            verificationErrorCode = CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
+        )
+
+        val status = Util.getVerificationStatus(result)
+        assertEquals(VerificationStatus.EXPIRED, status)
+    }
+
+    @Test
+    fun `getVerificationStatus returns REVOKED when error code is VC_REVOKED`() {
+        val result = VerificationResult(
+            verificationStatus = false,
+            verificationMessage = "Revoked",
+            verificationErrorCode = CredentialVerifierConstants.ERROR_CODE_VC_REVOKED
+        )
+
+        val status = Util.getVerificationStatus(result)
+        assertEquals(VerificationStatus.REVOKED, status)
+    }
+
+    @Test
+    fun `getVerificationStatus returns INVALID when signature is invalid`() {
+        val result = VerificationResult(
+            verificationStatus = false,
+            verificationMessage = "Invalid signature",
+            verificationErrorCode = "SIGNATURE_INVALID"
+        )
+
+        val status = Util.getVerificationStatus(result)
+        assertEquals(VerificationStatus.INVALID, status)
     }
 }
