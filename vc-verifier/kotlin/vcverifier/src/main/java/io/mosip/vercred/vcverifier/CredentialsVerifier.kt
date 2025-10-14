@@ -59,7 +59,7 @@ class CredentialsVerifier {
 
             val isRevoked = credentialVerifier.isRevoked(credential)
             if (isRevoked){
-                return VerificationResult(false, ERROR_VC_REVOKED, ERROR_CODE_VC_REVOKED)
+                return VerificationResult(true, ERROR_VC_REVOKED, ERROR_CODE_VC_REVOKED)
             }
             VerificationResult(true, validationStatus.validationMessage, validationStatus.validationErrorCode)
         } catch (e: Exception) {

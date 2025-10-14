@@ -59,10 +59,10 @@ object Util {
             if (verificationResult.verificationErrorCode == CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED) {
                 return VerificationStatus.EXPIRED
             }
+            else if (verificationResult.verificationErrorCode == ERROR_CODE_VC_REVOKED) {
+                return VerificationStatus.REVOKED
+            }
             return VerificationStatus.SUCCESS
-        }
-        if (verificationResult.verificationErrorCode == ERROR_CODE_VC_REVOKED) {
-            return VerificationStatus.REVOKED
         }
         return VerificationStatus.INVALID
     }
