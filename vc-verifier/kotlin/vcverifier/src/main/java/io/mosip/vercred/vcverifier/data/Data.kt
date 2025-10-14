@@ -21,6 +21,7 @@ data class VCResult(
 enum class VerificationStatus {
     SUCCESS,
     EXPIRED,
+    REVOKED,
     INVALID
 }
 
