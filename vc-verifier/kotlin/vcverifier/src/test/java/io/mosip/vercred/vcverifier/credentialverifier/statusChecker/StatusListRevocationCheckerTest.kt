@@ -1,4 +1,4 @@
-package io.mosip.vercred.vcverifier.credentialverifier.revocation
+package io.mosip.vercred.vcverifier.credentialverifier.statusChecker
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -30,8 +30,8 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "$mockBaseUrl""""
         )
 
-        val revocationChecker = LdpRevokeChecker()
-        val isRevoked = revocationChecker.isRevoked(vcJson)
+        val revocationChecker = LdpStatusChecker()
+        val isRevoked = revocationChecker.getStatuses(vcJson)
         assertFalse(isRevoked)
         server.shutdown()
     }
@@ -56,8 +56,8 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "$mockBaseUrl""""
         )
 
-        val revocationChecker = LdpRevokeChecker()
-        val isRevoked = revocationChecker.isRevoked(vcJson)
+        val revocationChecker = LdpStatusChecker()
+        val isRevoked = revocationChecker.getStatuses(vcJson)
         assertTrue(isRevoked)
         server.shutdown()
     }
@@ -67,8 +67,8 @@ class StatusListRevocationCheckerTest {
         val file = ResourceUtils.getFile("classpath:ldp_vc/PS256SignedMosipVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
-        val checker = LdpRevokeChecker()
-        val isRevoked = checker.isRevoked(vc)
+        val checker = LdpStatusChecker()
+        val isRevoked = checker.getStatuses(vc)
         assertFalse(isRevoked)
     }
 
@@ -83,10 +83,10 @@ class StatusListRevocationCheckerTest {
             """"statusListCredential": "http://localhost:9999/invalid-url""""
         )
 
-        val checker = LdpRevokeChecker()
+        val checker = LdpStatusChecker()
 
         val exception = assertThrows<RuntimeException> {
-            checker.isRevoked(vc)
+            checker.getStatuses(vc)
         }
         val msg = exception.message!!
         assert(msg.contains("Failed to check revocation"))

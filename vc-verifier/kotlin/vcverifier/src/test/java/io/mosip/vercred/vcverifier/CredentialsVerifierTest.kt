@@ -22,7 +22,7 @@ class CredentialsVerifierTest {
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return true for valid credential validation success`() {
-        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/PS256SignedMosipVC.json")
+        val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/RS256SignedMosipVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
         val verificationResult = CredentialsVerifier().verify(vc, LDP_VC)

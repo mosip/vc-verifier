@@ -41,3 +41,15 @@ data class ValidationStatus(
     val validationMessage: String,
     val validationErrorCode: String
 )
+
+data class CredentialStatusResult(
+    val purpose: String,
+    val statusListVC: String,
+    val status: Int,
+    val valid: Boolean
+)
+
+data class CredentialVerificationSummary(
+    val verificationResult: VerificationResult,
+    val credentialStatus: List<CredentialStatusResult>
+)
