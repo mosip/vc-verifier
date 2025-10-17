@@ -1,5 +1,7 @@
 package io.mosip.vercred.vcverifier.data
 
+import io.mosip.vercred.vcverifier.exception.StatusCheckException
+
 data class VerificationResult(
     var verificationStatus: Boolean,
     var verificationMessage: String = "",
@@ -44,9 +46,9 @@ data class ValidationStatus(
 
 data class CredentialStatusResult(
     val purpose: String,
-    val statusListVC: String,
     val status: Int,
-    val valid: Boolean
+    val valid: Boolean,
+    val error: StatusCheckException?
 )
 
 data class CredentialVerificationSummary(
