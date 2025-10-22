@@ -9,6 +9,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTI
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
 import io.mosip.vercred.vcverifier.data.CredentialStatusResult
+import io.mosip.vercred.vcverifier.data.CredentialVerificationSummary
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import java.util.logging.Logger
@@ -87,6 +88,19 @@ class CredentialsVerifier {
             logger.severe("Error occurred while checking credential status: ${e.message}")
             throw e
         }
-
     }
+
+    fun verifyAndGetStatus(
+        credential: String,
+        credentialFormat: CredentialFormat,
+        statusPurposeList: List<String> = emptyList()
+    ): CredentialVerificationSummary {
+        val verificationResult = verify(credential, credentialFormat)
+        if(!verificationResult.verificationStatus){
+            return CredentialVerificationSummary(verificationResult, emptyList())
+        }
+        val statusResults = getCredentialStatus(credential, credentialFormat, statusPurposeList)
+        return CredentialVerificationSummary(verificationResult, statusResults)
+    }
+
 }
