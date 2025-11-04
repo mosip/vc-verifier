@@ -294,7 +294,7 @@ class LdpStatusChecker(verifierFactory: CredentialVerifierFactory = CredentialVe
         val statusListCredentialUrl = entry[STATUS_LIST_CREDENTIAL]?.toString()
             ?: throw StatusCheckException(
                 "Missing '$STATUS_LIST_CREDENTIAL'",
-                StatusCheckErrorCode.INVALID_INDEX
+                StatusCheckErrorCode.STATUS_RETRIEVAL_ERROR
             )
 
         entry[STATUS_LIST_INDEX]?.toString()?.toIntOrNull()

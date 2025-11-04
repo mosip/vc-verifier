@@ -337,7 +337,6 @@ class StatusListRevocationCheckerTest {
         }
       """.trimIndent()
         )
-        print(vcJsonModified)
 
         val (replacedVC, server) = prepareVCFromRaw(vcJsonModified, statusListJson)
 

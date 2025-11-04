@@ -30,7 +30,7 @@ class CredentialsVerifier {
             logger.severe("Error - Input credential is null")
             throw RuntimeException("Input credential is null")
         }
-        val credentialVerifier = CredentialVerifierFactory().get(LDP_VC)
+        val credentialVerifier = credentialVerifierFactory.get(LDP_VC)
         val isVerified = credentialVerifier.verify(credentials)
 
         if (!isVerified) {
@@ -55,18 +55,19 @@ class CredentialsVerifier {
         }
         return try {
             val verifySignatureStatus = credentialVerifier.verify(credential)
-            if (!verifySignatureStatus) {
+            if (verifySignatureStatus) {
                 return VerificationResult(
-                    false,
-                    ERROR_MESSAGE_VERIFICATION_FAILED,
-                    ERROR_CODE_VERIFICATION_FAILED
+                    true,
+                    validationStatus.validationMessage,
+                    validationStatus.validationErrorCode
                 )
             }
-            VerificationResult(
-                true,
-                validationStatus.validationMessage,
-                validationStatus.validationErrorCode
+            return VerificationResult(
+                false,
+                ERROR_MESSAGE_VERIFICATION_FAILED,
+                ERROR_CODE_VERIFICATION_FAILED
             )
+
         } catch (e: Exception) {
             val errorCode = validationStatus.validationErrorCode.takeIf { !it.isNullOrEmpty() }
                 ?: ERROR_CODE_VERIFICATION_FAILED
@@ -90,17 +91,16 @@ class CredentialsVerifier {
         }
     }
 
-    fun verifyAndGetStatus(
+    fun verifyAndGetCredentialStatus(
         credential: String,
         credentialFormat: CredentialFormat,
         statusPurposeList: List<String> = emptyList()
     ): CredentialVerificationSummary {
         val verificationResult = verify(credential, credentialFormat)
-        if(!verificationResult.verificationStatus){
-            return CredentialVerificationSummary(verificationResult, emptyList())
+        if (verificationResult.verificationStatus) {
+            val statusResults = getCredentialStatus(credential, credentialFormat, statusPurposeList)
+            return CredentialVerificationSummary(verificationResult, statusResults)
         }
-        val statusResults = getCredentialStatus(credential, credentialFormat, statusPurposeList)
-        return CredentialVerificationSummary(verificationResult, statusResults)
+        return CredentialVerificationSummary(verificationResult, emptyList())
     }
-
 }
