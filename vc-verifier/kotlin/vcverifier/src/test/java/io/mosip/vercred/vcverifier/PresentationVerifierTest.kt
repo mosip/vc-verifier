@@ -115,7 +115,7 @@ class PresentationVerifierTest {
 
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
-    fun `should verify VP and return StatusList for revoked VC`() {
+    fun `should verify VC and return VC status as revoked`() {
         val mockStatusList = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipRevokedStatusList.json")
         val mockStatusListJson = String(Files.readAllBytes(mockStatusList.toPath()))
 
@@ -140,7 +140,9 @@ class PresentationVerifierTest {
                 listOf("revocation")
             )
         val credentialStatus = result.vcResults[0].credentialStatus
+        val proofVerificationStatus = result.proofVerificationStatus
 
+        assertEquals(VPVerificationStatus.INVALID,proofVerificationStatus)
         assertNotNull(result)
         assertEquals(VerificationStatus.SUCCESS, result.vcResults[0].status)
         assertEquals(1, credentialStatus.size)
@@ -152,7 +154,7 @@ class PresentationVerifierTest {
 
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
-    fun `should verify VP and return StatusList for Unrevoked VC`() {
+    fun `should verify VC and return VC status as unrevoked`() {
         val mockStatusList = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipUnrevokedStatusList.json")
         val mockStatusListJson = String(Files.readAllBytes(mockStatusList.toPath()))
 
@@ -177,7 +179,9 @@ class PresentationVerifierTest {
                 listOf("revocation")
             )
         val credentialStatus = result.vcResults[0].credentialStatus
+        val proofVerificationStatus = result.proofVerificationStatus
 
+        assertEquals(VPVerificationStatus.INVALID,proofVerificationStatus)
         assertNotNull(result)
         assertEquals(VerificationStatus.SUCCESS, result.vcResults[0].status)
         assertEquals(1, credentialStatus.size)
