@@ -44,8 +44,8 @@ class PresentationVerifier {
 
         val presentationVerificationStatus: VPVerificationStatus = getPresentationVerificationStatus(presentation)
 
-        val vcVerificationResults: List<VCResult> =
-            getVCVerificationResults(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL))
+        val verifiableCredentials = JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL)
+        val vcVerificationResults: List<VCResult> = getVCVerificationResults(verifiableCredentials)
 
         return PresentationVerificationResult(presentationVerificationStatus, vcVerificationResults)
     }
@@ -166,13 +166,6 @@ class PresentationVerifier {
             val singleVCVerification: VerificationStatus = Util.getVerificationStatus(verificationResult)
             val credentialStatus = credentialVerificationSummary.credentialStatus
 
-            /*
-            Here we are adding the entire VC as a string in the method response. We know that this is not very efficient.
-            But in newer draft of OpenId4VP specifications the Presentation Exchange
-            is fully removed so we rather not use the submission_requirements for giving the VC reference
-            for response. As of now we could not find anything unique that can be referred in a vp_token
-            VC we will be going with the approach of sending whole VC back in response.
-            */
             VCResultWithCredentialStatus(item.toString(), singleVCVerification, credentialStatus)
         }
     }
@@ -183,7 +176,8 @@ class PresentationVerifier {
     ): PresentationResultWithCredentialStatus {
         val presentationVerificationStatus = getPresentationVerificationStatus(presentation)
 
-        val vcVerificationResults: List<VCResultWithCredentialStatus> = getVCVerificationResultsWithCredentialStatus(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL), statusPurposeList)
+        val verifiableCredentials = JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL)
+        val vcVerificationResults: List<VCResultWithCredentialStatus> = getVCVerificationResultsWithCredentialStatus(verifiableCredentials, statusPurposeList)
 
         return PresentationResultWithCredentialStatus(presentationVerificationStatus, vcVerificationResults)
     }
