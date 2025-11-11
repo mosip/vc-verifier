@@ -13,7 +13,9 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JSON_WEB_PROOF_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.Shared
 import io.mosip.vercred.vcverifier.data.PresentationVerificationResult
+import io.mosip.vercred.vcverifier.data.PresentationResultWithCredentialStatus
 import io.mosip.vercred.vcverifier.data.VCResult
+import io.mosip.vercred.vcverifier.data.VCResultWithCredentialStatus
 import io.mosip.vercred.vcverifier.data.VPVerificationStatus
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
@@ -40,6 +42,15 @@ class PresentationVerifier {
 
     fun verify(presentation: String): PresentationVerificationResult {
 
+        val presentationVerificationStatus: VPVerificationStatus = presentationVerificationStatus(presentation)
+
+        val vcVerificationResults: List<VCResult> =
+            getVCVerificationResults(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL))
+
+        return PresentationVerificationResult(presentationVerificationStatus, vcVerificationResults)
+    }
+
+    private fun presentationVerificationStatus(presentation: String): VPVerificationStatus {
         logger.info("Received Presentation For Verification - Start")
         val proofVerificationStatus: VPVerificationStatus
         val vcJsonLdObject: JsonLDObject
@@ -124,11 +135,7 @@ class PresentationVerifier {
                 }
             }
         }
-
-        val vcVerificationResults: List<VCResult> =
-            getVCVerificationResults(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL))
-
-        return PresentationVerificationResult(proofVerificationStatus, vcVerificationResults)
+        return proofVerificationStatus
     }
 
     private fun getVCVerificationResults(verifiableCredentials: JSONArray): List<VCResult> {
@@ -152,5 +159,33 @@ class PresentationVerifier {
         }
     }
 
+    private fun getVCVerificationResultsWithCredentialStatus(verifiableCredentials: JSONArray, statusPurposeList: List<String>): List<VCResultWithCredentialStatus> {
+        return verifiableCredentials.asIterable().map { item ->
+            val credentialVerificationSummary = credentialsVerifier.verifyAndGetCredentialStatus((item as JSONObject).toString(), CredentialFormat.LDP_VC, statusPurposeList)
+            val verificationResult: VerificationResult = credentialVerificationSummary.verificationResult
+            val singleVCVerification: VerificationStatus = Util.getVerificationStatus(verificationResult)
+            val credentialStatus = credentialVerificationSummary.credentialStatus
+
+            /*
+            Here we are adding the entire VC as a string in the method response. We know that this is not very efficient.
+            But in newer draft of OpenId4VP specifications the Presentation Exchange
+            is fully removed so we rather not use the submission_requirements for giving the VC reference
+            for response. As of now we could not find anything unique that can be referred in a vp_token
+            VC we will be going with the approach of sending whole VC back in response.
+            */
+            VCResultWithCredentialStatus(item.toString(), singleVCVerification, credentialStatus)
+        }
+    }
+
+    fun verifyAndGetCredentialStatus(
+        presentation: String,
+        statusPurposeList: List<String> = emptyList()
+    ): PresentationResultWithCredentialStatus {
+        val presentationVerificationStatus = presentationVerificationStatus(presentation)
+
+        val vcVerificationResults: List<VCResultWithCredentialStatus> = getVCVerificationResultsWithCredentialStatus(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL), statusPurposeList)
+
+        return PresentationResultWithCredentialStatus(presentationVerificationStatus, vcVerificationResults)
+    }
 }
 
