@@ -7,7 +7,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEXT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V1_URL
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIALS_CONTEXT_V2_URL
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VC_REVOKED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256K_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256_SIGN_ALGO_CONST
