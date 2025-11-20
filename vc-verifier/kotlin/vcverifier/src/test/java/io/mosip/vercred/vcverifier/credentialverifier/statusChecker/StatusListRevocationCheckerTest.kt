@@ -47,7 +47,10 @@ class StatusListRevocationCheckerTest {
         return String(Files.readAllBytes(file.toPath()))
     }
 
-    private fun prepareVC(vcPath: String, statusListJson: String): Pair<String, MockWebServer> {
+    private fun prepareVC(
+        vcPath: String = "classpath:ldp_vc/vcUnrevoked-https.json",
+        statusListJson: String
+    ): Pair<String, MockWebServer> {
         val vcJson = readFile(vcPath)
         val server = MockWebServer().apply {
             enqueue(MockResponse().setResponseCode(200).setBody(statusListJson))
@@ -160,8 +163,7 @@ class StatusListRevocationCheckerTest {
         val statusListJson = readFile("classpath:ldp_vc/status-list-vc.json")
             .replace("encodedList", "encList")
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
@@ -182,8 +184,7 @@ class StatusListRevocationCheckerTest {
                 Matcher.quoteReplacement(""""encodedList": "$corruptedBase64"""")
             )
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
@@ -204,8 +205,7 @@ class StatusListRevocationCheckerTest {
                 """"encodedList": "u$badData""""
             )
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
@@ -224,8 +224,7 @@ class StatusListRevocationCheckerTest {
                 """"statusPurpose": "suspension""""
             )
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
@@ -264,13 +263,9 @@ class StatusListRevocationCheckerTest {
             .replace("\"encodedList\"", "\"statusSize\": -2, \"encodedList\"")
         val statusListJsonZero = readFile("classpath:ldp_vc/status-list-vc.json")
             .replace("\"encodedList\"", "\"statusSize\": 0, \"encodedList\"")
-        val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJsonNegative
-        )
-        val (replacedVCZero, serverZero) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJsonZero
+        val (replacedVC, server) = prepareVC(statusListJson = statusListJsonNegative)
+        val (replacedVCZero, _) = prepareVC(
+            statusListJson = statusListJsonZero
         )
 
         val resultNeg = checker.getStatuses(replacedVC)!!.first()
@@ -294,8 +289,7 @@ class StatusListRevocationCheckerTest {
             .replace("\"encodedList\"", "\"statusSize\": 2, \"encodedList\"")
 
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
@@ -380,8 +374,7 @@ class StatusListRevocationCheckerTest {
         val statusListJson = readFile("classpath:ldp_vc/status-list-vc.json")
             .replace(Regex(""""type":\s*".*?","""), "") // remove type from credentialSubject
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
@@ -419,8 +412,7 @@ class StatusListRevocationCheckerTest {
             )
 
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
@@ -443,8 +435,7 @@ class StatusListRevocationCheckerTest {
             )
 
         val (replacedVC, server) = prepareVC(
-            "classpath:ldp_vc/vcUnrevoked-https.json",
-            statusListJson
+            statusListJson = statusListJson
         )
 
         val result = checker.getStatuses(replacedVC)!!.first()
