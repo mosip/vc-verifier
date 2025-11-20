@@ -2,12 +2,10 @@ package io.mosip.vercred.vcverifier.credentialverifier.statusChecker
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
-import io.mosip.vercred.vcverifier.constants.CredentialFormat
-import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
-import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
+import io.mosip.vercred.vcverifier.credentialverifier.types.LdpVerifiableCredential
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode
 import io.mosip.vercred.vcverifier.exception.StatusCheckException
 import okhttp3.mockwebserver.MockResponse
@@ -29,21 +27,14 @@ import java.util.regex.Matcher
 
 @ExtendWith(MockKExtension::class)
 class StatusListRevocationCheckerTest {
-
-    @MockK
-    lateinit var mockVerifierFactory: CredentialVerifierFactory
-
-    @MockK
-    lateinit var mockVerifier: VerifiableCredential
-
     private lateinit var checker: LdpStatusChecker
 
     @BeforeEach
     fun setup() {
         MockKAnnotations.init(this)
-        every { mockVerifierFactory.get(CredentialFormat.LDP_VC) } returns mockVerifier
-        every { mockVerifier.verify(any()) } returns true
-        checker = LdpStatusChecker(mockVerifierFactory)
+        mockkConstructor(LdpVerifiableCredential::class)
+        every { anyConstructed<LdpVerifiableCredential>().verify(any()) } returns true
+        checker = LdpStatusChecker()
     }
 
     @AfterEach

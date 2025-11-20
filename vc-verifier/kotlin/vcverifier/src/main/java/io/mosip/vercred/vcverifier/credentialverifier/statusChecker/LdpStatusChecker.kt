@@ -2,7 +2,6 @@ package io.mosip.vercred.vcverifier.credentialverifier.statusChecker
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import foundation.identity.jsonld.JsonLDObject
-import io.mosip.vercred.vcverifier.constants.CredentialFormat
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CREDENTIAL_SUBJECT
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.TYPE
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.VALID_FROM
@@ -15,7 +14,7 @@ import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_LIST_
 import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_MESSAGE
 import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_PURPOSE
 import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_SIZE
-import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
+import io.mosip.vercred.vcverifier.credentialverifier.types.LdpVerifiableCredential
 import io.mosip.vercred.vcverifier.data.CredentialStatusResult
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode
 import io.mosip.vercred.vcverifier.exception.StatusCheckException
@@ -34,11 +33,11 @@ import java.util.zip.GZIPInputStream
  * Generic StatusList2021 checker for LDP VCs.
  * Supports optional filtering by known statusPurposes.
  */
-class LdpStatusChecker(verifierFactory: CredentialVerifierFactory = CredentialVerifierFactory()) {
+class LdpStatusChecker() {
 
     private val logger = Logger.getLogger(LdpStatusChecker::class.java.name)
 
-    private val verifier = verifierFactory.get(CredentialFormat.LDP_VC)
+    private val verifier = LdpVerifiableCredential()
     private val minimumNumberOfEntries = 131072
     private val defaultStatusSize = 1
     private val mapper = ObjectMapper()
