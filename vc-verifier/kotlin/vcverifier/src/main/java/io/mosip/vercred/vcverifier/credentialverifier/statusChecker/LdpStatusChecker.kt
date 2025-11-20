@@ -52,11 +52,13 @@ class LdpStatusChecker() {
     fun getStatuses(
         credential: String,
         statusPurposes: List<String>? = null
-    ): List<CredentialStatusResult>? {
+    ): List<CredentialStatusResult> {
         logger.info("Started status check")
 
         val jsonLD = JsonLDObject.fromJson(credential)
-        val statusField = jsonLD.jsonObject["credentialStatus"] ?: return null
+        val statusField = jsonLD.jsonObject["credentialStatus"] ?: throw UnsupportedOperationException(
+            "No credentialStatus field present in the VC"
+        )
 
         val entries = when (statusField) {
             is List<*> -> statusField.filterIsInstance<Map<*, *>>()
@@ -85,7 +87,7 @@ class LdpStatusChecker() {
 
         if (filteredEntries.isEmpty()) {
             logger.warning("No matching credentialStatus entries found for purposes: $statusPurposes")
-            return null
+            throw UnsupportedOperationException("No matching credentialStatus entries found for purposes: $statusPurposes")
         }
 
         val results = mutableListOf<CredentialStatusResult>()
