@@ -16,6 +16,7 @@ import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_PURPO
 import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_SIZE
 import io.mosip.vercred.vcverifier.credentialverifier.types.LdpVerifiableCredential
 import io.mosip.vercred.vcverifier.data.CredentialStatusResult
+import io.mosip.vercred.vcverifier.data.Result
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode
 import io.mosip.vercred.vcverifier.exception.StatusCheckException
 import io.mosip.vercred.vcverifier.networkManager.HttpMethod.GET
@@ -106,9 +107,9 @@ class LdpStatusChecker() {
                 results.add(
                     CredentialStatusResult(
                         purpose = purpose,
-                        status = -1,
-                        valid = false,
-                        error = e
+                        result = Result(
+                            isSuccess = false,
+                            error = e)
                     )
                 )
             }
@@ -270,11 +271,10 @@ class LdpStatusChecker() {
         }
 
         val statusValue = readBits(bitPosition, decodedBitSet, statusSize)
+        //TODO: log info status and status message
         return CredentialStatusResult(
             purpose = purpose,
-            status = statusValue,
-            valid = (statusValue == 0),
-            error = null
+            result = Result(statusValue == 0, null)
         )
     }
 
@@ -318,6 +318,7 @@ class LdpStatusChecker() {
         val compressedBytes = try {
             Base64Decoder().decodeFromBase64Url(base64urlPart)
         } catch (ex: IllegalArgumentException) {
+            logger.severe("Base64url decoding failed: ${ex.message}")
             throw StatusCheckException(
                 "Base64url decoding failed",
                 StatusCheckErrorCode.BASE64_DECODE_FAILED
@@ -340,6 +341,7 @@ class LdpStatusChecker() {
                 }
             }
         } catch (ex: IOException) {
+            logger.severe("GZIP decompression failed: ${ex.message}")
             throw StatusCheckException(
                 "Failed to decompress GZIP",
                 StatusCheckErrorCode.GZIP_DECOMPRESS_FAILED

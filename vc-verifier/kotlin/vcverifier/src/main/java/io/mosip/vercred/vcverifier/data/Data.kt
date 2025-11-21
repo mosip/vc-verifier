@@ -54,11 +54,14 @@ data class ValidationStatus(
     val validationErrorCode: String
 )
 
+data class Result<T>(
+    val isSuccess: Boolean,
+    val error: T?
+)
+
 data class CredentialStatusResult(
     val purpose: String,
-    val status: Int,
-    val valid: Boolean,
-    val error: StatusCheckException?
+    val result : Result<StatusCheckException>,
 )
 
 data class CredentialVerificationSummary(

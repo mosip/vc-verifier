@@ -8,14 +8,13 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.CONTEX
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_GENERIC
 import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_CODE_MISSING
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
-import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
-import io.mosip.vercred.vcverifier.credentialverifier.statusChecker.LdpStatusChecker
-import io.mosip.vercred.vcverifier.data.CredentialStatusResult
 import io.mosip.vercred.vcverifier.data.CredentialVerificationSummary
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.springframework.util.ResourceUtils
@@ -197,10 +196,8 @@ class CredentialsVerifierTest {
 
         val status = result.credentialStatus[0]
         assertEquals("revocation", status.purpose)
-        assertEquals(0, status.status)
-        assertTrue(status.valid)
-        assertNull(status.error)
-
+        assertTrue(status.result.isSuccess)
+        assertNull(status.result.error)
     }
 
     @Test
@@ -235,9 +232,7 @@ class CredentialsVerifierTest {
 
         val status = result.credentialStatus[0]
         assertEquals("revocation", status.purpose)
-        assertNotEquals(0, status.status)
-        assertFalse(status.valid)
-        assertNull(status.error)
-
+        assertFalse(status.result.isSuccess)
+        assertNull(status.result.error)
     }
 }
