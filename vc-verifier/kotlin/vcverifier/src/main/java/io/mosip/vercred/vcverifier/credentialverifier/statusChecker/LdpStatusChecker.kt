@@ -110,7 +110,7 @@ class LdpStatusChecker() {
                 results.add(
                     CredentialStatusResult(
                         purpose = purpose,
-                        result = Result(isSuccess = false, error = e)
+                        result = Result(isValid = false, error = e)
                     )
                 )
             }

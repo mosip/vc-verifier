@@ -87,7 +87,7 @@ class StatusListRevocationCheckerTest {
         val results = checker.getStatuses(replacedVC, listOf("revocation"))
 
         assertEquals(1, results.size)
-        assertTrue(results.first().result.isSuccess)
+        assertTrue(results.first().result.isValid)
 
         server.shutdown()
     }
@@ -101,7 +101,7 @@ class StatusListRevocationCheckerTest {
         val results = checker.getStatuses(replacedVC)
 
         assertEquals(1, results.size)
-        assertFalse(results.first().result.isSuccess)
+        assertFalse(results.first().result.isValid)
 
         server.shutdown()
     }
@@ -142,7 +142,7 @@ class StatusListRevocationCheckerTest {
 
         assertEquals(1, results.size)
         val result = results.first()
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertTrue(result.result.error is StatusCheckException)
         assertTrue(result.result.error?.message?.contains("Retrieval of the status list failed") == true)
     }
@@ -159,7 +159,7 @@ class StatusListRevocationCheckerTest {
 
         val result = checker.getStatuses(replacedVC).first()
 
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.RANGE_ERROR, result.result.error?.errorCode)
         assertEquals("Bit position 999999 out of range", result.result.error?.message)
         server.shutdown()
@@ -175,7 +175,7 @@ class StatusListRevocationCheckerTest {
 
         val result = checker.getStatuses(replacedVC).first()
 
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.ENCODED_LIST_MISSING, result.result.error?.errorCode)
         assertEquals("Missing 'encodedList'", result.result.error?.message)
         server.shutdown()
@@ -194,7 +194,7 @@ class StatusListRevocationCheckerTest {
         )
 
         val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.BASE64_DECODE_FAILED, result.result.error?.errorCode)
 
         server.shutdown()
@@ -214,7 +214,7 @@ class StatusListRevocationCheckerTest {
         )
 
         val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.GZIP_DECOMPRESS_FAILED, result.result.error?.errorCode)
 
         server.shutdown()
@@ -232,7 +232,7 @@ class StatusListRevocationCheckerTest {
         )
 
         val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
         assertEquals(
             "Status list VC purpose mismatch. Expected 'revocation', found 'suspension'",
@@ -253,7 +253,7 @@ class StatusListRevocationCheckerTest {
         val (replacedVC, server) = prepareVCFromRaw(vcJson, statusListJson)
 
         val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.INVALID_PURPOSE, result.result.error?.errorCode)
         assertEquals("statusPurpose Invalid", result.result.error?.message)
         server.shutdown()
@@ -272,12 +272,12 @@ class StatusListRevocationCheckerTest {
 
         val resultNeg = checker.getStatuses(replacedVC).first()
 
-        assertFalse(resultNeg.result.isSuccess)
+        assertFalse(resultNeg.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, resultNeg.result.error?.errorCode)
 
         val resultZero = checker.getStatuses(replacedVCZero).first()
 
-        assertFalse(resultZero.result.isSuccess)
+        assertFalse(resultZero.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, resultZero.result.error?.errorCode)
 
         server.shutdown()
@@ -294,7 +294,7 @@ class StatusListRevocationCheckerTest {
 
         val result = checker.getStatuses(replacedVC).first()
 
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
         assertEquals("Missing 'statusMessage' for statusSize=2", result.result.error?.message)
 
@@ -326,7 +326,7 @@ class StatusListRevocationCheckerTest {
 
         val result = checker.getStatuses(replacedVC).first()
 
-        assertTrue(result.result.isSuccess)
+        assertTrue(result.result.isValid)
 
         server.shutdown()
     }
@@ -355,7 +355,7 @@ class StatusListRevocationCheckerTest {
 
         val result = checker.getStatuses(replacedVC).first()
 
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
         assertEquals(
             "statusMessage count mismatch. Expected 4 entries for statusSize=2, found 3",
@@ -375,7 +375,7 @@ class StatusListRevocationCheckerTest {
         )
 
         val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
         assertEquals("Missing 'type' in status list credential", result.result.error?.message)
         server.shutdown()
@@ -389,7 +389,7 @@ class StatusListRevocationCheckerTest {
         val (replacedVC, server) = prepareVCFromRaw(vcJson, statusListJson)
 
         val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.INVALID_INDEX, result.result.error?.errorCode)
         assertEquals("Invalid or missing 'statusListIndex'", result.result.error?.message)
         server.shutdown()
@@ -412,7 +412,7 @@ class StatusListRevocationCheckerTest {
 
         val result = checker.getStatuses(replacedVC).first()
 
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
         server.shutdown()
     }
@@ -434,7 +434,7 @@ class StatusListRevocationCheckerTest {
 
         val result = checker.getStatuses(replacedVC).first()
 
-        assertFalse(result.result.isSuccess)
+        assertFalse(result.result.isValid)
         assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
 
         server.shutdown()

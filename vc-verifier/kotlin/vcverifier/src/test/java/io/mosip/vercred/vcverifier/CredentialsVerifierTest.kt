@@ -196,7 +196,7 @@ class CredentialsVerifierTest {
 
         val status = result.credentialStatus[0]
         assertEquals("revocation", status.purpose)
-        assertTrue(status.result.isSuccess)
+        assertTrue(status.result.isValid)
         assertNull(status.result.error)
     }
 
@@ -232,7 +232,7 @@ class CredentialsVerifierTest {
 
         val status = result.credentialStatus[0]
         assertEquals("revocation", status.purpose)
-        assertFalse(status.result.isSuccess)
+        assertFalse(status.result.isValid)
         assertNull(status.result.error)
     }
 }

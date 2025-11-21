@@ -19,5 +19,4 @@ class LdpVerifiableCredential : VerifiableCredential {
     override fun checkStatus(credential: String, statusPurposes: List<String>?): List<CredentialStatusResult> {
         return LdpStatusChecker().getStatuses(credential, statusPurposes)
     }
-
 }

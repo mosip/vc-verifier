@@ -55,7 +55,7 @@ data class ValidationStatus(
 )
 
 data class Result<T>(
-    val isSuccess: Boolean,
+    val isValid: Boolean,
     val error: T?
 )
 
