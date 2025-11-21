@@ -30,6 +30,7 @@ import java.io.IOException
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 
+
 /**
  * Generic StatusList2021 checker for LDP VCs.
  * Supports optional filtering by known statusPurposes.
@@ -40,6 +41,7 @@ class LdpStatusChecker() {
 
     private val verifier = LdpVerifiableCredential()
     private val minimumNumberOfEntries = 131072
+    private val validStatusValue = 0
     private val defaultStatusSize = 1
     private val mapper = ObjectMapper()
 
@@ -57,9 +59,10 @@ class LdpStatusChecker() {
         logger.info("Started status check")
 
         val jsonLD = JsonLDObject.fromJson(credential)
-        val statusField = jsonLD.jsonObject["credentialStatus"] ?: throw UnsupportedOperationException(
-            "No credentialStatus field present in the VC"
-        )
+        val statusField =
+            jsonLD.jsonObject["credentialStatus"] ?: throw UnsupportedOperationException(
+                "No credentialStatus field present in the VC"
+            )
 
         val entries = when (statusField) {
             is List<*> -> statusField.filterIsInstance<Map<*, *>>()
@@ -107,9 +110,7 @@ class LdpStatusChecker() {
                 results.add(
                     CredentialStatusResult(
                         purpose = purpose,
-                        result = Result(
-                            isSuccess = false,
-                            error = e)
+                        result = Result(isSuccess = false, error = e)
                     )
                 )
             }
@@ -232,24 +233,25 @@ class LdpStatusChecker() {
 
         val statusSize =
             credentialSubject[STATUS_SIZE]?.toString()?.toIntOrNull() ?: defaultStatusSize
-        if (statusSize <= 0) {
+        if (isInValid(statusSize)) {
             throw StatusCheckException(
                 "Invalid '$STATUS_SIZE': must be > 0 if present.",
                 StatusCheckErrorCode.STATUS_VERIFICATION_ERROR
             )
         }
 
-        if (statusSize > 1) {
+        if (isStatusMessageAvailable(statusSize)) {
             val statusMessage = entry[STATUS_MESSAGE] as? Map<*, *>
                 ?: throw StatusCheckException(
                     "Missing '$STATUS_MESSAGE' for $STATUS_SIZE=$statusSize",
                     StatusCheckErrorCode.STATUS_VERIFICATION_ERROR
                 )
+            logger.info("Status message for purpose '$purpose': $statusMessage")
 
-            val expectedCount = 1.shl(statusSize)
-            if (statusMessage.size != expectedCount) {
+            val expectedStatusCount = 1.shl(statusSize)
+            if (statusMessage.size != expectedStatusCount) {
                 throw StatusCheckException(
-                    "$STATUS_MESSAGE count mismatch. Expected $expectedCount entries for statusSize=$statusSize, found ${statusMessage.size}",
+                    "$STATUS_MESSAGE count mismatch. Expected $expectedStatusCount entries for statusSize=$statusSize, found ${statusMessage.size}",
                     StatusCheckErrorCode.STATUS_VERIFICATION_ERROR
                 )
             }
@@ -271,12 +273,14 @@ class LdpStatusChecker() {
         }
 
         val statusValue = readBits(bitPosition, decodedBitSet, statusSize)
-        //TODO: log info status and status message
+        logger.info("Status value for purpose '$purpose' at index $statusListIndex: $statusValue")
         return CredentialStatusResult(
             purpose = purpose,
-            result = Result(statusValue == 0, null)
+            result = Result(statusValue == validStatusValue, null)
         )
     }
+
+    private fun isInValid(statusSize: Int): Boolean = statusSize <= 0
 
     private fun validateCredentialStatusEntry(entry: Map<*, *>) {
         val entryType = entry[TYPE]?.toString()
@@ -367,8 +371,10 @@ class LdpStatusChecker() {
      * Reads a single bit from the bitset.
      */
     private fun readBit(position: Int, bitSet: ByteArray): Boolean {
-        val byteIndex = position / 8
-        val bitIndex = position % 8
+        val setBit = 1
+        val bitsPerByte = 8
+        val byteIndex = position / bitsPerByte
+        val bitIndex = position % bitsPerByte
         if (byteIndex >= bitSet.size) {
             throw StatusCheckException(
                 "Position $position exceeds bitset length",
@@ -376,7 +382,9 @@ class LdpStatusChecker() {
             )
         }
         val targetByte = bitSet[byteIndex].toInt()
-        return ((targetByte shr (7 - bitIndex)) and 1) == 1
+        return ((targetByte shr (7 - bitIndex)) and 1) == setBit
     }
 
+    private fun isStatusMessageAvailable(statusSize: Int): Boolean = statusSize > 1
 }
+
