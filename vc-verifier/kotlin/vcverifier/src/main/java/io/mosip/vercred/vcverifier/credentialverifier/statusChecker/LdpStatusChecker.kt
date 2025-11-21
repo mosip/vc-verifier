@@ -20,6 +20,7 @@ import io.mosip.vercred.vcverifier.data.Result
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.BASE64_DECODE_FAILED
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.ENCODED_LIST_MISSING
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.GZIP_DECOMPRESS_FAILED
+import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.INVALID_CREDENTIAL_STATUS
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.INVALID_INDEX
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.INVALID_PURPOSE
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.RANGE_ERROR
@@ -81,7 +82,7 @@ class LdpStatusChecker() {
         if (entries.isEmpty()) {
             throw StatusCheckException(
                 "No valid credentialStatus entries found",
-                INVALID_PURPOSE
+                INVALID_CREDENTIAL_STATUS
             )
         }
 
