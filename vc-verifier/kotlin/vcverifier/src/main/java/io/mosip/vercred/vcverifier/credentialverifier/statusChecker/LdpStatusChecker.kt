@@ -242,7 +242,7 @@ class LdpStatusChecker() {
 
         val statusSize =
             credentialSubject[STATUS_SIZE]?.toString()?.toIntOrNull() ?: defaultStatusSize
-        if (isInValid(statusSize)) {
+        if (!isValid(statusSize)) {
             throw StatusCheckException(
                 "Invalid '$STATUS_SIZE': must be > 0 if present.",
                 STATUS_VERIFICATION_ERROR
@@ -289,7 +289,7 @@ class LdpStatusChecker() {
         )
     }
 
-    private fun isInValid(statusSize: Int): Boolean = statusSize <= 0
+    private fun isValid(statusSize: Int): Boolean = statusSize > 0
 
     private fun validateCredentialStatusEntry(entry: Map<*, *>) {
         val entryType = entry[TYPE]?.toString()
