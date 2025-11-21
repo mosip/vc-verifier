@@ -109,10 +109,12 @@ class StatusListRevocationCheckerTest {
     @Test
     fun `should throw error when credentialStatus is missing`() {
         val vcJson = readFile("classpath:ldp_vc/PS256SignedMosipVC.json")
-        val unsupportedOperationException =
-            assertThrows<UnsupportedOperationException> { checker.getStatuses(vcJson) }
+        val result = checker.getStatuses(
+            vcJson,
+            listOf("suspension")
+        )
 
-        assertEquals("No credentialStatus field present in the VC", unsupportedOperationException.message)
+        assertTrue(result.isEmpty())
     }
 
     @Test
@@ -121,11 +123,12 @@ class StatusListRevocationCheckerTest {
         val statusListJson = readFile("classpath:ldp_vc/status-list-vc.json")
 
         val (replacedVC, server) = prepareVCFromRaw(vcJson, statusListJson)
-        val unsupportedOperationException =
-            assertThrows<UnsupportedOperationException> { checker.getStatuses(replacedVC, listOf("suspension")) }
+        val result = checker.getStatuses(
+            replacedVC,
+            listOf("suspension")
+        )
 
-        assertEquals("No matching credentialStatus entries found for purposes: [suspension]", unsupportedOperationException.message)
-
+        assertTrue(result.isEmpty())
         server.shutdown()
     }
 
@@ -273,12 +276,18 @@ class StatusListRevocationCheckerTest {
         val resultNeg = checker.getStatuses(replacedVC).first()
 
         assertFalse(resultNeg.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, resultNeg.result.error?.errorCode)
+        assertEquals(
+            StatusCheckErrorCode.STATUS_VERIFICATION_ERROR,
+            resultNeg.result.error?.errorCode
+        )
 
         val resultZero = checker.getStatuses(replacedVCZero).first()
 
         assertFalse(resultZero.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, resultZero.result.error?.errorCode)
+        assertEquals(
+            StatusCheckErrorCode.STATUS_VERIFICATION_ERROR,
+            resultZero.result.error?.errorCode
+        )
 
         server.shutdown()
     }
