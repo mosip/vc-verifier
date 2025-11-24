@@ -174,7 +174,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
     "vcResults": [
       {
         "vc": "string",
-        "status": "valid|invalid|expired"
+        "status": "success|invalid|expired"
       }
     ]
 }
@@ -188,7 +188,7 @@ Generally the Error codes are from Validation Failure, when Verification fails E
     "vcResults": [
       {
         "vc": "string",
-        "status": "valid|invalid|expired"
+        "status": "success|invalid|expired"
       }
     ]
 }
