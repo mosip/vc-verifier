@@ -167,13 +167,16 @@ class CredentialsVerifierTest {
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
     fun `should verify VC and return StatusList for unrevoked VC`() {
-        val mockStatusList = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipUnrevokedStatusList.json")
+        val mockStatusList =
+            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipUnrevokedStatusList.json")
         val mockStatusListJson = String(Files.readAllBytes(mockStatusList.toPath()))
 
-        val originalVC = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipUnrevokedVC.json")
+        val originalVC =
+            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipUnrevokedVC.json")
         val originalVCJson = String(Files.readAllBytes(originalVC.toPath()))
 
-        val realUrl = "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
+        val realUrl =
+            "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
 
         mockkObject(NetworkManagerClient.Companion)
 
@@ -194,22 +197,26 @@ class CredentialsVerifierTest {
         assertNotNull(result)
         assertEquals(1, result.credentialStatus.size)
 
-        val status = result.credentialStatus[0]
-        assertEquals("revocation", status.purpose)
-        assertTrue(status.result.isValid)
-        assertNull(status.result.error)
+        result.credentialStatus.firstNotNullOf { (key, value) ->
+            assertEquals("revocation", key)
+            assertTrue(value.isValid)
+            assertNull(value.error)
+        }
     }
 
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
     fun `should verify VC and return StatusList for revoked VC`() {
-        val mockStatusList = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipRevokedStatusList.json")
+        val mockStatusList =
+            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipRevokedStatusList.json")
         val mockStatusListJson = String(Files.readAllBytes(mockStatusList.toPath()))
 
-        val originalVC = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipRevokedVC.json")
+        val originalVC =
+            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipRevokedVC.json")
         val originalVCJson = String(Files.readAllBytes(originalVC.toPath()))
 
-        val realUrl = "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
+        val realUrl =
+            "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
 
         mockkObject(NetworkManagerClient.Companion)
 
@@ -230,9 +237,10 @@ class CredentialsVerifierTest {
         assertNotNull(result)
         assertEquals(1, result.credentialStatus.size)
 
-        val status = result.credentialStatus[0]
-        assertEquals("revocation", status.purpose)
-        assertFalse(status.result.isValid)
-        assertNull(status.result.error)
+        result.credentialStatus.firstNotNullOf { (purpose, result) ->
+            assertEquals("revocation", purpose)
+            assertFalse(result.isValid)
+            assertNull(result.error)
+        }
     }
 }

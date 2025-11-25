@@ -63,14 +63,14 @@ class LdpStatusChecker() {
     fun getStatuses(
         credential: String,
         statusPurposes: List<String>? = null
-    ): List<CredentialStatusResult> {
+    ): Map<String, Result<StatusCheckException>> {
         logger.info("Started status check")
 
         val jsonLD = JsonLDObject.fromJson(credential)
         val statusField = jsonLD.jsonObject["credentialStatus"]
         if (statusField == null) {
             logger.warning("No credentialStatus field present in the VC")
-            return emptyList()
+            return emptyMap()
         }
 
         val entries = when (statusField) {
@@ -100,10 +100,10 @@ class LdpStatusChecker() {
 
         if (filteredEntries.isEmpty()) {
             logger.warning("No matching credentialStatus entries found for purposes: $statusPurposes")
-            return emptyList()
+            return emptyMap()
         }
 
-        val results = mutableListOf<CredentialStatusResult>()
+        val results = mutableMapOf<String, Result<StatusCheckException>>()
         filteredEntries.forEach { entry ->
             var purpose = ""
             try {
@@ -112,16 +112,13 @@ class LdpStatusChecker() {
                         "$STATUS_PURPOSE Invalid",
                         errorCode = INVALID_PURPOSE
                     )
-                results.add(checkStatusEntry(entry, purpose))
+
+                val credentialStatusResult: CredentialStatusResult = checkStatusEntry(entry, purpose)
+                results[credentialStatusResult.purpose] = credentialStatusResult.result
             } catch (e: StatusCheckException) {
                 logger.warning("Status check failed for purpose '$purpose': ${e.message}")
                 // Add a failure entry (optional, to keep track of skipped purposes)
-                results.add(
-                    CredentialStatusResult(
-                        purpose = purpose,
-                        result = Result(isValid = false, error = e)
-                    )
-                )
+                results[purpose] = Result(isValid = false, error = e)
             }
         }
         return results

@@ -59,12 +59,12 @@ data class Result<T>(
     val error: T?
 )
 
-data class CredentialStatusResult(
+internal data class CredentialStatusResult(
     val purpose: String,
     val result : Result<StatusCheckException>,
 )
 
 data class CredentialVerificationSummary(
     val verificationResult: VerificationResult,
-    val credentialStatus: List<CredentialStatusResult>
+    val credentialStatus: Map<String, Result<StatusCheckException>>
 )

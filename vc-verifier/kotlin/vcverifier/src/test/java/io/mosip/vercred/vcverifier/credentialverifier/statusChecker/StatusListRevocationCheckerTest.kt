@@ -13,10 +13,10 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
@@ -87,7 +87,8 @@ class StatusListRevocationCheckerTest {
         val results = checker.getStatuses(replacedVC, listOf("revocation"))
 
         assertEquals(1, results.size)
-        assertTrue(results.first().result.isValid)
+        assertTrue(results["revocation"]?.isValid == true)
+        assertNotNull(results["revocation"])
 
         server.shutdown()
     }
@@ -101,7 +102,8 @@ class StatusListRevocationCheckerTest {
         val results = checker.getStatuses(replacedVC)
 
         assertEquals(1, results.size)
-        assertFalse(results.first().result.isValid)
+        assertTrue(results["revocation"]?.isValid == false)
+        assertNotNull(results["revocation"])
 
         server.shutdown()
     }
@@ -118,7 +120,7 @@ class StatusListRevocationCheckerTest {
     }
 
     @Test
-    fun `should throw error when require purpose is not available in credential`() {
+    fun `should return empty map when require purpose is not available in credential`() {
         val vcJson = readFile("classpath:ldp_vc/vcRevoked-https.json")
         val statusListJson = readFile("classpath:ldp_vc/status-list-vc.json")
 
@@ -144,10 +146,10 @@ class StatusListRevocationCheckerTest {
         val results = checker.getStatuses(replacedVC)
 
         assertEquals(1, results.size)
-        val result = results.first()
-        assertFalse(result.result.isValid)
-        assertTrue(result.result.error is StatusCheckException)
-        assertTrue(result.result.error?.message?.contains("Retrieval of the status list failed") == true)
+        val result = results.entries.first()
+        assertFalse(result.value.isValid)
+        assertTrue(result.value.error is StatusCheckException)
+        assertTrue(result.value.error?.message?.contains("Retrieval of the status list failed") == true)
     }
 
     @Test
@@ -160,11 +162,11 @@ class StatusListRevocationCheckerTest {
         val statusListJson = readFile("classpath:ldp_vc/status-list-vc.json")
         val (replacedVC, server) = prepareVCFromRaw(vcJson, statusListJson)
 
-        val result = checker.getStatuses(replacedVC).first()
+        val result = checker.getStatuses(replacedVC).entries.first()
 
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.RANGE_ERROR, result.result.error?.errorCode)
-        assertEquals("Bit position 999999 out of range", result.result.error?.message)
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.RANGE_ERROR, result.value.error?.errorCode)
+        assertEquals("Bit position 999999 out of range", result.value.error?.message)
         server.shutdown()
     }
 
@@ -176,11 +178,11 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
+        val result = checker.getStatuses(replacedVC).entries.first()
 
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.ENCODED_LIST_MISSING, result.result.error?.errorCode)
-        assertEquals("Missing 'encodedList'", result.result.error?.message)
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.ENCODED_LIST_MISSING, result.value.error?.errorCode)
+        assertEquals("Missing 'encodedList'", result.value.error?.message)
         server.shutdown()
     }
 
@@ -196,9 +198,9 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.BASE64_DECODE_FAILED, result.result.error?.errorCode)
+        val result = checker.getStatuses(replacedVC).entries.first()
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.BASE64_DECODE_FAILED, result.value.error?.errorCode)
 
         server.shutdown()
     }
@@ -216,9 +218,9 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.GZIP_DECOMPRESS_FAILED, result.result.error?.errorCode)
+        val result = checker.getStatuses(replacedVC).entries.first()
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.GZIP_DECOMPRESS_FAILED, result.value.error?.errorCode)
 
         server.shutdown()
     }
@@ -234,12 +236,12 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
+        val result = checker.getStatuses(replacedVC).entries.first()
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.value.error?.errorCode)
         assertEquals(
             "Status list VC purpose mismatch. Expected 'revocation', found 'suspension'",
-            result.result.error?.message
+            result.value.error?.message
         )
         server.shutdown()
     }
@@ -255,10 +257,10 @@ class StatusListRevocationCheckerTest {
         val statusListJson = readFile("classpath:ldp_vc/status-list-vc.json")
         val (replacedVC, server) = prepareVCFromRaw(vcJson, statusListJson)
 
-        val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.INVALID_PURPOSE, result.result.error?.errorCode)
-        assertEquals("statusPurpose Invalid", result.result.error?.message)
+        val result = checker.getStatuses(replacedVC).entries.first()
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.INVALID_PURPOSE, result.value.error?.errorCode)
+        assertEquals("statusPurpose Invalid", result.value.error?.message)
         server.shutdown()
     }
 
@@ -273,20 +275,20 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJsonZero
         )
 
-        val resultNeg = checker.getStatuses(replacedVC).first()
+        val resultNeg = checker.getStatuses(replacedVC).entries.first()
 
-        assertFalse(resultNeg.result.isValid)
+        assertFalse(resultNeg.value.isValid)
         assertEquals(
             StatusCheckErrorCode.STATUS_VERIFICATION_ERROR,
-            resultNeg.result.error?.errorCode
+            resultNeg.value.error?.errorCode
         )
 
-        val resultZero = checker.getStatuses(replacedVCZero).first()
+        val resultZero = checker.getStatuses(replacedVCZero).entries.first()
 
-        assertFalse(resultZero.result.isValid)
+        assertFalse(resultZero.value.isValid)
         assertEquals(
             StatusCheckErrorCode.STATUS_VERIFICATION_ERROR,
-            resultZero.result.error?.errorCode
+            resultZero.value.error?.errorCode
         )
 
         server.shutdown()
@@ -301,11 +303,11 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
+        val result = checker.getStatuses(replacedVC).entries.first()
 
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
-        assertEquals("Missing 'statusMessage' for statusSize=2", result.result.error?.message)
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.value.error?.errorCode)
+        assertEquals("Missing 'statusMessage' for statusSize=2", result.value.error?.message)
 
         server.shutdown()
     }
@@ -333,9 +335,9 @@ class StatusListRevocationCheckerTest {
 
         val (replacedVC, server) = prepareVCFromRaw(vcJsonModified, statusListJson)
 
-        val result = checker.getStatuses(replacedVC).first()
+        val result = checker.getStatuses(replacedVC).entries.first()
 
-        assertTrue(result.result.isValid)
+        assertTrue(result.value.isValid)
 
         server.shutdown()
     }
@@ -362,13 +364,13 @@ class StatusListRevocationCheckerTest {
 
         val (replacedVC, server) = prepareVCFromRaw(vcJsonModified, statusListJson)
 
-        val result = checker.getStatuses(replacedVC).first()
+        val result = checker.getStatuses(replacedVC).entries.first()
 
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.value.error?.errorCode)
         assertEquals(
             "statusMessage count mismatch. Expected 4 entries for statusSize=2, found 3",
-            result.result.error?.message
+            result.value.error?.message
         )
 
         server.shutdown()
@@ -383,10 +385,10 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
-        assertEquals("Missing 'type' in status list credential", result.result.error?.message)
+        val result = checker.getStatuses(replacedVC).entries.first()
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.value.error?.errorCode)
+        assertEquals("Missing 'type' in status list credential", result.value.error?.message)
         server.shutdown()
     }
 
@@ -397,10 +399,10 @@ class StatusListRevocationCheckerTest {
         val statusListJson = readFile("classpath:ldp_vc/status-list-vc.json")
         val (replacedVC, server) = prepareVCFromRaw(vcJson, statusListJson)
 
-        val result = checker.getStatuses(replacedVC).first()
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.INVALID_INDEX, result.result.error?.errorCode)
-        assertEquals("Invalid or missing 'statusListIndex'", result.result.error?.message)
+        val result = checker.getStatuses(replacedVC).entries.first()
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.INVALID_INDEX, result.value.error?.errorCode)
+        assertEquals("Invalid or missing 'statusListIndex'", result.value.error?.message)
         server.shutdown()
     }
 
@@ -419,10 +421,10 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
+        val result = checker.getStatuses(replacedVC).entries.first()
 
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.value.error?.errorCode)
         server.shutdown()
     }
 
@@ -441,10 +443,10 @@ class StatusListRevocationCheckerTest {
             statusListJson = statusListJson
         )
 
-        val result = checker.getStatuses(replacedVC).first()
+        val result = checker.getStatuses(replacedVC).entries.first()
 
-        assertFalse(result.result.isValid)
-        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.result.error?.errorCode)
+        assertFalse(result.value.isValid)
+        assertEquals(StatusCheckErrorCode.STATUS_VERIFICATION_ERROR, result.value.error?.errorCode)
 
         server.shutdown()
     }
