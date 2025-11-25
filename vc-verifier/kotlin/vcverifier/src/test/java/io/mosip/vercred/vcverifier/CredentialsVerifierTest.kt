@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier
 
-import io.mockk.every
 import io.mockk.mockkObject
 import io.mosip.vercred.vcverifier.constants.CredentialFormat.LDP_VC
 import io.mosip.vercred.vcverifier.constants.CredentialFormat.MSO_MDOC
@@ -11,7 +10,6 @@ import io.mosip.vercred.vcverifier.constants.CredentialValidatorConstants.ERROR_
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_CODE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.data.CredentialVerificationSummary
 import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient
-import io.mosip.vercred.vcverifier.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -19,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
+import testutils.mockHttpResponse
 import testutils.readClasspathFile
 import java.util.concurrent.TimeUnit
 
@@ -59,7 +58,7 @@ class CredentialsVerifierTest {
     //TODO: fix n/w
     fun `should return true for valid credential verification success`() {
         val vc = readClasspathFile("ldp_vc/PS256SignedMosipVC.json")
-        mockHttpResponse(didDocumentUrl, mockDidJson)
+        mockHttpResponse(this, didDocumentUrl, mockDidJson)
 
         val verificationResult = CredentialsVerifier().verify(vc, LDP_VC)
 
@@ -164,8 +163,8 @@ class CredentialsVerifierTest {
 
         mockkObject(NetworkManagerClient.Companion)
 
-        mockHttpResponse(realUrl, mockStatusListJson)
-        mockHttpResponse(didDocumentUrl, mockDidJson)
+        mockHttpResponse(this, realUrl, mockStatusListJson)
+        mockHttpResponse(this, didDocumentUrl, mockDidJson)
 
         val result: CredentialVerificationSummary =
             CredentialsVerifier().verifyAndGetCredentialStatus(
@@ -195,8 +194,8 @@ class CredentialsVerifierTest {
 
         mockkObject(NetworkManagerClient.Companion)
 
-        mockHttpResponse(realUrl, mockStatusListJson)
-        mockHttpResponse(didDocumentUrl, mockDidJson)
+        mockHttpResponse(this, realUrl, mockStatusListJson)
+        mockHttpResponse(this, didDocumentUrl, mockDidJson)
 
         val result: CredentialVerificationSummary =
             CredentialsVerifier().verifyAndGetCredentialStatus(
@@ -212,12 +211,6 @@ class CredentialsVerifierTest {
             assertEquals("revocation", purpose)
             assertFalse(result.isValid)
             assertNull(result.error)
-        }
-    }
-
-    fun mockHttpResponse(url: String, responseJson: String) {
-        every { sendHTTPRequest(url, any()) } answers {
-            mapper.readValue(responseJson, Map::class.java) as Map<String, Any>?
         }
     }
 }

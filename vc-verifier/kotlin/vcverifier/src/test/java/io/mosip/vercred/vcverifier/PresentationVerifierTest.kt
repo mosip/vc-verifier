@@ -23,7 +23,6 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.util.ResourceUtils
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
-import java.util.logging.Logger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PresentationVerifierTest {
@@ -37,8 +36,6 @@ class PresentationVerifierTest {
     fun teardownAll() {
         Util.documentLoader = null
     }
-
-    private val logger = Logger.getLogger(PresentationVerifierTest::class.java.name)
 
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
@@ -93,10 +90,6 @@ class PresentationVerifierTest {
 
     @Test
     fun `should throw error when vc is not jsonld`() {
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/InvalidPublicKeyEd25519Signature2018SignedVP-didKey.json")
-        val vc = String(Files.readAllBytes(file.toPath()))
-
         assertThrows<PresentationNotSupportedException> { PresentationVerifier().verify("invalid") }
     }
 
@@ -146,10 +139,10 @@ class PresentationVerifierTest {
         assertNotNull(result)
         assertEquals(VerificationStatus.SUCCESS, result.vcResults[0].status)
         assertEquals(1, credentialStatus.size)
-        assertEquals("revocation", credentialStatus[0].purpose)
-        assertEquals(1, credentialStatus[0].status)
-        assertNull(credentialStatus[0].error)
-        assertFalse(credentialStatus[0].valid)
+        val credentialStatusEntry = credentialStatus.entries.first()
+        assertEquals("revocation", credentialStatusEntry.key)
+        assertNull(credentialStatusEntry.value.error)
+        assertFalse(credentialStatusEntry.value.isValid)
     }
 
     @Test
@@ -185,9 +178,9 @@ class PresentationVerifierTest {
         assertNotNull(result)
         assertEquals(VerificationStatus.SUCCESS, result.vcResults[0].status)
         assertEquals(1, credentialStatus.size)
-        assertEquals("revocation", credentialStatus[0].purpose)
-        assertEquals(0, credentialStatus[0].status)
-        assertNull(credentialStatus[0].error)
-        assert(credentialStatus[0].valid)
+        val credentialStatusEntry = credentialStatus.entries.first()
+        assertEquals("revocation", credentialStatusEntry.key)
+        assertNull(credentialStatusEntry.value.error)
+        assert(credentialStatusEntry.value.isValid)
     }
 }
