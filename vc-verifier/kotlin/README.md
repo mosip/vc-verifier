@@ -154,7 +154,7 @@ the [W3C Verifiable Credentials specification](https://www.w3.org/TR/vc-data-mod
 | VP credential format     | `ldp_vc` only                                                        |
 | VP proof types           | `Ed25519Signature2018` `Ed25519Signature2020` `JsonWebSignature2020` |
 | Supported DID methods    | `did:web`, `did:key`, `did:jwk`                                      |
-| Embedded VC verification | Full validation and signature verification                           |
+| Embedded VC verification | Full validation, credential status check and signature verification  |
 
 ### Verification Flow
 
@@ -172,7 +172,8 @@ the [W3C Verifiable Credentials specification](https://www.w3.org/TR/vc-data-mod
 
 * Returns a combined result with:
     * VP-level proof verification status
-    * Per-VC status results (`valid`, `invalid`, `expired`)
+    * Per-VC signature verification status results (`valid`, `invalid`, `expired`)
+    * Status check results if applicable
 
 📌 Refer to the Public API for method usage and detailed response schema.
 
@@ -221,13 +222,15 @@ For each `credentialStatus` entry:
 
 ### Result Structure
 
-The result is a list of status check summaries per purpose:
+The result is a map of status check summaries per purpose:
 
 ```kotlin
-data class CredentialStatusResult(
-    val purpose: String,
-    val result: Result<StatusCheckException>
-)
+Map<String, Result<StatusCheckException>>
+```
+
+Where `Result<T>` is defined as:
+
+```kotlin
 
 data class Result<T>(
     val isValid: Boolean,
@@ -264,7 +267,7 @@ fun verifyAndGetCredentialStatus(
     * `statusPurposeList`: List of purposes such as `"revocation"`, `"suspension"` (optional)
 
 * **Returns:**
-    * `CredentialVerificationSummary`
+    * `CredentialVerificationSummary` ***(Please refer to the breakdown below for structure)***
 
 ---
 
@@ -296,7 +299,7 @@ fun getCredentialStatus(
     credential: String,
     credentialFormat: CredentialFormat,
     statusPurposeList: List<String> = emptyList()
-): List<CredentialStatusResult>
+): Map<String, Result<StatusCheckException>>
 ```
 
 * **Purpose:** Checks revocation/suspension status based on status purpose list (StatusList2021).
@@ -307,7 +310,7 @@ fun getCredentialStatus(
       `DC_SD_JWT`,
       `MSO_MDOC`
     * `statusPurposeList`: List of purposes such as `"revocation"`, `"suspension"` (optional)
-* **Returns:** A list of `CredentialStatusResult`, one per purpose, each containing:
+* **Returns:** A map of `CredentialStatusResult`, one per purpose, each containing:
     * `purpose`: status purpose (e.g., `"revocation"`)
     * `result`: `Result<StatusCheckException>`
         * `isValid = true`: credential is not revoked/suspended
@@ -328,10 +331,11 @@ fun verifyCredentials(credentials: String?): Boolean
 
 ### CredentialVerificationSummary Breakdown
 
-| Field                | Type                           | Description                                                            |
-|----------------------|--------------------------------|------------------------------------------------------------------------|
-| `verificationResult` | `VerificationResult`           | Overall result of VC verification (signature, expiry, structure, etc.) |
-| `credentialStatus`   | `List<CredentialStatusResult>` | Status check results for each purpose (e.g., revocation, suspension)   |
+| Field                          | Type                                        | Description                                                            |
+|--------------------------------|---------------------------------------------|------------------------------------------------------------------------|
+| `verificationResult`           | `VerificationResult`                        | Overall result of VC verification (signature, expiry, structure, etc.) |
+| `credentialStatus`             | `Map<String, Result<StatusCheckException>>` | Status check results for each purpose (e.g., revocation, suspension)   |
+| `Result<StatusCheckException>` | `object`                                    | Result wrapper containing `isValid` and error (if any)                 |
 
 ---
 
@@ -342,15 +346,6 @@ fun verifyCredentials(credentials: String?): Boolean
 | `verificationStatus`    | `Boolean` | `true` if credential is valid, `false` if invalid         |
 | `verificationMessage`   | `String`  | Optional message (e.g., "VC is expired")                  |
 | `verificationErrorCode` | `String`  | Error code (e.g., `ERROR_VC_EXPIRED`, `ERROR_VC_INVALID`) |
-
----
-
-#### `CredentialStatusResult`
-
-| Field     | Type                           | Description                                            |
-|-----------|--------------------------------|--------------------------------------------------------|
-| `purpose` | `String`                       | The purpose of the status check (e.g., "revocation")   |
-| `result`  | `Result<StatusCheckException>` | Result wrapper containing `isValid` and error (if any) |
 
 ---
 
@@ -372,16 +367,14 @@ fun verifyCredentials(credentials: String?): Boolean
     "verificationMessage": "",
     "verificationErrorCode": ""
   },
-  "credentialStatus": [
-    {
-      "purpose": "revocation",
-      "result": {
-        "isValid": true,
-        "error": null
-      }
+  "credentialStatus": {
+    "revocation": {
+      "isValid": true,
+      "error": null
     }
-  ]
+  }
 }
+
 ```
 
 The VC is valid and not revoked.
@@ -389,20 +382,18 @@ The VC is valid and not revoked.
 ```json
 {
   "verificationResult": {
-    "verificationStatus": false,
+    "verificationStatus": true,
     "verificationMessage": "VC is expired",
-    "verificationErrorCode": "ERROR_VC_EXPIRED"
+    "verificationErrorCode": ""
   },
-  "credentialStatus": [
-    {
-      "purpose": "revocation",
-      "result": {
-        "isValid": false,
-        "error": null
-      }
+  "credentialStatus": {
+    "revocation": {
+      "isValid": false,
+      "error": null
     }
-  ]
+  }
 }
+
 ```
 
 The VC is expired and revoked.
@@ -414,19 +405,17 @@ The VC is expired and revoked.
     "verificationMessage": "",
     "verificationErrorCode": ""
   },
-  "credentialStatus": [
-    {
-      "purpose": "revocation",
-      "result": {
-        "isValid": false,
-        "error": {
-          "message": "Failed to fetch status list",
-          "code": "STATUS_RETRIEVAL_ERROR"
-        }
+  "credentialStatus": {
+    "revocation": {
+      "isValid": false,
+      "error": {
+        "message": "Failed to fetch status list",
+        "code": "STATUS_RETRIEVAL_ERROR"
       }
     }
-  ]
+  }
 }
+
 ```
 
 The VC is valid but the status check failed due to a network error.
@@ -438,7 +427,7 @@ The VC is valid but the status check failed due to a network error.
     "verificationMessage": "Signature verification failed",
     "verificationErrorCode": "ERROR_SIGNATURE_INVALID"
   },
-  "credentialStatus": []
+  "credentialStatus": {}
 }
 ```
 
@@ -451,16 +440,14 @@ The VC signature is invalid; status check was not performed.
     "verificationMessage": "",
     "verificationErrorCode": ""
   },
-  "credentialStatus": [
-    {
-      "purpose": "revocation",
-      "result": {
-        "isValid": false,
-        "error": null
-      }
+  "credentialStatus": {
+    "revocation": {
+      "isValid": false,
+      "error": null
     }
-  ]
+  }
 }
+
 ```
 
 The VC is valid but revoked.
@@ -472,23 +459,18 @@ The VC is valid but revoked.
     "verificationMessage": "",
     "verificationErrorCode": ""
   },
-  "credentialStatus": [
-    {
-      "purpose": "revocation",
-      "result": {
-        "isValid": true,
-        "error": null
-      }
+  "credentialStatus": {
+    "revocation": {
+      "isValid": true,
+      "error": null
     },
-    {
-      "purpose": "suspension",
-      "result": {
-        "isValid": false,
-        "error": null
-      }
+    "suspension": {
+      "isValid": false,
+      "error": null
     }
-  ]
+  }
 }
+
 ```
 
 The VC is valid, not revoked, but suspended.
@@ -593,7 +575,105 @@ The VP proof is invalid, the first VC is valid, and the second VC is invalid.
 The VP proof is valid, the VCs are expired.
 
 ---
- 
+
+```kotlin
+fun verifyAndGetCredentialStatus(
+    presentation: String,
+    statusPurposeList: List<String> = emptyList()
+): PresentationResultWithCredentialStatus 
+```
+
+* **Purpose:** Verifies the VP proof and each embedded VC, along with status checks for each VC.
+* **Parameters:**
+    * `presentation`: Verifiable Presentation as a JSON-LD string
+    * `statusPurposeList`: List of purposes such as `"revocation"`, `"suspension"` (optional)
+* **Returns:** `PresentationResultWithCredentialStatus`, containing:
+    * `proofVerificationStatus`: VP proof verification status
+    * `vcResults`: List of `VCResultWithCredentialStatus`, each containing:
+        * `vc`: raw VC string
+        * `status`: VC signature verification status
+            * `credentialStatus`: Map of status check results per purpose
+---
+
+### Output Structure – PresentationResultWithCredentialStatus
+
+| Field                     | Type                                 | Description                                         |
+|---------------------------|--------------------------------------|-----------------------------------------------------|
+| `proofVerificationStatus` | `VPVerificationStatus`               | Signature validity of the presentation itself       |
+| `vcResults`               | `List<VCResultWithCredentialStatus>` | Result of verifying all VCs inside the presentation |
+
+Each `VCResultWithCredentialStatus` contains:
+
+| Field              | Type                                        | Description                                                          |
+|--------------------|---------------------------------------------|----------------------------------------------------------------------|
+| `vc`               | `String`                                    | The raw VC as it appeared in the input VP                            |
+| `status`           | `VCVerificationStatus`                      | Verification status of the VC (`SUCCESS`, `INVALID`, `EXPIRED`)      |
+| `credentialStatus` | `Map<String, Result<StatusCheckException>>` | Status check results for each purpose (e.g., revocation, suspension) |
+---
+
+### Exampl JSON Response for PresentationResultWithCredentialStatus
+
+```json
+{
+  "proofVerificationStatus": "VALID",
+  "vcResults": [
+    {
+      "vc": "{...full VC string...}",
+      "status": "SUCCESS",
+      "credentialStatus": {
+        "revocation": {
+          "isValid": true,
+          "error": null
+        }
+      }
+    },
+    {
+      "vc": "{...full VC string...}",
+      "status": "EXPIRED",
+      "credentialStatus": {
+        "revocation": {
+          "isValid": false,
+          "error": null
+        }
+      }
+    }
+  ]
+}
+```
+The VP proof is valid. The first VC is valid and not revoked; the second VC is expired and revoked.
+
+```json
+{
+  "proofVerificationStatus": "INVALID",
+  "vcResults": [
+    {
+      "vc": "{...full VC string...}",
+      "status": "SUCCESS",
+      "credentialStatus": {
+        "revocation": {
+          "isValid": true,
+          "error": null
+        }
+      }
+    },
+    {
+      "vc": "{...full VC string...}",
+      "status": "INVALID",
+      "credentialStatus": {
+        "revocation": {
+          "isValid": false,
+          "error": {
+            "message": "Failed to fetch status list",
+            "code": "STATUS_RETRIEVAL_ERROR"
+          }
+        }
+      }
+    }
+  ]
+}
+```
+The VP proof is invalid. The first VC is valid and not revoked; the second VC is invalid and the status check failed due to a network error.
+
 ### Supported Features Summary
 
 #### VC Format v/s features
@@ -606,13 +686,14 @@ The VP proof is valid, the VCs are expired.
 
 #### API operations matrix
 
-| API Method                                  | Validation | Signature Verification | Status Check |
-|---------------------------------------------|------------|------------------------|--------------|
-| `verify(credential, credentialFormat)`      | ✔️         | ✔️                     | ❌            |
-| `getCredentialStatus(...)`                  | ❌          | ❌                      | ✔️           |
-| `verifyAndGetCredentialStatus(...)`         | ✔️         | ✔️                     | ✔️           |
-| `verifyCredentials(...)` (Deprecated)       | ❌          | ✔️                     | ❌            |
-| `PresentationVerifier.verify(presentation)` | ✔️         | ✔️                     | ❌            |
+| API Method                                               | Validation | Signature Verification | Status Check |
+|----------------------------------------------------------|------------|------------------------|--------------|
+| `verify(credential, credentialFormat)`                   | ✔️         | ✔️                     | ❌            |
+| `getCredentialStatus(...)`                               | ❌          | ❌                      | ✔️           |
+| `verifyAndGetCredentialStatus(...)`                      | ✔️         | ✔️                     | ✔️           |
+| `verifyCredentials(...)` (Deprecated)                    | ❌          | ✔️                     | ❌            |
+| `PresentationVerifier.verify(presentation)`              | ✔️         | ✔️                     | ❌            |
+| `PresentationVerifier.verifyAndGetCredentialStatus(...)` | ✔️         | ✔️                     | ✔️           |
 
 ## Public Key Extraction
 
