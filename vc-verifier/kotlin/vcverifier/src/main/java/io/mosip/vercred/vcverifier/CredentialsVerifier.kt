@@ -7,10 +7,9 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_C
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_MESSAGE_VERIFICATION_FAILED
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
+import io.mosip.vercred.vcverifier.data.CredentialStatusResult
 import io.mosip.vercred.vcverifier.data.CredentialVerificationSummary
-import io.mosip.vercred.vcverifier.data.Result
 import io.mosip.vercred.vcverifier.data.VerificationResult
-import io.mosip.vercred.vcverifier.exception.StatusCheckException
 import java.util.logging.Logger
 
 
@@ -78,7 +77,7 @@ class CredentialsVerifier {
         credential: String,
         credentialFormat: CredentialFormat,
         statusPurposeList: List<String> = emptyList()
-    ): Map<String, Result<StatusCheckException>> {
+    ): Map<String, CredentialStatusResult> {
         try {
             return credentialVerifierFactory.get(credentialFormat)
                 .checkStatus(credential, statusPurposeList)

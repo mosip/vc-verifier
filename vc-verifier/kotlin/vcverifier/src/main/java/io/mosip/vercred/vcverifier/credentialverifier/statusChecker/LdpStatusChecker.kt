@@ -16,7 +16,6 @@ import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_PURPO
 import io.mosip.vercred.vcverifier.constants.StatusCheckerConstants.STATUS_SIZE
 import io.mosip.vercred.vcverifier.credentialverifier.types.LdpVerifiableCredential
 import io.mosip.vercred.vcverifier.data.CredentialStatusResult
-import io.mosip.vercred.vcverifier.data.Result
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.BASE64_DECODE_FAILED
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.ENCODED_LIST_MISSING
 import io.mosip.vercred.vcverifier.exception.StatusCheckErrorCode.GZIP_DECOMPRESS_FAILED
@@ -63,7 +62,7 @@ class LdpStatusChecker() {
     fun getStatuses(
         credential: String,
         statusPurposes: List<String>? = null
-    ): Map<String, Result<StatusCheckException>> {
+    ): Map<String, CredentialStatusResult> {
         logger.info("Started status check")
 
         val jsonLD = JsonLDObject.fromJson(credential)
@@ -103,7 +102,7 @@ class LdpStatusChecker() {
             return emptyMap()
         }
 
-        val results = mutableMapOf<String, Result<StatusCheckException>>()
+        val results = mutableMapOf<String, CredentialStatusResult>()
         filteredEntries.forEach { entry ->
             var purpose = ""
             try {
@@ -113,12 +112,12 @@ class LdpStatusChecker() {
                         errorCode = INVALID_PURPOSE
                     )
 
-                val credentialStatusResult: CredentialStatusResult = checkStatusEntry(entry, purpose)
-                results[credentialStatusResult.purpose] = credentialStatusResult.result
-            } catch (e: StatusCheckException) {
-                logger.warning("Status check failed for purpose '$purpose': ${e.message}")
+                val credentialStatusResult: Map<String, CredentialStatusResult> = checkStatusEntry(entry, purpose)
+                results.putAll(credentialStatusResult)
+            } catch (exception: StatusCheckException) {
+                logger.warning("Status check failed for purpose '$purpose': ${exception.message}")
                 // Add a failure entry (optional, to keep track of skipped purposes)
-                results[purpose] = Result(isValid = false, error = e)
+                results[purpose] = CredentialStatusResult(false, exception)
             }
         }
         return results
@@ -127,7 +126,7 @@ class LdpStatusChecker() {
     /**
      * Checks a single credentialStatus entry for its purpose.
      */
-    private fun checkStatusEntry(entry: Map<*, *>, purpose: String): CredentialStatusResult {
+    private fun checkStatusEntry(entry: Map<*, *>, purpose: String): Map<String, CredentialStatusResult> {
         validateCredentialStatusEntry(entry)
         val statusListVC = fetchAndValidateStatusListVC(entry, purpose)
         return computeStatusResult(entry, statusListVC, purpose)
@@ -228,7 +227,7 @@ class LdpStatusChecker() {
         entry: Map<*, *>,
         statusListVC: JsonLDObject,
         purpose: String
-    ): CredentialStatusResult {
+    ): Map<String, CredentialStatusResult> {
         val credentialSubject = statusListVC.jsonObject[CREDENTIAL_SUBJECT] as Map<*, *>
 
         val encodedList = credentialSubject[ENCODED_LIST] as? String
@@ -280,10 +279,7 @@ class LdpStatusChecker() {
 
         val statusValue = readBits(bitPosition, decodedBitSet, statusSize)
         logger.info("Status value for purpose '$purpose' at index $statusListIndex: $statusValue")
-        return CredentialStatusResult(
-            purpose = purpose,
-            result = Result(statusValue == validStatusValue, null)
-        )
+        return mapOf(purpose to CredentialStatusResult(statusValue == validStatusValue, null))
     }
 
     private fun isValid(statusSize: Int): Boolean = statusSize > 0

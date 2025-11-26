@@ -27,7 +27,7 @@ data class VCResult(
 data class VCResultWithCredentialStatus(
     val vc: String,
     val status: VerificationStatus,
-    val credentialStatus: Map<String, Result<StatusCheckException>>
+    val credentialStatus: Map<String, CredentialStatusResult>
 )
 
 enum class VerificationStatus {
@@ -54,17 +54,12 @@ data class ValidationStatus(
     val validationErrorCode: String
 )
 
-data class Result<T>(
+data class CredentialStatusResult(
     val isValid: Boolean,
-    val error: T?
-)
-
-internal data class CredentialStatusResult(
-    val purpose: String,
-    val result : Result<StatusCheckException>,
+    val error: StatusCheckException?
 )
 
 data class CredentialVerificationSummary(
     val verificationResult: VerificationResult,
-    val credentialStatus: Map<String, Result<StatusCheckException>>
+    val credentialStatus: Map<String, CredentialStatusResult>
 )

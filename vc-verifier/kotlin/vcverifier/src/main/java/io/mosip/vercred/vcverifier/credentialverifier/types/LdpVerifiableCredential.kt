@@ -4,9 +4,8 @@ import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
 import io.mosip.vercred.vcverifier.credentialverifier.statusChecker.LdpStatusChecker
 import io.mosip.vercred.vcverifier.credentialverifier.validator.LdpValidator
 import io.mosip.vercred.vcverifier.credentialverifier.verifier.LdpVerifier
+import io.mosip.vercred.vcverifier.data.CredentialStatusResult
 import io.mosip.vercred.vcverifier.data.ValidationStatus
-import io.mosip.vercred.vcverifier.exception.StatusCheckException
-import io.mosip.vercred.vcverifier.data.Result
 
 class LdpVerifiableCredential : VerifiableCredential {
     override fun validate(credential: String): ValidationStatus {
@@ -17,7 +16,7 @@ class LdpVerifiableCredential : VerifiableCredential {
         return LdpVerifier().verify(credential)
     }
 
-    override fun checkStatus(credential: String, statusPurposes: List<String>?): Map<String, Result<StatusCheckException>> {
+    override fun checkStatus(credential: String, statusPurposes: List<String>?): Map<String, CredentialStatusResult> {
         return LdpStatusChecker().getStatuses(credential, statusPurposes)
     }
 }
