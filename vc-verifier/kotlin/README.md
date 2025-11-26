@@ -225,14 +225,14 @@ For each `credentialStatus` entry:
 The result is a map of status check summaries per purpose:
 
 ```kotlin
-Map<String, Result<StatusCheckException>>
+Map<String, CredentialStatusResult>
 ```
 
-Where `Result<T>` is defined as:
+Where `CredentialStatusResult` is defined as:
 
 ```kotlin
 
-data class Result<T>(
+data class CredentialStatusResult(
     val isValid: Boolean,
     val error: T?
 )
@@ -299,7 +299,7 @@ fun getCredentialStatus(
     credential: String,
     credentialFormat: CredentialFormat,
     statusPurposeList: List<String> = emptyList()
-): Map<String, Result<StatusCheckException>>
+): Map<String, CredentialStatusResult>
 ```
 
 * **Purpose:** Checks revocation/suspension status based on status purpose list (StatusList2021).
@@ -312,7 +312,7 @@ fun getCredentialStatus(
     * `statusPurposeList`: List of purposes such as `"revocation"`, `"suspension"` (optional)
 * **Returns:** A map of `CredentialStatusResult`, one per purpose, each containing:
     * `purpose`: status purpose (e.g., `"revocation"`)
-    * `result`: `Result<StatusCheckException>`
+    * `result`: `CredentialStatusResult`
         * `isValid = true`: credential is not revoked/suspended
         * `isValid = false`: credential is revoked/suspended
         * `error`: populated if status check failed
@@ -331,11 +331,11 @@ fun verifyCredentials(credentials: String?): Boolean
 
 ### CredentialVerificationSummary Breakdown
 
-| Field                          | Type                                        | Description                                                            |
-|--------------------------------|---------------------------------------------|------------------------------------------------------------------------|
-| `verificationResult`           | `VerificationResult`                        | Overall result of VC verification (signature, expiry, structure, etc.) |
-| `credentialStatus`             | `Map<String, Result<StatusCheckException>>` | Status check results for each purpose (e.g., revocation, suspension)   |
-| `Result<StatusCheckException>` | `object`                                    | Result wrapper containing `isValid` and error (if any)                 |
+| Field                    | Type                                  | Description                                                            |
+|--------------------------|---------------------------------------|------------------------------------------------------------------------|
+| `verificationResult`     | `VerificationResult`                  | Overall result of VC verification (signature, expiry, structure, etc.) |
+| `credentialStatus`       | `Map<String, CredentialStatusResult>` | Status check results for each purpose (e.g., revocation, suspension)   |
+| `CredentialStatusResult` | `object`                              | Wrapper containing `isValid` and error (if any)                        |
 
 ---
 
@@ -349,7 +349,7 @@ fun verifyCredentials(credentials: String?): Boolean
 
 ---
 
-#### `Result<T>`
+#### `CredentialStatusResult`
 
 | Field     | Type      | Description                               |
 |-----------|-----------|-------------------------------------------|
@@ -604,11 +604,11 @@ fun verifyAndGetCredentialStatus(
 
 Each `VCResultWithCredentialStatus` contains:
 
-| Field              | Type                                        | Description                                                          |
-|--------------------|---------------------------------------------|----------------------------------------------------------------------|
-| `vc`               | `String`                                    | The raw VC as it appeared in the input VP                            |
-| `status`           | `VCVerificationStatus`                      | Verification status of the VC (`SUCCESS`, `INVALID`, `EXPIRED`)      |
-| `credentialStatus` | `Map<String, Result<StatusCheckException>>` | Status check results for each purpose (e.g., revocation, suspension) |
+| Field              | Type                                  | Description                                                          |
+|--------------------|---------------------------------------|----------------------------------------------------------------------|
+| `vc`               | `String`                              | The raw VC as it appeared in the input VP                            |
+| `status`           | `VCVerificationStatus`                | Verification status of the VC (`SUCCESS`, `INVALID`, `EXPIRED`)      |
+| `credentialStatus` | `Map<String, CredentialStatusResult>` | Status check results for each purpose (e.g., revocation, suspension) |
 ---
 
 ### Exampl JSON Response for PresentationResultWithCredentialStatus
