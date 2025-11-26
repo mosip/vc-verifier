@@ -2,8 +2,6 @@ package io.mosip.vercred.vcverifier.exception
 
 class StatusCheckException(val errorMessage: String, val errorCode: StatusCheckErrorCode) : BaseUncheckedException(errorMessage)
 
-class CredentialStatusEntryException(val errorMessage: String, val errorCode: StatusCheckErrorCode) : BaseUncheckedException(errorMessage)
-
 enum class StatusCheckErrorCode {
     RANGE_ERROR,
     STATUS_VERIFICATION_ERROR,
