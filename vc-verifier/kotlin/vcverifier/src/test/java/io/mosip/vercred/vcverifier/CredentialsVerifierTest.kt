@@ -55,10 +55,9 @@ class CredentialsVerifierTest {
 
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
-    //TODO: fix n/w
     fun `should return true for valid credential verification success`() {
         val vc = readClasspathFile("ldp_vc/PS256SignedMosipVC.json")
-        mockHttpResponse(this, didDocumentUrl, mockDidJson)
+        mockHttpResponse(didDocumentUrl, mockDidJson)
 
         val verificationResult = CredentialsVerifier().verify(vc, LDP_VC)
 
@@ -153,7 +152,6 @@ class CredentialsVerifierTest {
 
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
-    //TODO: fix test
     fun `should verify VC and return StatusList for unrevoked VC`() {
         val mockStatusListJson = readClasspathFile("ldp_vc/mosipUnrevokedStatusList.json")
         val originalVCJson = readClasspathFile("ldp_vc/mosipUnrevokedVC.json")
@@ -163,8 +161,8 @@ class CredentialsVerifierTest {
 
         mockkObject(NetworkManagerClient.Companion)
 
-        mockHttpResponse(this, realUrl, mockStatusListJson)
-        mockHttpResponse(this, didDocumentUrl, mockDidJson)
+        mockHttpResponse(realUrl, mockStatusListJson)
+        mockHttpResponse(didDocumentUrl, mockDidJson)
 
         val result: CredentialVerificationSummary =
             CredentialsVerifier().verifyAndGetCredentialStatus(
@@ -194,8 +192,8 @@ class CredentialsVerifierTest {
 
         mockkObject(NetworkManagerClient.Companion)
 
-        mockHttpResponse(this, realUrl, mockStatusListJson)
-        mockHttpResponse(this, didDocumentUrl, mockDidJson)
+        mockHttpResponse(realUrl, mockStatusListJson)
+        mockHttpResponse(didDocumentUrl, mockDidJson)
 
         val result: CredentialVerificationSummary =
             CredentialsVerifier().verifyAndGetCredentialStatus(

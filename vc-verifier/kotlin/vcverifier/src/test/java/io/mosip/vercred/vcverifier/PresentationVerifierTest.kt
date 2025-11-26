@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertThrows
-import org.springframework.util.ResourceUtils
-import java.nio.file.Files
+import testutils.mockHttpResponse
+import testutils.readClasspathFile
 import java.util.concurrent.TimeUnit
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -40,9 +40,7 @@ class PresentationVerifierTest {
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return true for valid presentation verification success Ed25519Signature2018`() {
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/Ed25519Signature2018SignedVP-didKey.json")
-        val vc = String(Files.readAllBytes(file.toPath()))
+        val vc = readClasspathFile("vp/Ed25519Signature2018SignedVP-didKey.json")
 
         val verificationResult = PresentationVerifier().verify(vc)
 
@@ -55,9 +53,7 @@ class PresentationVerifierTest {
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return true for valid presentation verification success JsonWebSignature2020`() {
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/JsonWebSignature2020SignedVP-didJws.json")
-        val vc = String(Files.readAllBytes(file.toPath()))
+        val vc = readClasspathFile("vp/JsonWebSignature2020SignedVP-didJws.json")
 
         val verificationResult = PresentationVerifier().verify(vc)
 
@@ -70,9 +66,7 @@ class PresentationVerifierTest {
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return false for invalid presentation verification`() {
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/InvalidEd25519Signature2018SignedVP-didKey.json")
-        val vc = String(Files.readAllBytes(file.toPath()))
+        val vc = readClasspathFile("vp/InvalidEd25519Signature2018SignedVP-didKey.json")
 
         val verificationResult = PresentationVerifier().verify(vc)
         assertEquals(VPVerificationStatus.INVALID,verificationResult.proofVerificationStatus)
@@ -81,9 +75,7 @@ class PresentationVerifierTest {
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should throw error when public key not found false`() {
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/InvalidPublicKeyEd25519Signature2018SignedVP-didKey.json")
-        val vc = String(Files.readAllBytes(file.toPath()))
+        val vc = readClasspathFile("vp/InvalidPublicKeyEd25519Signature2018SignedVP-didKey.json")
 
         assertThrows<UnsupportedDidUrl> { PresentationVerifier().verify(vc) }
     }
@@ -96,9 +88,7 @@ class PresentationVerifierTest {
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should throw error for invalid presentation verification of Ed25519Signature2020`() {
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/Ed25519Signature2020SignedVP-didKey.json")
-        val vc = String(Files.readAllBytes(file.toPath()))
+        val vc = readClasspathFile("vp/Ed25519Signature2020SignedVP-didKey.json")
 
         val verificationResult = PresentationVerifier().verify(vc)
 
@@ -109,23 +99,14 @@ class PresentationVerifierTest {
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
     fun `should verify VC and return VC status as revoked`() {
-        val mockStatusList = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipRevokedStatusList.json")
-        val mockStatusListJson = String(Files.readAllBytes(mockStatusList.toPath()))
-
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/VPWithRevokedVC.json")
-        val vp = String(Files.readAllBytes(file.toPath()))
+        val mockStatusListJson = readClasspathFile("ldp_vc/mosipRevokedStatusList.json")
+        val vp = readClasspathFile("vp/VPWithRevokedVC.json")
 
         val realUrl = "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
 
         mockkObject(NetworkManagerClient.Companion)
 
-        io.mockk.every {
-            NetworkManagerClient.sendHTTPRequest(realUrl, any())
-        } answers {
-            val mapper = com.fasterxml.jackson.module.kotlin.jacksonObjectMapper()
-            mapper.readValue(mockStatusListJson, Map::class.java) as Map<String, Any>?
-        }
+        mockHttpResponse(realUrl,mockStatusListJson)
 
         val result: PresentationResultWithCredentialStatus =
             PresentationVerifier().verifyAndGetCredentialStatus(
@@ -148,23 +129,14 @@ class PresentationVerifierTest {
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
     fun `should verify VC and return VC status as unrevoked`() {
-        val mockStatusList = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/mosipUnrevokedStatusList.json")
-        val mockStatusListJson = String(Files.readAllBytes(mockStatusList.toPath()))
-
-        val file =
-            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/VPWithUnrevokedVC.json")
-        val vp = String(Files.readAllBytes(file.toPath()))
+        val mockStatusListJson = readClasspathFile("ldp_vc/mosipUnrevokedStatusList.json")
+        val vp = readClasspathFile("vp/VPWithUnrevokedVC.json")
 
         val realUrl = "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
 
         mockkObject(NetworkManagerClient.Companion)
 
-        io.mockk.every {
-            NetworkManagerClient.sendHTTPRequest(realUrl, any())
-        } answers {
-            val mapper = com.fasterxml.jackson.module.kotlin.jacksonObjectMapper()
-            mapper.readValue(mockStatusListJson, Map::class.java) as Map<String, Any>?
-        }
+        mockHttpResponse(realUrl,mockStatusListJson)
 
         val result: PresentationResultWithCredentialStatus =
             PresentationVerifier().verifyAndGetCredentialStatus(
