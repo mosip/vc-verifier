@@ -65,9 +65,7 @@ dependencies {
     implementation(libs.annotation.jvm)
     implementation(libs.authelete.sd.jwt)
     implementation(libs.threetenbp)
-    implementation(libs.caffeine)
 
-    testImplementation(libs.caffeine)
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
     testImplementation(libs.mockWebServer)

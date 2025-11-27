@@ -7,7 +7,7 @@ data class VerificationResult(
     var verificationStatus: Boolean,
     var verificationMessage: String = "",
     var verificationErrorCode: String,
-    val Cachediff: Map<String, CacheEntry>
+    val cachediff: Map<String, CacheEntry>
 )
 
 data class PresentationVerificationResult(

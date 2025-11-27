@@ -1,6 +1,5 @@
 package io.mosip.vercred.vcverifier.utils
 
-import WalletAwareDocumentLoader
 import com.apicatalog.jsonld.loader.DocumentLoader
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -37,6 +36,7 @@ object Util {
     var documentLoader: DocumentLoader? = null
     var walletCache: MutableMap<String, CacheEntry> = ConcurrentHashMap()
     var ttlMillis: Long = 30 * 60 * 1000
+    private val loaderLock = Any()
 
     val SUPPORTED_JWS_ALGORITHMS = setOf(
         JWS_PS256_SIGN_ALGO_CONST,
@@ -49,24 +49,28 @@ object Util {
         return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
     }
 
-    fun getConfigurableDocumentLoader(): DocumentLoader {
-        if (documentLoader != null) return documentLoader!!
+    fun getConfigurableDocumentLoader (): DocumentLoader {
+        documentLoader?.let { return it }
+        synchronized(loaderLock) {
+            documentLoader?.let { return it }
 
-        val base = ConfigurableDocumentLoader().apply {
-            isEnableHttps = true
-            isEnableHttp = true
-            isEnableFile = false
+            val base = ConfigurableDocumentLoader().apply {
+                isEnableHttps = true
+                isEnableHttp = true
+                isEnableFile = false
+            }
+
+            val loader = WalletAwareDocumentLoader(
+                ttlMillis = ttlMillis,
+                walletCache = walletCache,
+                delegate = base
+            )
+
+            documentLoader = loader
+            return loader
         }
-
-        val loader = WalletAwareDocumentLoader(
-            ttlMillis = ttlMillis,
-            walletCache = walletCache,
-            delegate = base
-        )
-
-        documentLoader = loader
-        return loader
     }
+
 
     fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
         if (verificationResult.verificationStatus) {

@@ -1,8 +1,7 @@
 package io.mosip.vercred.vcverifier.utils
 
-import WalletAwareDocumentLoader
+
 import com.apicatalog.jsonld.document.JsonDocument
-import com.apicatalog.jsonld.loader.DocumentLoader
 import com.apicatalog.jsonld.loader.DocumentLoaderOptions
 import foundation.identity.jsonld.ConfigurableDocumentLoader
 import io.mosip.vercred.vcverifier.data.CacheEntry
@@ -48,9 +47,6 @@ class WalletAwareDocumentLoaderTest {
         assertSame(cachedDoc, result)   // returned from cache
     }
 
-    // ------------------------------------------------------------
-    // TEST 2: Expired Cache -> Reload -> Update Cache
-    // ------------------------------------------------------------
     @Test
     fun `expired cache - fetch new document and update cache`() {
         val ttl = 10_000L
@@ -78,9 +74,6 @@ class WalletAwareDocumentLoaderTest {
         assertEquals(freshDoc, walletCache[url.toString()]!!.document)
     }
 
-    // ------------------------------------------------------------
-    // TEST 3: Cache Miss -> Load -> Store in Cache
-    // ------------------------------------------------------------
     @Test
     fun `cache miss - fetch and store document`() {
         val ttl = 10_000L

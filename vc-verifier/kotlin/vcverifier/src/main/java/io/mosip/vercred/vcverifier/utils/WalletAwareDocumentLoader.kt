@@ -1,3 +1,5 @@
+package io.mosip.vercred.vcverifier.utils
+
 import foundation.identity.jsonld.ConfigurableDocumentLoader
 import com.apicatalog.jsonld.document.Document
 import com.apicatalog.jsonld.document.JsonDocument
