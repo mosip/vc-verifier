@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,7 +27,12 @@ import androidx.compose.ui.unit.dp
 import io.mosip.vccred.example.ui.theme.VcverifierTheme
 import io.mosip.vercred.vcverifier.CredentialsVerifier
 import io.mosip.vercred.vcverifier.constants.CredentialFormat
+import io.mosip.vercred.vcverifier.data.CacheEntry
 import io.mosip.vercred.vcverifier.data.VerificationResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,14 +52,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun VerifyVC(modifier: Modifier = Modifier) {
     val verificationResult = remember { mutableStateOf<VerificationResult?>(null) }
+    val walletCache = remember { ConcurrentHashMap<String, CacheEntry>() }
+    val ttlMillis: Long = 1 * 60 * 1000
+    val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(30.dp)) {
         Button(
             onClick = {
-                val thread = Thread{
-                    verificationResult.value = verifyVc()
+                scope.launch(Dispatchers.IO) {
+                    verificationResult.value = null
+                    val result = verifyVc(walletCache, ttlMillis)
+                    withContext(Dispatchers.Main) {
+                        verificationResult.value = result
+                    }
+                    walletCache.putAll(result.Cachediff)
                 }
-                thread.start()
             },
             modifier = Modifier
                 .padding(16.dp)
@@ -94,9 +107,10 @@ fun VerifyVC(modifier: Modifier = Modifier) {
 }
 
 
-fun verifyVc(): VerificationResult{
+fun verifyVc(walletCache: ConcurrentHashMap<String, CacheEntry>, ttlMillis: Long): VerificationResult {
     val credentialsVerifier = CredentialsVerifier()
-    return credentialsVerifier.verify(farmerVc, CredentialFormat.LDP_VC)
+    val result = credentialsVerifier.verify(farmerVc, CredentialFormat.LDP_VC, walletCache,ttlMillis)
+    return result
 }
 
 @Preview(showBackground = true)

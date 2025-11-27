@@ -1,5 +1,6 @@
 package io.mosip.vercred.vcverifier.utils
 
+import WalletAwareDocumentLoader
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foundation.identity.jsonld.ConfigurableDocumentLoader
@@ -12,6 +13,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES2
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_ES256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST
+import io.mosip.vercred.vcverifier.data.CacheEntry
 import io.mosip.vercred.vcverifier.data.DataModel
 import io.mosip.vercred.vcverifier.data.VerificationResult
 import io.mosip.vercred.vcverifier.data.VerificationStatus
@@ -26,11 +28,14 @@ import java.security.MessageDigest
 import java.security.PublicKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.text.Charsets.UTF_8
 
 object Util {
 
     var documentLoader : ConfigurableDocumentLoader? = null
+    var walletCache: MutableMap<String, CacheEntry> = ConcurrentHashMap()
+    var ttlMillis: Long = 30 * 60 * 1000
 
     val SUPPORTED_JWS_ALGORITHMS = setOf(
         JWS_PS256_SIGN_ALGO_CONST,
@@ -45,7 +50,7 @@ object Util {
 
     fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
         return documentLoader ?: run {
-            val loader = ConfigurableDocumentLoader()
+            val loader = WalletAwareDocumentLoader(ttlMillis,walletCache)
             loader.isEnableHttps = true
             loader.isEnableHttp = true
             loader.isEnableFile = false
