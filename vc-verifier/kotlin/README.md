@@ -611,7 +611,7 @@ Each `VCResultWithCredentialStatus` contains:
 | `credentialStatus` | `Map<String, CredentialStatusResult>` | Status check results for each purpose (e.g., revocation, suspension) |
 ---
 
-### Exampl JSON Response for PresentationResultWithCredentialStatus
+### Example JSON Response for PresentationResultWithCredentialStatus
 
 ```json
 {
