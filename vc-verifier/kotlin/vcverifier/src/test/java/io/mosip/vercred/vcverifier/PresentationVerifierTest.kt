@@ -29,6 +29,7 @@ class PresentationVerifierTest {
 
     @BeforeAll
     fun setup() {
+        mockkObject(NetworkManagerClient)
         Util.documentLoader = LocalDocumentLoader
     }
 
@@ -53,6 +54,7 @@ class PresentationVerifierTest {
     @Test
     @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return true for valid presentation verification success JsonWebSignature2020`() {
+        mockHttpResponse("https://api.released.mosip.net/identity-service/02b073b8-aacd-472e-b63f-265bb7ccdd9f/did.json", readClasspathFile("vp/public_key/didIdentityServiceKey.json"))
         val vc = readClasspathFile("vp/JsonWebSignature2020SignedVP-didJws.json")
 
         val verificationResult = PresentationVerifier().verify(vc)
@@ -101,11 +103,9 @@ class PresentationVerifierTest {
     fun `should verify VC and return VC status as revoked`() {
         val mockStatusListJson = readClasspathFile("ldp_vc/mosipRevokedStatusList.json")
         val vp = readClasspathFile("vp/VPWithRevokedVC.json")
+        mockHttpResponse("https://mosip.github.io/inji-config/qa-inji1/mock/did.json", readClasspathFile("vp/public_key/didMockKey.json"))
 
         val realUrl = "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
-
-        mockkObject(NetworkManagerClient.Companion)
-
         mockHttpResponse(realUrl,mockStatusListJson)
 
         val result: PresentationResultWithCredentialStatus =
@@ -131,11 +131,8 @@ class PresentationVerifierTest {
     fun `should verify VC and return VC status as unrevoked`() {
         val mockStatusListJson = readClasspathFile("ldp_vc/mosipUnrevokedStatusList.json")
         val vp = readClasspathFile("vp/VPWithUnrevokedVC.json")
-
+        mockHttpResponse("https://mosip.github.io/inji-config/qa-inji1/mock/did.json", readClasspathFile("vp/public_key/didMockKey.json"))
         val realUrl = "https://injicertify-mock.qa-inji1.mosip.net/v1/certify/credentials/status-list/56622ad1-c304-4d7a-baf0-08836d63c2bf"
-
-        mockkObject(NetworkManagerClient.Companion)
-
         mockHttpResponse(realUrl,mockStatusListJson)
 
         val result: PresentationResultWithCredentialStatus =
