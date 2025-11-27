@@ -16,6 +16,7 @@ import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
 import java.io.ByteArrayOutputStream
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 
 class UtilsTest {
@@ -233,7 +234,8 @@ class UtilsTest {
         val result = VerificationResult(
             verificationStatus = true,
             verificationMessage = "Valid VC",
-            verificationErrorCode = ""
+            verificationErrorCode = "",
+            ConcurrentHashMap()
         )
 
         val status = Util.getVerificationStatus(result)
@@ -245,7 +247,8 @@ class UtilsTest {
         val result = VerificationResult(
             verificationStatus = true,
             verificationMessage = "Expired",
-            verificationErrorCode = CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED
+            verificationErrorCode = CredentialValidatorConstants.ERROR_CODE_VC_EXPIRED,
+            ConcurrentHashMap()
         )
 
         val status = Util.getVerificationStatus(result)
@@ -257,7 +260,8 @@ class UtilsTest {
         val result = VerificationResult(
             verificationStatus = false,
             verificationMessage = "Invalid signature",
-            verificationErrorCode = "SIGNATURE_INVALID"
+            verificationErrorCode = "SIGNATURE_INVALID",
+            ConcurrentHashMap()
         )
 
         val status = Util.getVerificationStatus(result)

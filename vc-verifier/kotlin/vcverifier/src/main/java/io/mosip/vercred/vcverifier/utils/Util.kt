@@ -1,6 +1,7 @@
 package io.mosip.vercred.vcverifier.utils
 
 import WalletAwareDocumentLoader
+import com.apicatalog.jsonld.loader.DocumentLoader
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foundation.identity.jsonld.ConfigurableDocumentLoader
@@ -33,7 +34,7 @@ import kotlin.text.Charsets.UTF_8
 
 object Util {
 
-    var documentLoader : ConfigurableDocumentLoader? = null
+    var documentLoader: DocumentLoader? = null
     var walletCache: MutableMap<String, CacheEntry> = ConcurrentHashMap()
     var ttlMillis: Long = 30 * 60 * 1000
 
@@ -48,14 +49,23 @@ object Util {
         return System.getProperty("java.vm.name")?.contains("Dalvik") ?: false
     }
 
-    fun getConfigurableDocumentLoader(): ConfigurableDocumentLoader {
-        return documentLoader ?: run {
-            val loader = WalletAwareDocumentLoader(ttlMillis,walletCache)
-            loader.isEnableHttps = true
-            loader.isEnableHttp = true
-            loader.isEnableFile = false
-            loader
+    fun getConfigurableDocumentLoader(): DocumentLoader {
+        if (documentLoader != null) return documentLoader!!
+
+        val base = ConfigurableDocumentLoader().apply {
+            isEnableHttps = true
+            isEnableHttp = true
+            isEnableFile = false
         }
+
+        val loader = WalletAwareDocumentLoader(
+            ttlMillis = ttlMillis,
+            walletCache = walletCache,
+            delegate = base
+        )
+
+        documentLoader = loader
+        return loader
     }
 
     fun getVerificationStatus(verificationResult: VerificationResult): VerificationStatus {
