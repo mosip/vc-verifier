@@ -65,7 +65,7 @@ fun VerifyVC(modifier: Modifier = Modifier) {
                     withContext(Dispatchers.Main) {
                         verificationResult.value = result
                     }
-                    walletCache.putAll(result.Cachediff)
+                    walletCache.putAll(result.cachediff)
                 }
             },
             modifier = Modifier

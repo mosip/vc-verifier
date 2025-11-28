@@ -1,25 +1,26 @@
 package io.mosip.vercred.vcverifier.utils
 
-
 import com.apicatalog.jsonld.document.JsonDocument
+import com.apicatalog.jsonld.loader.DocumentLoader
 import com.apicatalog.jsonld.loader.DocumentLoaderOptions
-import foundation.identity.jsonld.ConfigurableDocumentLoader
 import io.mosip.vercred.vcverifier.data.CacheEntry
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.net.URI
 
 class WalletAwareDocumentLoaderTest {
 
-
     private fun jsonDoc(content: String): JsonDocument {
         return JsonDocument.of(content.byteInputStream())
     }
 
-    class FakeDelegateLoader(private val returned: JsonDocument) : ConfigurableDocumentLoader() {
-        override fun loadDocument(url: URI, options: DocumentLoaderOptions) = returned
+    private fun mockDelegate(returned: JsonDocument): DocumentLoader {
+        val mock = mockk<DocumentLoader>()
+        every { mock.loadDocument(any(), any()) } returns returned
+        return mock
     }
-
 
     @Test
     fun `cache hit - return cached document`() {
@@ -27,24 +28,24 @@ class WalletAwareDocumentLoaderTest {
         val url = URI("https://example.com/context")
 
         val cachedDoc = jsonDoc("{\"cached\": true}")
-        val newDoc = jsonDoc("{\"new\": true}")  // should NOT be used
+        val newDoc = jsonDoc("{\"new\": true}")
 
         val walletCache = mutableMapOf(
             url.toString() to CacheEntry(
                 cachedDoc,
-                expiryTime = System.currentTimeMillis() + 5000  // still valid
+                expiryTime = System.currentTimeMillis() + 5000
             )
         )
 
         val loader = WalletAwareDocumentLoader(
             ttlMillis = ttl,
             walletCache = walletCache,
-            delegate = FakeDelegateLoader(newDoc)
+            delegate = mockDelegate(newDoc)
         )
 
         val result = loader.loadDocument(url, DocumentLoaderOptions())
 
-        assertSame(cachedDoc, result)   // returned from cache
+        assertSame(cachedDoc, result)
     }
 
     @Test
@@ -58,14 +59,14 @@ class WalletAwareDocumentLoaderTest {
         val walletCache = mutableMapOf(
             url.toString() to CacheEntry(
                 expiredDoc,
-                expiryTime = System.currentTimeMillis() - 2000 // EXPIRED
+                expiryTime = System.currentTimeMillis() - 1000
             )
         )
 
         val loader = WalletAwareDocumentLoader(
             ttlMillis = ttl,
             walletCache = walletCache,
-            delegate = FakeDelegateLoader(freshDoc)
+            delegate = mockDelegate(freshDoc)
         )
 
         val result = loader.loadDocument(url, DocumentLoaderOptions())
@@ -85,7 +86,7 @@ class WalletAwareDocumentLoaderTest {
         val loader = WalletAwareDocumentLoader(
             ttlMillis = ttl,
             walletCache = walletCache,
-            delegate = FakeDelegateLoader(fetchedDoc)
+            delegate = mockDelegate(fetchedDoc)
         )
 
         val result = loader.loadDocument(url, DocumentLoaderOptions())
@@ -95,3 +96,4 @@ class WalletAwareDocumentLoaderTest {
         assertEquals(fetchedDoc, walletCache[url.toString()]!!.document)
     }
 }
+

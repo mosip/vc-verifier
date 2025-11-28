@@ -1,6 +1,6 @@
 package io.mosip.vercred.vcverifier.utils
 
-import foundation.identity.jsonld.ConfigurableDocumentLoader
+
 import com.apicatalog.jsonld.document.Document
 import com.apicatalog.jsonld.document.JsonDocument
 import com.apicatalog.jsonld.loader.DocumentLoader
@@ -11,7 +11,7 @@ import java.net.URI
 class WalletAwareDocumentLoader(
     private val ttlMillis: Long,
     private val walletCache: MutableMap<String, CacheEntry>,
-    private val delegate: ConfigurableDocumentLoader
+    private val delegate: DocumentLoader
 ) : DocumentLoader {
 
     override fun loadDocument(url: URI, options: DocumentLoaderOptions): Document {
