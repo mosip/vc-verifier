@@ -191,12 +191,13 @@ class CredentialsVerifierTest {
         assertNotNull(result)
         assertEquals(1, result.credentialStatus.size)
 
-        result.credentialStatus.firstNotNullOf { (key, value) ->
-            assertEquals("revocation", key)
-            assertTrue(value.isValid)
-            assertNull(value.error)
-        }
+        val revocationResult = result.credentialStatus["revocation"]
+        assertNotNull(revocationResult)
+        assertTrue(revocationResult!!.isValid)
+        assertNull(revocationResult.error)
+
     }
+
 
     @Test
     @Timeout(20, unit = TimeUnit.SECONDS)
@@ -219,10 +220,10 @@ class CredentialsVerifierTest {
         assertNotNull(result)
         assertEquals(1, result.credentialStatus.size)
 
-        result.credentialStatus.firstNotNullOf { (purpose, result) ->
-            assertEquals("revocation", purpose)
-            assertFalse(result.isValid)
-            assertNull(result.error)
-        }
+        val revocationResult = result.credentialStatus["revocation"]
+        assertNotNull(revocationResult)
+        assertFalse(revocationResult!!.isValid)
+        assertNull(revocationResult.error)
+
     }
 }

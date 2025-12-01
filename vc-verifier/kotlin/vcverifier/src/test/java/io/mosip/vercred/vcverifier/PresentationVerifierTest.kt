@@ -150,6 +150,6 @@ class PresentationVerifierTest {
         val credentialStatusEntry = credentialStatus.entries.first()
         assertEquals("revocation", credentialStatusEntry.key)
         assertNull(credentialStatusEntry.value.error)
-        assert(credentialStatusEntry.value.isValid)
+        assertEquals(credentialStatusEntry.value.isValid, true)
     }
 }
