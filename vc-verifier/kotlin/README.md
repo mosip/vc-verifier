@@ -248,6 +248,12 @@ data class CredentialStatusResult(
 
 ### 6.1 Credential Verifier
 
+The `CredentialVerifier` class provides methods to verify Verifiable Credentials (VCs) across
+multiple formats, including LDP VC, MSO MDOC, and SD-JWT. It supports signature verification, schema
+validation, and credential status checks based on the StatusList2021 specification.
+
+ **Verify and Obtain Credential status**
+
 ```kotlin
 fun verifyAndGetCredentialStatus(
     credential: String,
@@ -267,9 +273,11 @@ fun verifyAndGetCredentialStatus(
     * `statusPurposeList`: List of purposes such as `"revocation"`, `"suspension"` (optional)
 
 * **Returns:**
-    * `CredentialVerificationSummary` ***(Please refer to the breakdown below for structure)***
+    * `CredentialVerificationSummary` — see [CredentialVerificationSummary Breakdown](#credentialverificationsummary-breakdown) below for structure.
 
 ---
+
+**Verify Credential**
 
 ```kotlin
 fun verify(
@@ -293,6 +301,8 @@ fun verify(
       etc.)
 
 ---
+
+**Get Credential Status**
 
 ```kotlin
 fun getCredentialStatus(
@@ -318,6 +328,8 @@ fun getCredentialStatus(
         * `error`: populated if status check failed
 
 ---
+
+**Deprecated Verify Credentials Method**
 
 ```kotlin
 @Deprecated
@@ -481,6 +493,8 @@ The `PresentationVerifier` class is responsible for verifying a Verifiable Prese
 It checks both the proof on the presentation and the integrity of all embedded Verifiable
 Credentials (VCs).
 
+**Verify Presentation**
+
 ```kotlin
 fun verify(presentation: String): PresentationVerificationResult
 ```
@@ -575,6 +589,8 @@ The VP proof is invalid, the first VC is valid, and the second VC is invalid.
 The VP proof is valid, the VCs are expired.
 
 ---
+
+**Verify Presentation with Credential Status**
 
 ```kotlin
 fun verifyAndGetCredentialStatus(
