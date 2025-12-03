@@ -8,10 +8,12 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ERROR_M
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.EXCEPTION_DURING_VERIFICATION
 import io.mosip.vercred.vcverifier.credentialverifier.CredentialVerifierFactory
 import io.mosip.vercred.vcverifier.credentialverifier.VerifiableCredential
+import io.mosip.vercred.vcverifier.data.CacheEntry
 import io.mosip.vercred.vcverifier.data.CredentialStatusResult
 import io.mosip.vercred.vcverifier.data.CredentialVerificationSummary
 import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.data.VerificationResult
+import io.mosip.vercred.vcverifier.utils.Util
 import java.util.logging.Logger
 
 
@@ -37,10 +39,20 @@ class CredentialsVerifier {
             logger.warning("Credential verification failed")
             return false
         }
+
         return true
     }
 
-    fun verify(credential: String, credentialFormat: CredentialFormat): VerificationResult {
+    fun verify(credential: String,
+               credentialFormat: CredentialFormat,
+               walletCache: MutableMap<String, CacheEntry>? = null,
+               expiryTime: Long? = null): VerificationResult {
+        if (walletCache != null) {
+            Util.walletCache = walletCache
+        }
+        expiryTime?.let {
+            Util.ttlMillis = it
+        }
         val credentialVerifier = credentialVerifierFactory.get(credentialFormat)
         val validationStatus = credentialVerifier.validate(credential)
         if (validationStatus.validationMessage.isNotEmpty() && !validationStatus.validationErrorCode.contentEquals(
@@ -50,7 +62,8 @@ class CredentialsVerifier {
             return VerificationResult(
                 false,
                 validationStatus.validationMessage,
-                validationStatus.validationErrorCode
+                validationStatus.validationErrorCode,
+                Util.walletCache
             )
         }
         return try {
@@ -59,19 +72,21 @@ class CredentialsVerifier {
                 return VerificationResult(
                     true,
                     validationStatus.validationMessage,
-                    validationStatus.validationErrorCode
+                    validationStatus.validationErrorCode,
+                    Util.walletCache
                 )
             }
             return VerificationResult(
                 false,
                 ERROR_MESSAGE_VERIFICATION_FAILED,
-                ERROR_CODE_VERIFICATION_FAILED
+                ERROR_CODE_VERIFICATION_FAILED,
+                Util.walletCache
             )
 
         } catch (e: Exception) {
             val errorCode = validationStatus.validationErrorCode.takeIf { !it.isNullOrEmpty() }
                 ?: ERROR_CODE_VERIFICATION_FAILED
-            VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}", errorCode)
+            VerificationResult(false, "$EXCEPTION_DURING_VERIFICATION${e.message}", errorCode,Util.walletCache)
         }
     }
 

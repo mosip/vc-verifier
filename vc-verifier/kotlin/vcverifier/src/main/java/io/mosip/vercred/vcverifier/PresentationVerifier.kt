@@ -12,6 +12,7 @@ import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.ED25519_PROOF_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JSON_WEB_PROOF_TYPE_2020
 import io.mosip.vercred.vcverifier.constants.Shared
+import io.mosip.vercred.vcverifier.data.CacheEntry
 import io.mosip.vercred.vcverifier.data.PresentationVerificationResult
 import io.mosip.vercred.vcverifier.data.PresentationResultWithCredentialStatus
 import io.mosip.vercred.vcverifier.data.VCResult
@@ -141,7 +142,7 @@ class PresentationVerifier {
     private fun getVCVerificationResults(verifiableCredentials: JSONArray): List<VCResult> {
         return verifiableCredentials.asIterable().map { item ->
             val verificationResult: VerificationResult =
-                credentialsVerifier.verify((item as JSONObject).toString(), CredentialFormat.LDP_VC)
+                credentialsVerifier.verify((item as JSONObject).toString(), CredentialFormat.LDP_VC, mutableMapOf<String, CacheEntry>())
             val singleVCVerification: VerificationStatus =
                 Util.getVerificationStatus(verificationResult)
 

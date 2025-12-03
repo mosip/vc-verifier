@@ -1,5 +1,6 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
+import com.apicatalog.jsonld.loader.DocumentLoader
 import com.nimbusds.jose.JWSObject
 import foundation.identity.jsonld.ConfigurableDocumentLoader
 import foundation.identity.jsonld.JsonLDObject
@@ -32,7 +33,7 @@ class LdpVerifier {
     fun verify(credential: String): Boolean {
 
         logger.info("Received Credentials Verification - Start")
-        val confDocumentLoader: ConfigurableDocumentLoader = Util.getConfigurableDocumentLoader()
+        val confDocumentLoader: DocumentLoader = Util.getConfigurableDocumentLoader()
         val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(credential)
         vcJsonLdObject.documentLoader = confDocumentLoader
 

@@ -1,12 +1,13 @@
 package io.mosip.vercred.vcverifier.data
+import com.apicatalog.jsonld.document.JsonDocument
 
 import io.mosip.vercred.vcverifier.exception.StatusCheckException
 
 data class VerificationResult(
     var verificationStatus: Boolean,
     var verificationMessage: String = "",
-    var verificationErrorCode: String
-
+    var verificationErrorCode: String,
+    val cachediff: Map<String, CacheEntry>
 )
 
 data class PresentationVerificationResult(
@@ -64,4 +65,9 @@ data class CredentialStatusResult(
 data class CredentialVerificationSummary(
     val verificationResult: VerificationResult,
     val credentialStatus: List<CredentialStatusResult>
+)
+
+data class CacheEntry(
+    val document: JsonDocument,
+    val expiryTime: Long
 )
