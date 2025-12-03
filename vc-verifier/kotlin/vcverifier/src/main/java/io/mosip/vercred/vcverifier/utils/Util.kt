@@ -33,6 +33,7 @@ import kotlin.text.Charsets.UTF_8
 
 object Util {
 
+    @Volatile
     var documentLoader: DocumentLoader? = null
     var walletCache: MutableMap<String, CacheEntry> = ConcurrentHashMap()
     var ttlMillis: Long = 30 * 60 * 1000
